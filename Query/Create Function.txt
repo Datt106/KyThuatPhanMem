@@ -1,0 +1,33 @@
+CREATE OR REPLACE FUNCTION fn_DemPhanAnhTheoTrangThai()
+RETURNS TABLE (
+    TrangThai VARCHAR,
+    SoLuong BIGINT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT TrangThaiPhanAnh, COUNT(*)
+    FROM PhanAnh
+    GROUP BY TrangThaiPhanAnh
+    ORDER BY TrangThaiPhanAnh;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Gọi thử:
+-- SELECT * FROM fn_DemPhanAnhTheoTrangThai();
+
+CREATE OR REPLACE FUNCTION fn_LayTenNguoiDung(p_cccd CHAR(12))
+RETURNS VARCHAR AS $$
+DECLARE
+    v_ten VARCHAR;
+BEGIN
+    SELECT User_Name INTO v_ten
+    FROM NguoiDung
+    WHERE CCCD = p_cccd;
+
+    RETURN v_ten;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Gọi thử:
+-- SELECT fn_LayTenNguoiDung('012345678901');

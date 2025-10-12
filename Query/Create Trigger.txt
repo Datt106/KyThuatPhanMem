@@ -1,0 +1,97 @@
+-- Hàm xử lý trigger
+CREATE OR REPLACE FUNCTION fn_update_trangthai_phananh()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Kiểm tra nếu người gửi là cán bộ
+    IF EXISTS (SELECT 1 
+               FROM NguoiDung 
+               WHERE CCCD = NEW.NguoiGui AND VaiTro = 'CanBo') THEN
+        UPDATE PhanAnh
+        SET TrangThaiPhanAnh = 'Đang xử lý'
+        WHERE MaBoxChat = NEW.MaBoxChat 
+          AND TrangThaiPhanAnh = 'Chờ xử lý';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Tạo trigger trên bảng TinNhan
+CREATE TRIGGER trg_update_trangthai
+AFTER INSERT ON TinNhan
+FOR EACH ROW
+EXECUTE FUNCTION fn_update_trangthai_phananh();
+
+
+CREATE OR REPLACE FUNCTION fn_auto_time_tinnhan()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.ThoiGianGui IS NULL THEN
+        NEW.ThoiGianGui := NOW();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_auto_time_tinnhan
+BEFORE INSERT ON TinNhan
+FOR EACH ROW
+EXECUTE FUNCTION fn_auto_time_tinnhan();
+
+
+CREATE OR REPLACE FUNCTION fn_delete_tepdinhkem()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.MaTepDinhKem IS NOT NULL THEN
+        DELETE FROM TepDinhKem WHERE MaTepDinhKem = OLD.MaTepDinhKem;
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_delete_tepdinhkem
+AFTER DELETE ON TinNhan
+FOR EACH ROW
+EXECUTE FUNCTION fn_delete_tepdinhkem();
+
+
+CREATE OR REPLACE FUNCTION fn_an_thongtin_phananh()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.TrangThaiPhanAnh = 'Chờ xử lý' THEN
+        UPDATE NguoiDung
+        SET BaoMatThongTin = TRUE
+        WHERE CCCD = NEW.CCCD;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_an_thongtin
+AFTER INSERT ON PhanAnh
+FOR EACH ROW
+EXECUTE FUNCTION fn_an_thongtin_phananh();
+
+
+CREATE TABLE LogPhanAnh (
+    LogID SERIAL PRIMARY KEY,
+    MaPhanAnh VARCHAR(20),
+    CCCD VARCHAR(20),
+    ThoiGian TIMESTAMP DEFAULT NOW(),
+    HanhDong TEXT
+);
+
+CREATE OR REPLACE FUNCTION fn_log_phananh()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO LogPhanAnh (MaPhanAnh, CCCD, HanhDong)
+    VALUES (NEW.MaPhanAnh, NEW.CCCD, 'Người dân gửi phản ánh mới');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_log_phananh
+AFTER INSERT ON PhanAnh
+FOR EACH ROW
+EXECUTE FUNCTION fn_log_phananh();
+
+

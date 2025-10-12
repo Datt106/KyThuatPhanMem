@@ -1,0 +1,49 @@
+-- ================================================
+-- 1. BẢNG NGUOIDUNG
+-- ================================================
+-- Tìm kiếm nhanh theo tên người dùng hoặc vai trò
+CREATE INDEX idx_nguoidung_username ON NguoiDung (User_Name);
+CREATE INDEX idx_nguoidung_vaitro ON NguoiDung (VaiTro);
+
+-- ================================================
+-- 2. BẢNG DIACHI
+-- ================================================
+-- Tìm kiếm nhanh theo Tỉnh, Xã/Phường
+CREATE INDEX idx_diachi_tinh ON DiaChi (Tinh);
+CREATE INDEX idx_diachi_xaphuong ON DiaChi (XaPhuong);
+
+-- ================================================
+-- 3. BẢNG DIACHI_NGUOIDUNG
+-- ================================================
+-- Giúp truy vấn nhanh các địa chỉ theo người hoặc loại địa chỉ
+CREATE INDEX idx_diachi_nguoidung_cccd ON DiaChiNguoiDung (CCCD);
+CREATE INDEX idx_diachi_nguoidung_loai ON DiaChiNguoiDung (LoaiDiaChi);
+
+-- ================================================
+-- 4. BẢNG PHANANH
+-- ================================================
+-- Tăng tốc truy vấn phản ánh theo người dân, địa chỉ, trạng thái
+CREATE INDEX idx_phananh_cccd ON PhanAnh (CCCD);
+CREATE INDEX idx_phananh_diachi ON PhanAnh (MaDiaChi);
+CREATE INDEX idx_phananh_trangthai ON PhanAnh (TrangThaiPhanAnh);
+
+-- ================================================
+-- 5. BẢNG BOXCHAT
+-- ================================================
+-- Giúp tìm box chat nhanh theo người dân hoặc cán bộ
+CREATE INDEX idx_boxchat_canbo ON BoxChat (CCCD_CanBo);
+CREATE INDEX idx_boxchat_nguoidan ON BoxChat (CCCD_NguoiDan);
+
+-- ================================================
+-- 6. BẢNG TINNHAN
+-- ================================================
+-- Tăng tốc tìm tin nhắn theo box chat và người gửi
+CREATE INDEX idx_tinnhan_boxchat ON TinNhan (MaBoxChat);
+CREATE INDEX idx_tinnhan_nguoigui ON TinNhan (NguoiGui);
+CREATE INDEX idx_tinnhan_thoigian ON TinNhan (ThoiGianGui DESC);
+
+-- ================================================
+-- 7. BẢNG TEPDINHKEM
+-- ================================================
+-- (Không cần index bổ sung vì có khóa chính, nhưng nếu nhiều file có thể thêm)
+CREATE INDEX idx_tep_dinh_kem_duongdan ON TepDinhKem (DuongDan);

@@ -1,0 +1,71 @@
+CREATE OR REPLACE PROCEDURE sp_ThemPhanAnh(
+    p_cccd CHAR(12),
+    p_madiadi INT,
+    p_loaiphananh VARCHAR,
+    p_mota TEXT,
+    p_matdinhkem INT DEFAULT NULL
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra người gửi tồn tại
+    IF NOT EXISTS (SELECT 1 FROM NguoiDung WHERE CCCD = p_cccd) THEN
+        RAISE EXCEPTION 'Người dùng với CCCD % không tồn tại', p_cccd;
+    END IF;
+
+    -- Thêm phản ánh mới
+    INSERT INTO PhanAnh (CCCD, MaDiaChi, LoaiPhanAnh, MoTa, MaTepDinhKem, TrangThaiPhanAnh)
+    VALUES (p_cccd, p_madiadi, p_loaiphananh, p_mota, p_matdinhkem, 'ChuaXuLy');
+END;
+$$;
+
+-- Gọi thử:
+-- CALL sp_ThemPhanAnh('012345678901', 1, 'Môi trường', 'Có rác thải chưa thu gom', NULL);
+
+CREATE OR REPLACE PROCEDURE sp_CapNhatTrangThaiPhanAnh(
+    p_maphananh INT,
+    p_trangthai VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_trangthai NOT IN ('ChuaXuLy', 'DangXuLy', 'DaXuLy') THEN
+        RAISE EXCEPTION 'Trạng thái không hợp lệ: %', p_trangthai;
+    END IF;
+
+    UPDATE PhanAnh
+    SET TrangThaiPhanAnh = p_trangthai
+    WHERE MaPhanAnh = p_maphananh;
+
+    IF NOT FOUND THEN
+        RAISE NOTICE 'Không tìm thấy phản ánh với mã %', p_maphananh;
+    END IF;
+END;
+$$;
+
+-- Gọi thử:
+-- CALL sp_CapNhatTrangThaiPhanAnh(1, 'DangXuLy');
+
+CREATE OR REPLACE PROCEDURE sp_ThemTinNhan(
+    p_maboxchat INT,
+    p_nguoigui CHAR(12),
+    p_noidung TEXT,
+    p_matdinhkem INT DEFAULT NULL
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra box chat tồn tại
+    IF NOT EXISTS (SELECT 1 FROM BoxChat WHERE MaBoxChat = p_maboxchat) THEN
+        RAISE EXCEPTION 'Box chat % không tồn tại', p_maboxchat;
+    END IF;
+
+    -- Thêm tin nhắn mới
+    INSERT INTO TinNhan (MaBoxChat, NguoiGui, NoiDung, MaTepDinhKem, ThoiGianGui, DaDoc)
+    VALUES (p_maboxchat, p_nguoigui, p_noidung, p_matdinhkem, CURRENT_TIMESTAMP, FALSE);
+END;
+$$;
+
+-- Gọi thử:
+-- CALL sp_ThemTinNhan(1, '012345678901', 'Xin chào, tôi đang xử lý phản ánh này');
+
