@@ -1,63 +1,116 @@
--- Hàm xử lý trigger
-CREATE OR REPLACE FUNCTION fn_update_trangthai_phananh()
+-- ================================================
+-- TRIGGER 1: Cập nhật ngày kết thúc địa chỉ cũ
+-- ================================================
+CREATE OR REPLACE FUNCTION fn_cap_nhat_ket_thuc_dia_chi_cu()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Kiểm tra nếu người gửi là cán bộ
-    IF EXISTS (SELECT 1 
-               FROM NguoiDung 
-               WHERE CCCD = NEW.NguoiGui AND VaiTro = 'CanBo') THEN
-        UPDATE PhanAnh
-        SET TrangThaiPhanAnh = 'Đang xử lý'
-        WHERE MaBoxChat = NEW.MaBoxChat 
-          AND TrangThaiPhanAnh = 'Chờ xử lý';
-    END IF;
+    -- Nếu người dân đã có địa chỉ cùng loại chưa kết thúc
+    UPDATE DiaChiNguoiDung
+    SET ThoiDiemKetThuc = CURRENT_DATE
+    WHERE CCCD = NEW.CCCD
+      AND LoaiDiaChi = NEW.LoaiDiaChi
+      AND ThoiDiemKetThuc IS NULL;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Tạo trigger trên bảng TinNhan
-CREATE TRIGGER trg_update_trangthai
+CREATE TRIGGER trg_cap_nhat_ket_thuc_dia_chi_cu
+BEFORE INSERT ON DiaChiNguoiDung
+FOR EACH ROW
+EXECUTE FUNCTION fn_cap_nhat_ket_thuc_dia_chi_cu();
+
+COMMENT ON TRIGGER trg_cap_nhat_ket_thuc_dia_chi_cu ON DiaChiNguoiDung IS
+'Tự động cập nhật ngày kết thúc địa chỉ cũ cùng loại khi người dân thay đổi nơi cư trú/tạm trú/tạm vắng/nơi làm việc.';
+
+-- ================================================
+-- TRIGGER 2A: Tự tạo BoxChat khi có phản ánh mới
+-- ================================================
+CREATE OR REPLACE FUNCTION fn_tao_box_chat_khi_them_phan_anh()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO BoxChat (MaPhanAnh, CCCD_NguoiDan)
+    VALUES (NEW.MaPhanAnh, NEW.CCCD);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_tao_box_chat_khi_them_phan_anh
+AFTER INSERT ON PhanAnh
+FOR EACH ROW
+EXECUTE FUNCTION fn_tao_box_chat_khi_them_phan_anh();
+
+COMMENT ON TRIGGER trg_tao_box_chat_khi_them_phan_anh ON PhanAnh IS
+'Tự động tạo box chat mới cho phản ánh vừa được thêm.';
+
+-- ================================================
+-- TRIGGER 2B: Cập nhật trạng thái phản ánh khi cán bộ gửi tin nhắn
+-- ================================================
+CREATE OR REPLACE FUNCTION fn_cap_nhat_trang_thai_phan_anh()
+RETURNS TRIGGER AS $$
+DECLARE
+    ma_phan_anh INT;
+BEGIN
+    -- Lấy mã phản ánh từ box chat
+    SELECT MaPhanAnh INTO ma_phan_anh
+    FROM BoxChat
+    WHERE MaBoxChat = NEW.MaBoxChat;
+
+    -- Nếu người gửi là cán bộ → đổi trạng thái phản ánh
+    IF EXISTS (
+        SELECT 1 FROM NguoiDung
+        WHERE CCCD = NEW.NguoiGui AND VaiTro = 'CanBo'
+    ) THEN
+        UPDATE PhanAnh
+        SET TrangThaiPhanAnh = 'DangXuLy'
+        WHERE MaPhanAnh = ma_phan_anh;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_cap_nhat_trang_thai_phan_anh
 AFTER INSERT ON TinNhan
 FOR EACH ROW
-EXECUTE FUNCTION fn_update_trangthai_phananh();
+EXECUTE FUNCTION fn_cap_nhat_trang_thai_phan_anh();
 
+COMMENT ON TRIGGER trg_cap_nhat_trang_thai_phan_anh ON TinNhan IS
+'Tự động cập nhật phản ánh sang "Đang xử lý" khi cán bộ gửi tin nhắn.';
 
-CREATE OR REPLACE FUNCTION fn_auto_time_tinnhan()
+-- ================================================
+-- TRIGGER 3: Xóa hộ khẩu khi không còn thành viên
+-- ================================================
+CREATE OR REPLACE FUNCTION fn_xoa_ho_khau_khi_khong_con_thanh_vien()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.ThoiGianGui IS NULL THEN
-        NEW.ThoiGianGui := NOW();
+    -- Nếu hộ khẩu không còn thành viên nào
+    IF NOT EXISTS (
+        SELECT 1 FROM ThanhVienHoKhau WHERE MaHoKhau = OLD.MaHoKhau
+    ) THEN
+        DELETE FROM HoKhau WHERE MaHoKhau = OLD.MaHoKhau;
     END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_auto_time_tinnhan
-BEFORE INSERT ON TinNhan
-FOR EACH ROW
-EXECUTE FUNCTION fn_auto_time_tinnhan();
-
-
-CREATE OR REPLACE FUNCTION fn_delete_tepdinhkem()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.MaTepDinhKem IS NOT NULL THEN
-        DELETE FROM TepDinhKem WHERE MaTepDinhKem = OLD.MaTepDinhKem;
-    END IF;
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_delete_tepdinhkem
-AFTER DELETE ON TinNhan
+CREATE TRIGGER trg_xoa_ho_khau_khi_khong_con_thanh_vien
+AFTER DELETE ON ThanhVienHoKhau
 FOR EACH ROW
-EXECUTE FUNCTION fn_delete_tepdinhkem();
+EXECUTE FUNCTION fn_xoa_ho_khau_khi_khong_con_thanh_vien();
 
+COMMENT ON TRIGGER trg_xoa_ho_khau_khi_khong_con_thanh_vien ON ThanhVienHoKhau IS
+'Tự động xóa sổ hộ khẩu khi không còn thành viên nào.';
 
-CREATE OR REPLACE FUNCTION fn_an_thongtin_phananh()
+-- ================================================
+-- TRIGGER 4: Ẩn thông tin người dân khi phản ánh chưa được xử lý
+-- ================================================
+CREATE OR REPLACE FUNCTION fn_an_thong_tin_nguoi_dan()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.TrangThaiPhanAnh = 'Chờ xử lý' THEN
+    IF NEW.TrangThaiPhanAnh = 'ChuaXuLy' THEN
         UPDATE NguoiDung
         SET BaoMatThongTin = TRUE
         WHERE CCCD = NEW.CCCD;
@@ -66,32 +119,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_an_thongtin
-AFTER INSERT ON PhanAnh
+CREATE TRIGGER trg_an_thong_tin_nguoi_dan
+AFTER INSERT OR UPDATE ON PhanAnh
 FOR EACH ROW
-EXECUTE FUNCTION fn_an_thongtin_phananh();
+EXECUTE FUNCTION fn_an_thong_tin_nguoi_dan();
 
-
-CREATE TABLE LogPhanAnh (
-    LogID SERIAL PRIMARY KEY,
-    MaPhanAnh VARCHAR(20),
-    CCCD VARCHAR(20),
-    ThoiGian TIMESTAMP DEFAULT NOW(),
-    HanhDong TEXT
-);
-
-CREATE OR REPLACE FUNCTION fn_log_phananh()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO LogPhanAnh (MaPhanAnh, CCCD, HanhDong)
-    VALUES (NEW.MaPhanAnh, NEW.CCCD, 'Người dân gửi phản ánh mới');
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_log_phananh
-AFTER INSERT ON PhanAnh
-FOR EACH ROW
-EXECUTE FUNCTION fn_log_phananh();
-
-
+COMMENT ON TRIGGER trg_an_thong_tin_nguoi_dan ON PhanAnh IS
+'Tự động ẩn thông tin người dân khi phản ánh chưa được xử lý.';
