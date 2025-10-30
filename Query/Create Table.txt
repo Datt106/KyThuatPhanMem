@@ -9,9 +9,11 @@ CREATE DATABASE "QuanLyPhanAnh";
 -- ================================================
 CREATE TABLE NguoiDung (
     CCCD CHAR(12) PRIMARY KEY,
+    Name VARCHAR(50),
     SDT VARCHAR(15),
     NgaySinh DATE,
     GioiTinh VARCHAR(10),
+    DanToc VARCHAR(30),
     VaiTro VARCHAR(20) CHECK (VaiTro IN ('NguoiDan', 'CanBo')),
     User_Name VARCHAR(50) UNIQUE NOT NULL,
     MatKhau VARCHAR(255) NOT NULL,
@@ -38,6 +40,8 @@ CREATE TABLE DiaChiNguoiDung (
     MaDiaChi INT REFERENCES DiaChi(MaDiaChi) ON DELETE CASCADE,
     CCCD CHAR(12) REFERENCES NguoiDung(CCCD) ON DELETE CASCADE,
     LoaiDiaChi VARCHAR(20) CHECK (LoaiDiaChi IN ('CuTru', 'TamTru', 'NoiLamViec')),
+    ThoiDiemXacNhan DATE,
+    ThoiDiemKetThuc DATE,
     PRIMARY KEY (MaDiaChi, CCCD, LoaiDiaChi)
 );
 COMMENT ON TABLE DiaChiNguoiDung IS 'Xác định loại địa chỉ (cư trú, tạm trú, nơi làm việc) của từng người.';
@@ -89,3 +93,31 @@ CREATE TABLE TinNhan (
     MaTepDinhKem INT REFERENCES TepDinhKem(MaTepDinhKem)
 );
 COMMENT ON TABLE TinNhan IS 'Lưu tin nhắn giữa người dân và cán bộ trong từng box chat.';
+
+-- ================================================
+-- 8. BẢNG HO_KHAU
+-- ================================================
+CREATE TABLE HoKhau (
+    MaHoKhau SERIAL PRIMARY KEY,
+    MaDiaChi INT REFERENCES DiaChi(MaDiaChi) ON DELETE SET NULL,
+    NgayCap DATE DEFAULT CURRENT_DATE,
+    GhiChu TEXT
+);
+COMMENT ON TABLE HoKhau IS 'Lưu thông tin hộ khẩu, gắn với một địa chỉ cư trú.';
+COMMENT ON COLUMN HoKhau.SoHoKhau IS 'Số sổ hộ khẩu duy nhất.';
+
+-- ================================================
+-- 9. BẢNG THANH_VIEN_HO_KHAU
+-- ================================================
+CREATE TABLE ThanhVienHoKhau (
+    MaHoKhau INT REFERENCES HoKhau(MaHoKhau) ON DELETE CASCADE,
+    CCCD CHAR(12) REFERENCES NguoiDung(CCCD) ON DELETE CASCADE,
+    QuanHeChuHo VARCHAR(50) CHECK (
+        QuanHeChuHo IN ('ChuHo', 'Vo/Chong', 'Con', 'Cha', 'Me', 'Anh/Chi/Em', 'Khac')
+    ),
+    NgayBatDau DATE DEFAULT CURRENT_DATE,
+    NgayKetThuc DATE,  -- nếu rời hộ thì điền ngày kết thúc
+    PRIMARY KEY (MaHoKhau, CCCD)
+);
+COMMENT ON TABLE ThanhVienHoKhau IS 'Liên kết người dân với hộ khẩu và quan hệ với chủ hộ.';
+COMMENT ON COLUMN ThanhVienHoKhau.QuanHeChuHo IS 'Quan hệ của thành viên với chủ hộ.';
