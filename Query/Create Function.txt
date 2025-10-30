@@ -1,5 +1,5 @@
 -- ========================================================
--- 📊 CÁC FUNCTION THỐNG KÊ DÂN CƯ / LÀM VIỆC
+--  CÁC FUNCTION THỐNG KÊ DÂN CƯ / LÀM VIỆC
 -- (Dựa trên cấu trúc bảng DiaChi và DiaChiNguoiDung hiện tại)
 -- ========================================================
 
