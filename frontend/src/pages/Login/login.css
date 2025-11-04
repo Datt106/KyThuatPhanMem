@@ -1,0 +1,95 @@
+.login-container {
+  min-height: 100vh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url("../../assets/background.png");
+  background-size: cover;      
+  background-position: center;
+  overflow:hidden;
+}
+
+.login-container form {
+  background: rgba(255, 255, 255, 0.9); 
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  width: 350px;
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+.login-form{
+  background: rgba(255, 255, 255, 0.95);
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  width: 350px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  z-index: 1;
+}
+.login-form h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-weight: 600;
+}
+.error {
+  color: red;
+  margin-top: 10px;
+}
+.register-link {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.register-link a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+  color: #3730a3; 
+}
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 35px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.rotating-corner-image {
+  position: absolute;
+  bottom: 30px;    
+  left: 40px;       
+  width: 120px;     
+  opacity: 0.4;     
+  animation: rotate 20s linear infinite;
+  pointer-events: none; 
+}
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
