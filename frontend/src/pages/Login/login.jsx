@@ -1,0 +1,66 @@
+import { useState } from "react";
+import InputField from "../../components/InputField";
+import Button from "../../components/Button";
+import { login } from "../../services/authservice";
+import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import "./login.css"; 
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await login(email, password);
+      if (res.success) {
+        window.location.href = "/home";
+      } else {
+        setError(res.message || "Sai tài khoản hoặc mật khẩu");
+      }
+    } catch (err) {
+      setError("Lỗi kết nối đến server");
+    }
+  };
+
+  return (
+    <div className="login-container">
+    <img src="/assets/drum.png" alt="Rotating logo" className="rotating-corner-image" />
+      <form onSubmit={handleLogin} className ="login-form">
+        <h2>Đăng nhập</h2>
+       <div className="input-group">
+        <label className="input-label">Email</label>
+        <input
+          type="email"
+          placeholder="Nhập email..."
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="input-field"
+          />
+        </div>
+        <div className="input-group">
+        <label className="input-label">Mật Khẩu:</label> 
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="password-input"
+          />
+          <span
+            className="toggle-password"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+          </span>
+        </div>
+        <Button text="Đăng nhập" type="submit" />
+        <p className="register-link">
+          Chưa có tài khoản?{" "}
+          <a href="/register">Đăng ký ngay</a>
+        </p>
+        {error && <p className="error">{error}</p>}
+      </form>
+    </div>
+  );
+}
