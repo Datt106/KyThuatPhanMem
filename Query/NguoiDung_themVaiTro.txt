@@ -1,0 +1,6 @@
+ALTER TABLE NguoiDung 
+    DROP CONSTRAINT nguoidung_vaitro_check;
+
+ALTER TABLE NguoiDung
+    ADD CONSTRAINT nguoidung_vaitro_check
+    CHECK (VaiTro IN ('NguoiDan', 'CanBo', 'QuanLy'));
