@@ -3,4 +3,5 @@ ALTER TABLE NguoiDung
 
 ALTER TABLE NguoiDung
     ADD CONSTRAINT nguoidung_vaitro_check
-    CHECK (VaiTro IN ('NguoiDan', 'CanBo', 'QuanLy'));
+    CHECK (VaiTro IN ('NguoiDan', 'CanBo', 'QuanLy', 'Admin'));
+
