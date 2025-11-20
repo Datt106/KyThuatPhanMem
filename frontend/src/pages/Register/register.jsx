@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import InputField from "../../components/InputField";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Button from "../../components/Button";
-import { registerUser } from "../../services/register";
+import { registerUser } from "../../services/authservice";
 import "./register.css";
-import Select from "react-select";
+import Select from "react-select"; // dropdown chọn giới tính và dân tộc
 const genderOptions = [
   { value: "Nam", label: "Nam" },
   { value: "Nữ", label: "Nữ" },
@@ -19,15 +19,15 @@ const ethnicOptions = [
 ];
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    CCCD: "",
-    Name: "",
-    SDT: "",
-    NgaySinh: "",
-    GioiTinh: null,
-    DanToc: null,
-    VaiTro: "NguoiDan",
-    User_Name: "",
-    MatKhau: "",
+    cccd: "",
+    name: "",
+    sdt: "",
+    ngaysinh: "",
+    gioitinh: null,
+    dantoc: null,
+    vaitro: "NguoiDan",
+    user_name: "",
+    matkhau: "",
   });
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -36,17 +36,22 @@ export default function RegisterPage() {
   };
 
   const handleGenderChange = (selectedOption) => {
-    setFormData({ ...formData, GioiTinh: selectedOption });
+    setFormData({ ...formData, gioitinh: selectedOption });
   };
 
   const handleEthnicChange = (selectedOption) => {
-    setFormData({ ...formData, DanToc: selectedOption });
+    setFormData({ ...formData, dantoc: selectedOption });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await registerUser(formData);
+      const submitData = {
+        ...formData,
+        gioitinh: formData.gioitinh ? formData.gioitinh.value : null,
+        dantoc: formData.dantoc ? formData.dantoc.value : null,
+      };
+      const res = await registerUser(submitData); // Gọi API đăng ký
       if (res.success) {
         setMessage("Đăng ký thành công! Hãy đăng nhập.");
       } else {
@@ -67,9 +72,9 @@ export default function RegisterPage() {
               <label className="input-label">CCCD<span className="required">*</span>:</label>
               <input
                 type="text"
-                name="CCCD"
+                name="cccd"
                 placeholder="Nhập CCCD"
-                value={formData.CCCD}
+                value={formData.cccd}
                 onChange={handleChange}
                 className="input-field"
                 required
@@ -79,9 +84,9 @@ export default function RegisterPage() {
               <label className="input-label">Họ và tên<span className="required">*</span>:</label>
               <input
                 type="text"
-                name="Name"
+                name="name"
                 placeholder="Nhập họ và tên"
-                value={formData.Name}
+                value={formData.name}
                 onChange={handleChange}
                 className="input-field"
                 required
@@ -91,8 +96,8 @@ export default function RegisterPage() {
               <label className="input-label">Ngày sinh<span className="required">*</span>:</label>
               <input
                 type="date"
-                name="NgaySinh"
-                value={formData.NgaySinh}
+                name="ngaysinh"
+                value={formData.ngaysinh}
                 onChange={handleChange}
                 className="input-field"
               />
@@ -101,7 +106,7 @@ export default function RegisterPage() {
               <label className="input-label">Giới tính<span className="required">*</span>:</label>
               <Select
                 options={genderOptions}
-                value={formData.GioiTinh}
+                value={formData.gioitinh}
                 onChange={handleGenderChange}
                 placeholder="Chọn giới tính"
                 isClearable
@@ -114,9 +119,9 @@ export default function RegisterPage() {
               <label className="input-label">Số điện thoại<span className="required">*</span>:</label>
               <input
                 type="text"
-                name="SDT"
+                name="sdt"
                 placeholder="Nhập số điện thoại"
-                value={formData.SDT}
+                value={formData.sdt}
                 onChange={handleChange}
                 className="input-field"
                 required
@@ -126,7 +131,7 @@ export default function RegisterPage() {
               <label className="input-label">Dân tộc<span className="required">*</span>:</label>
               <Select
                 options={ethnicOptions}
-                value={formData.DanToc}
+                value={formData.dantoc}
                 onChange={handleEthnicChange}
                 placeholder="Chọn dân tộc"
                 isClearable
@@ -138,9 +143,9 @@ export default function RegisterPage() {
               <label className="input-label">Tên đăng nhập<span className="required">*</span>:</label>
               <input
                 type="text"
-                name="User_Name"
+                name="user_name"
                 placeholder="Nhập tên đăng nhập"
-                value={formData.User_Name}
+                value={formData.user_name}
                 onChange={handleChange}
                 className="input-field"
                 required
@@ -151,9 +156,9 @@ export default function RegisterPage() {
               <div className="password-wrapper">
                 <input
                   type={showPassword ? "text" : "password"}
-                  name="MatKhau"
+                  name="matkhau"
                   placeholder="Nhập mật khẩu"
-                  value={formData.MatKhau}
+                  value={formData.matkhau}
                   onChange={handleChange}
                   className="input-field"
                   required

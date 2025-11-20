@@ -7,12 +7,6 @@ export default function HomePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/home`)
-      .then(res => res.json())
-      .then(data => setItems(data))
-      .catch(err => console.error(err));
-  }, []);
-  useEffect(() => {
     if (items.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % items.length);

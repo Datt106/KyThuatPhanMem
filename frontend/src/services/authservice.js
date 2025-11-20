@@ -1,11 +1,21 @@
-import api from "./api";
+import API from "./api";
 
-export const login = async (email, password) => {
-  const res = await api.post("/login", { email, password });
-  return res.data;
+// Hàm đăng ký
+export const registerUser = async (userData) => {
+  try {
+    const res = await API.post("/auth/register", userData);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };
 
-export const register = async (email, password) => {
-  const res = await api.post("/register", { email, password });
-  return res.data;
+// Hàm đăng nhập
+export const loginUser = async (userData) => {
+  try {
+    const res = await API.post("/auth/login", userData);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };

@@ -1,24 +1,23 @@
 import { useState } from "react";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
-import { login } from "../../services/authservice";
+import { loginUser } from "../../services/authservice";
 import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import "./login.css"; 
+import { useNavigate } from "react-router-dom";
+import "./login.css"; // CSS riêng cho trang đăng nhập
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const [cccd, setCccd] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await login(email, password);
-      if (res.success) {
-        window.location.href = "/home";
-      } else {
-        setError(res.message || "Sai tài khoản hoặc mật khẩu");
-      }
+      const userdata = {cccd, matkhau: password};
+      const res = await loginUser(userdata);
+      navigate("/");
     } catch (err) {
       setError("Lỗi kết nối đến server");
     }
@@ -30,12 +29,12 @@ export default function LoginPage() {
       <form onSubmit={handleLogin} className ="login-form">
         <h2>Đăng nhập</h2>
        <div className="input-group">
-        <label className="input-label">Email</label>
+        <label className="input-label">CCCD</label>
         <input
-          type="email"
-          placeholder="Nhập email..."
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Nhập CCCD..."
+          value={cccd}
+          onChange={(e) => setCccd(e.target.value)}
           className="input-field"
           />
         </div>
