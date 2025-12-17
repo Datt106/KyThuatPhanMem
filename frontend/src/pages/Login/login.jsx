@@ -2,9 +2,8 @@ import { useState } from "react";
 import InputField from "../../components/InputField";
 import Button from "../../components/Button";
 import { loginUser } from "../../services/authservice";
-import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import "./login.css"; // CSS riêng cho trang đăng nhập
+import "./login.css"; 
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -17,6 +16,8 @@ export default function LoginPage() {
     try {
       const userdata = {cccd, matkhau: password};
       const res = await loginUser(userdata);
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
       navigate("/");
     } catch (err) {
       setError("Lỗi kết nối đến server");

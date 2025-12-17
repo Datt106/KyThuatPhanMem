@@ -8,7 +8,7 @@ export default function Navbar() {
         <li><a href="/home" className="active">Trang chính</a></li>
         <li><a href="/phan-anh">Phản ánh</a></li>
         <li><a href="/thong-bao">Thông báo</a></li>
-        <li><a href="/ho-so">Hồ sơ</a></li>
+        <li><a href="/profile">Hồ sơ</a></li>
       </ul>
     </nav>
   );

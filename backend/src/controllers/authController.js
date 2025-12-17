@@ -2,7 +2,6 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Hàm đăng ký
 exports.register = async (req, res) => {
   const {
     cccd,
@@ -36,7 +35,6 @@ exports.register = async (req, res) => {
     // hash mật khẩu
     const hashedPass = await bcrypt.hash(matkhau, 10);
 
-    // insert DB và trả về user vừa tạo
     const allowedRoles = ['NguoiDan', 'CanBo'];
     const vaitroValue = allowedRoles.includes(vaitro) ? vaitro : 'NguoiDan'; // mặc định 'NguoiDan'
 
@@ -66,12 +64,10 @@ exports.register = async (req, res) => {
   }
 };
 
-// Hàm đăng nhập
 exports.login = async (req, res) => {
   const { cccd, matkhau } = req.body;
 
   try {
-    // tìm user theo cccd
     const userFind = await pool.query(
       "SELECT * FROM nguoidung WHERE cccd = $1",
       [cccd]
@@ -83,13 +79,10 @@ exports.login = async (req, res) => {
 
     const user = userFind.rows[0];
 
-    // check password
     const isMatch = await bcrypt.compare(matkhau, user.matkhau);
     if (!isMatch) {
       return res.status(400).json({ message: "Sai mật khẩu" });
-    }
-
-    // tạo JWT token để trả về  
+    } 
     const token = jwt.sign(
       {
         cccd: user.cccd,
