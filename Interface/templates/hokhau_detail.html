@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Chi tiết Hộ khẩu HK{{ hokhau[0] }} - Quản lý Dân cư{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-house-door me-2"></i>Chi tiết Hộ khẩu
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('hokhau_list') }}">Hộ khẩu</a></li>
+                            <li class="breadcrumb-item active">HK{{ hokhau[0] }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{{ url_for('hokhau_list') }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-1"></i>Quay lại
+                    </a>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Thông tin hộ khẩu -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-info-circle me-2"></i>Thông tin Hộ khẩu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-house-door-fill text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <h4 class="fw-bold text-primary mb-0">HK{{ hokhau[0] }}</h4>
+                        <small class="text-muted">Mã hộ khẩu</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="info-list">
+                        <div class="info-item d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted"><i class="bi bi-geo-alt me-2"></i>Tỉnh/TP:</span>
+                            <span class="fw-medium">{{ hokhau[1] or 'N/A' }}</span>
+                        </div>
+                        <div class="info-item d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted"><i class="bi bi-building me-2"></i>Xã/Phường:</span>
+                            <span class="fw-medium">{{ hokhau[2] or 'N/A' }}</span>
+                        </div>
+                        <div class="info-item d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted"><i class="bi bi-house me-2"></i>Chi tiết:</span>
+                            <span class="fw-medium text-end" style="max-width: 60%;">{{ hokhau[3] or 'N/A' }}</span>
+                        </div>
+                        <div class="info-item d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted"><i class="bi bi-calendar me-2"></i>Ngày cấp:</span>
+                            <span class="fw-medium">
+                                {% if hokhau[4] %}
+                                    {{ hokhau[4].strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted"><i class="bi bi-people me-2"></i>Số thành viên:</span>
+                            <span class="badge bg-success">{{ thanhvien|length }}</span>
+                        </div>
+                        {% if hokhau[5] %}
+                        <div class="info-item py-2">
+                            <span class="text-muted d-block mb-1"><i class="bi bi-journal-text me-2"></i>Ghi chú:</span>
+                            <p class="mb-0 text-dark">{{ hokhau[5] }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Danh sách thành viên -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="bi bi-people text-primary me-2"></i>Danh sách Thành viên
+                            <span class="badge bg-primary ms-2">{{ thanhvien|length }}</span>
+                        </h5>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="bi bi-person-plus me-1"></i>Thêm thành viên
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 ps-4">CCCD</th>
+                                    <th class="border-0">Họ và tên</th>
+                                    <th class="border-0">Ngày sinh</th>
+                                    <th class="border-0">Giới tính</th>
+                                    <th class="border-0">Quan hệ chủ hộ</th>
+                                    <th class="border-0">SĐT</th>
+                                    <th class="border-0 text-center pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if thanhvien %}
+                                    {% for tv in thanhvien %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <code class="bg-light p-1 rounded">{{ tv[0]|trim }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-2 
+                                                    {% if tv[6] == 'Chủ hộ' %}bg-primary{% else %}bg-light{% endif %}" 
+                                                    style="width: 36px; height: 36px;">
+                                                    <i class="bi bi-person {% if tv[6] == 'Chủ hộ' %}text-white{% else %}text-muted{% endif %}"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-medium">{{ tv[1] }}</span>
+                                                    {% if tv[6] == 'Chủ hộ' %}
+                                                        <span class="badge bg-primary ms-1">Chủ hộ</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if tv[2] %}
+                                                {{ tv[2].strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if tv[3] == 'Nam' %}
+                                                <span class="badge bg-info bg-opacity-10 text-info">
+                                                    <i class="bi bi-gender-male me-1"></i>Nam
+                                                </span>
+                                            {% elif tv[3] == 'Nữ' %}
+                                                <span class="badge bg-danger bg-opacity-10 text-danger">
+                                                    <i class="bi bi-gender-female me-1"></i>Nữ
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                                {{ tv[6] or 'N/A' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if tv[5] %}
+                                                <a href="tel:{{ tv[5] }}" class="text-decoration-none">
+                                                    <i class="bi bi-telephone me-1"></i>{{ tv[5] }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-secondary" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                {% if tv[6] != 'Chủ hộ' %}
+                                                <button class="btn btn-outline-danger" title="Xóa khỏi hộ">
+                                                    <i class="bi bi-person-x"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="bi bi-people display-4 d-block mb-3 opacity-50"></i>
+                                                <p class="mb-0">Chưa có thành viên trong hộ khẩu</p>
+                                                <small>Hãy thêm thành viên để quản lý</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

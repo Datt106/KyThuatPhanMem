@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Danh sách Nhân khẩu - Quản lý Dân cư{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-people me-2"></i>Quản lý Nhân khẩu
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Nhân khẩu</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-person-plus me-2"></i>Thêm nhân khẩu mới
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search & Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <form class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="bi bi-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" 
+                                       placeholder="Tìm theo CCCD, họ tên, SĐT...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select">
+                                <option selected>Tất cả giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select">
+                                <option selected>Tất cả vai trò</option>
+                                <option value="NguoiDan">Người dân</option>
+                                <option value="CanBo">Cán bộ</option>
+                                <option value="QuanLy">Quản lý</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select">
+                                <option selected>Tất cả dân tộc</option>
+                                <option value="Kinh">Kinh</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-funnel me-1"></i>Lọc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold">
+                            Danh sách Nhân khẩu
+                            <span class="badge bg-primary ms-2">{{ ds_nguoidung|length }}</span>
+                        </h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-download"></i> Export
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-printer"></i> In
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 ps-4">CCCD</th>
+                                    <th class="border-0">Họ và tên</th>
+                                    <th class="border-0">Số điện thoại</th>
+                                    <th class="border-0">Ngày sinh</th>
+                                    <th class="border-0">Giới tính</th>
+                                    <th class="border-0">Dân tộc</th>
+                                    <th class="border-0">Vai trò</th>
+                                    <th class="border-0 text-center pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if ds_nguoidung %}
+                                    {% for nd in ds_nguoidung %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <code class="bg-light p-1 rounded">{{ nd[0]|trim }}</code>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                                    <i class="bi bi-person text-primary"></i>
+                                                </div>
+                                                <span class="fw-medium">{{ nd[1] }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if nd[2] %}
+                                                <a href="tel:{{ nd[2] }}" class="text-decoration-none">
+                                                    <i class="bi bi-telephone me-1 text-muted"></i>{{ nd[2] }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if nd[3] %}
+                                                {{ nd[3].strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if nd[4] == 'Nam' %}
+                                                <span class="badge bg-info bg-opacity-10 text-info">
+                                                    <i class="bi bi-gender-male me-1"></i>Nam
+                                                </span>
+                                            {% elif nd[4] == 'Nữ' %}
+                                                <span class="badge bg-danger bg-opacity-10 text-danger">
+                                                    <i class="bi bi-gender-female me-1"></i>Nữ
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ nd[5] or 'N/A' }}</td>
+                                        <td>
+                                            {% if nd[6] == 'QuanLy' %}
+                                                <span class="badge bg-danger">Quản lý</span>
+                                            {% elif nd[6] == 'CanBo' %}
+                                                <span class="badge bg-warning text-dark">Cán bộ</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Người dân</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-secondary" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="bi bi-people display-4 d-block mb-3 opacity-50"></i>
+                                                <p class="mb-0">Chưa có dữ liệu nhân khẩu</p>
+                                                <small>Hãy thêm nhân khẩu mới để bắt đầu</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                {% if ds_nguoidung %}
+                <div class="card-footer bg-white border-top py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Hiển thị {{ ds_nguoidung|length }} nhân khẩu</small>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">Trước</a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">1</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

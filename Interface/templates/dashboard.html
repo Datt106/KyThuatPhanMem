@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Quản lý Dân cư{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                    </h2>
+                    <p class="text-muted mb-0">Tổng quan hệ thống quản lý dân cư tổ dân phố</p>
+                </div>
+                <div>
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ "now"|string }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <!-- Tổng nhân khẩu -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Tổng Nhân khẩu</p>
+                            <h2 class="fw-bold text-dark mb-0">{{ total_nhankhau }}</h2>
+                            <small class="text-success">
+                                <i class="bi bi-arrow-up"></i> Cập nhật mới nhất
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tổng hộ khẩu -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Tổng Hộ khẩu</p>
+                            <h2 class="fw-bold text-dark mb-0">{{ total_hokhau }}</h2>
+                            <small class="text-info">
+                                <i class="bi bi-house"></i> Đang quản lý
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-house-door-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tổng phản ánh -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Tổng Phản ánh</p>
+                            <h2 class="fw-bold text-dark mb-0">{{ total_phananh }}</h2>
+                            <small class="text-secondary">
+                                <i class="bi bi-chat-dots"></i> Đã tiếp nhận
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-chat-left-text-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chưa xử lý -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase fw-semibold">Chưa xử lý</p>
+                            <h2 class="fw-bold text-dark mb-0">{{ total_chuaxuly }}</h2>
+                            <small class="text-warning">
+                                <i class="bi bi-exclamation-circle"></i> Cần xử lý
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('hokhau_list') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm hộ khẩu
+                        </a>
+                        <a href="{{ url_for('nguoidung_list') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-person-plus me-1"></i> Thêm nhân khẩu
+                        </a>
+                        <a href="{{ url_for('phananh_list') }}" class="btn btn-outline-info">
+                            <i class="bi bi-eye me-1"></i> Xem phản ánh
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Danh sách Hộ khẩu -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="bi bi-house-door text-primary me-2"></i>Danh sách Hộ khẩu
+                        </h5>
+                        <a href="{{ url_for('hokhau_list') }}" class="btn btn-sm btn-outline-primary">
+                            Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 ps-4">Mã HK</th>
+                                    <th class="border-0">Địa chỉ</th>
+                                    <th class="border-0">Xã/Phường</th>
+                                    <th class="border-0">Tỉnh/Thành phố</th>
+                                    <th class="border-0 text-center">Số thành viên</th>
+                                    <th class="border-0">Ngày cấp</th>
+                                    <th class="border-0 text-center pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if ds_hokhau %}
+                                    {% for hk in ds_hokhau %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">
+                                                HK{{ hk[0] }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="text-dark">{{ hk[3] or 'Chưa cập nhật' }}</span>
+                                        </td>
+                                        <td>{{ hk[2] or 'N/A' }}</td>
+                                        <td>{{ hk[1] or 'N/A' }}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success bg-opacity-10 text-success">
+                                                <i class="bi bi-people me-1"></i>{{ hk[6] }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {% if hk[4] %}
+                                                    {{ hk[4].strftime('%d/%m/%Y') }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('hokhau_detail', mahokhau=hk[0]) }}" 
+                                                   class="btn btn-outline-primary" 
+                                                   title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button class="btn btn-outline-secondary" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="bi bi-inbox display-4 d-block mb-3 opacity-50"></i>
+                                                <p class="mb-0">Chưa có dữ liệu hộ khẩu</p>
+                                                <small>Hãy thêm hộ khẩu mới để bắt đầu</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto refresh statistics every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 300000);
+</script>
+{% endblock %}

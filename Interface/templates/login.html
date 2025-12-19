@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Đăng nhập - Quản lý Dân cư{% endblock %}
+
+{% block content %}
+<div class="login-page-body">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon">
+                    <i class="bi bi-house-door-fill"></i>
+                </div>
+                <h1>Quản lý Dân cư</h1>
+                <p>Tổ dân phố - Hệ thống quản lý hiện đại</p>
+            </div>
+            <div class="login-body">
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="form-floating input-icon">
+                        <input type="text" 
+                               class="form-control" 
+                               id="cccd" 
+                               name="cccd" 
+                               placeholder="CCCD"
+                               required
+                               autocomplete="cccd">
+                        <label for="cccd">
+                            <i class="bi bi-person-vcard me-2"></i>CCCD
+                        </label>
+                    </div>
+                    <div class="form-floating input-icon">
+                        <input type="password" 
+                               class="form-control" 
+                               id="password" 
+                               name="password" 
+                               placeholder="Mật khẩu"
+                               required
+                               autocomplete="current-password">
+                        <label for="password">
+                            <i class="bi bi-lock me-2"></i>Mật khẩu
+                        </label>
+                        <i class="bi bi-eye-slash password-toggle" id="togglePassword"></i>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                        <label class="form-check-label text-muted" for="remember">
+                            Ghi nhớ đăng nhập
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                    </button>
+                </form>
+            </div>
+            <div class="login-footer">
+                <p class="text-muted mb-2">
+                    <small>Quên mật khẩu? <a href="#">Liên hệ quản trị viên</a></small>
+                </p>
+                <p class="text-muted mb-0">
+                    <small><i class="bi bi-shield-check me-1"></i>Bảo mật bởi hệ thống nội bộ</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            this.classList.toggle('bi-eye');
+            this.classList.toggle('bi-eye-slash');
+        });
+    }
+    
+    // Auto-hide alerts
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            if (typeof bootstrap !== 'undefined') {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            } else {
+                alert.style.display = 'none';
+            }
+        });
+    }, 5000);
+</script>
+{% endblock %}
