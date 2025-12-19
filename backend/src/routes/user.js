@@ -2,9 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db"); // Đảm bảo đường dẫn này đúng
 
-// --- API GET (Đã có sẵn, điều chỉnh console.log cho phù hợp) ---
-
-// GET all users (Lấy tất cả người dùng)
 router.get("/", async (req, res) => {
   try {
     console.log("Received GET request for /api/users (all)");
@@ -16,8 +13,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET user by CCCD (Lấy người dùng theo CCCD - Giả định CCCD là định danh duy nhất)
-// Thay vì dùng ID, chúng ta sẽ dùng CCCD nếu nó là khóa chính/duy nhất.
 router.get("/:cccd", async (req, res) => {
   try {
     const { cccd } = req.params;
@@ -35,10 +30,8 @@ router.get("/:cccd", async (req, res) => {
   }
 });
 
-// --- API POST (Tạo người dùng mới) ---
 router.post("/", async (req, res) => {
   try {
-    // Lấy tất cả các trường từ request body
     const { 
         cccd, 
         name, 
@@ -51,8 +44,6 @@ router.post("/", async (req, res) => {
         matkhau, 
         baomatthongtin 
     } = req.body;
-
-    // Kiểm tra các trường bắt buộc (giả định cccd, user_name, matkhau là bắt buộc)
     if (!cccd || !name || !sdt || !user_name || !matkhau) {
       return res.status(400).json({ message: "CCCD, Tên, Số điện thoại, User Name và Mật khẩu là bắt buộc." });
     }
@@ -70,7 +61,6 @@ router.post("/", async (req, res) => {
     res.status(201).json(result.rows[0]); // Trả về người dùng mới được tạo với status 201 (Created)
   } catch (error) {
     console.error("Error creating new user:", error);
-    // Xử lý lỗi trùng lặp (nếu CCCD hoặc user_name có ràng buộc UNIQUE)
     if (error.code === '23505') { 
         if (error.constraint === 'nguoidung_cccd_key') { // Giả sử constraint name của cccd
             return res.status(409).json({ message: "CCCD đã tồn tại." });
@@ -107,8 +97,6 @@ router.put("/:cccd", async (req, res) => {
     const values = [];
     const setClauses = [];
     let paramIndex = 1;
-
-    // Chỉ thêm vào setClauses nếu giá trị được cung cấp trong body
     if (name !== undefined) {
       setClauses.push(`name = $${paramIndex++}`);
       values.push(name);

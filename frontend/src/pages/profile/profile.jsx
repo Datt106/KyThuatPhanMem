@@ -46,7 +46,12 @@ export default function ProfilePage() {
   <div className="profile-container">
     <Navbar />
     <h1 className="profile-title">Hồ sơ cá nhân</h1>
-
+    <div className="profile-card profile-top">
+    <img
+    src={`http://localhost:5000/uploads/avatar/${data.avatar || "default.png"}`|| "/default.png"}
+    className="profile-avatar"
+  />
+  </div>
     <div className="profile-card">
       <h2 className="section-title">Thông tin cá nhân</h2>
       <div className="info-grid">

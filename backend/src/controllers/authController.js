@@ -32,7 +32,6 @@ exports.register = async (req, res) => {
       }
     }
 
-    // hash mật khẩu
     const hashedPass = await bcrypt.hash(matkhau, 10);
 
     const allowedRoles = ['NguoiDan', 'CanBo'];
@@ -66,6 +65,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   const { cccd, matkhau } = req.body;
+  console.log(req.body);
 
   try {
     const userFind = await pool.query(
@@ -79,7 +79,10 @@ exports.login = async (req, res) => {
 
     const user = userFind.rows[0];
 
-    const isMatch = await bcrypt.compare(matkhau, user.matkhau);
+    //const isMatch = await bcrypt.compare(matkhau, user.matkhau);
+    let isMatch = false;
+    if (matkhau === user.matkhau) isMatch = true;
+    console.log(isMatch);
     if (!isMatch) {
       return res.status(400).json({ message: "Sai mật khẩu" });
     } 
@@ -105,7 +108,7 @@ exports.login = async (req, res) => {
         dantoc: user.dantoc
       }
     });
-
+    localStorage.setItem("user", JSON.stringify(data.user));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Lỗi server" });

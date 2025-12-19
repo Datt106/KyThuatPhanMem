@@ -18,7 +18,7 @@ export default function LoginPage() {
       const res = await loginUser(userdata);
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
-      navigate("/");
+      navigate("/home");
     } catch (err) {
       setError("Lỗi kết nối đến server");
     }

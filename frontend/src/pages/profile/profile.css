@@ -1,7 +1,8 @@
 .profile-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 48px auto;
   padding: 0 20px;
+  padding-top:60px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #1f2937;
 }
@@ -70,6 +71,19 @@
 .address-desc {
   color: #4b5563;
   font-size: 14px;
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
 }
 
 /* ===== Responsive ===== */

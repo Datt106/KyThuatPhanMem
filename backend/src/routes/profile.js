@@ -16,7 +16,8 @@ router.get("/", authMiddleware, async (req, res) => {
         nd.gioitinh,
         nd.dantoc,
         nd.vaitro,
-        nd.baomatthongtin
+        nd.baomatthongtin,
+        nd.avatar
       FROM nguoidung nd
       WHERE nd.cccd = $1
     `;

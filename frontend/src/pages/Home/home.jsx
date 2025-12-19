@@ -7,13 +7,39 @@ export default function HomePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    fetch("http://localhost:5000/home", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((json) => {
+        setItems(json);
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        navigate("/login");
+      });
+  }, []);
+  useEffect(() => {
     if (items.length === 0) return;
+
     const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % items.length);
+      setCurrentIndex((prev) => (prev + 1) % items.length);
     }, 5000);
+
     return () => clearInterval(interval);
   }, [items]);
-
   if (items.length === 0) {
     return (
       <div className="home-page">
@@ -29,7 +55,6 @@ export default function HomePage() {
   const goPrev = () => setCurrentIndex((currentIndex - 1 + items.length) % items.length);
 
   return (
-  <div className="home-wrapper">
     <div className="home-container">
       <Navbar />
       <div className="hero-slider">
@@ -67,7 +92,7 @@ export default function HomePage() {
           ))}
         </div>
       </div>
-
+        <h1>Các tin tức nổi bật:</h1>
       <div className="items-grid">
         {items.map((item, index) => (
           <div key={item.id} className="item-card">
@@ -85,6 +110,5 @@ export default function HomePage() {
         ))}
       </div>
     </div>
-  </div>
 );
 }
