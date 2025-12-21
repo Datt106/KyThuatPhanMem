@@ -147,16 +147,16 @@
                                 <div class="progress" style="height: 25px;">
                                     {% set total = row[1] or 1 %}
                                     {% set nam_pct = (row[2] or 0) * 100.0 / total %}
-                                    {% set nu_pct = (row[3] or 0) * 100.0 / total %}
-                                    <div class="progress-bar bg-info" role="progressbar" 
+                                    {% set nu_pct = 100 - nam_pct %}
+                                    <div class="progress-bar bg-info text-white fw-bold" role="progressbar" 
                                          style="width: {{ nam_pct }}%" 
                                          aria-valuenow="{{ nam_pct }}" aria-valuemin="0" aria-valuemax="100">
-                                        {% if nam_pct >= 15 %}{{ "%.0f"|format(nam_pct) }}%{% endif %}
+                                        {% if nam_pct >= 10 %}{{ "%.0f"|format(nam_pct) }}%{% endif %}
                                     </div>
-                                    <div class="progress-bar bg-danger" role="progressbar" 
-                                         style="width: {{ nu_pct }}" 
+                                    <div class="progress-bar bg-danger text-white fw-bold" role="progressbar" 
+                                         style="width: {{ nu_pct }}%" 
                                          aria-valuenow="{{ nu_pct }}" aria-valuemin="0" aria-valuemax="100">
-                                        {% if nu_pct >= 15 %}{{ "%.0f"|format(nu_pct) }}%{% endif %}
+                                        {% if nu_pct >= 10 %}{{ "%.0f"|format(nu_pct) }}%{% endif %}
                                     </div>
                                 </div>
                             </td>
@@ -264,9 +264,10 @@ const nuData = new Array(ageGroups.length).fill(0);
 {% for row in stats_age_gender %}
     const idx = ageGroups.indexOf('{{ row[0] }}');
     if (idx !== -1) {
-        if ('{{ row[1] }}' === 'Nam') {
+        const gender = '{{ row[1] }}'.toLowerCase();
+        if (gender === 'nam') {
             namData[idx] = {{ row[2] }};
-        } else if ('{{ row[1] }}' === 'Nữ') {
+        } else if (gender === 'nu' || gender === 'nữ') {
             nuData[idx] = {{ row[2] }};
         }
     }

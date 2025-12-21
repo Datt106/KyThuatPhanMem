@@ -1210,21 +1210,22 @@ def thongke_danso():
     query_total = """
         SELECT 
             COUNT(DISTINCT n.cccd) as tong,
-            COUNT(DISTINCT CASE WHEN n.gioitinh = 'Nam' THEN n.cccd END) as nam,
-            COUNT(DISTINCT CASE WHEN n.gioitinh = 'Nữ' THEN n.cccd END) as nu
+            COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nam' THEN n.cccd END) as nam,
+            COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nu' THEN n.cccd END) as nu
         FROM nguoidung n
         INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
         INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
         INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
         WHERE tv.ngayketthuc IS NULL
     """
-    params = []
+    params_total = []
     
     if xaphuong:
         query_total += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
-        params.append(f'%{xaphuong}%')
+        params_total.append(f'%{xaphuong}%')
     
-    stats_total = execute_query(query_total, tuple(params) if params else None, fetch_all=False)
+    stats_total = execute_query(query_total, tuple(params_total) if params_total else None, fetch_one=True)
+    stats_total = stats_total or (0, 0, 0)
     
     # Query phân nhóm tuổi (0-5, 6-10, 11-14, 15-17, 18-59, 60+)
     query_age = """
@@ -1242,11 +1243,13 @@ def thongke_danso():
         INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
         INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
         INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
-        WHERE tv.ngayketthuc IS NULL
+        WHERE tv.ngayketthuc IS NULL AND n.ngaysinh IS NOT NULL
     """
     
+    params_age = []
     if xaphuong:
         query_age += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
+        params_age.append(f'%{xaphuong}%')
     
     query_age += """
         GROUP BY nhom_tuoi
@@ -1261,7 +1264,8 @@ def thongke_danso():
             END
     """
     
-    stats_age = execute_query(query_age, tuple(params) if params else None, fetch_all=True)
+    stats_age = execute_query(query_age, tuple(params_age) if params_age else None, fetch_all=True)
+    stats_age = stats_age or []
     
     # Query phân nhóm tuổi theo giới tính
     query_age_gender = """
@@ -1280,11 +1284,13 @@ def thongke_danso():
         INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
         INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
         INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
-        WHERE tv.ngayketthuc IS NULL
+        WHERE tv.ngayketthuc IS NULL AND n.ngaysinh IS NOT NULL
     """
     
+    params_age_gender = []
     if xaphuong:
         query_age_gender += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
+        params_age_gender.append(f'%{xaphuong}%')
     
     query_age_gender += """
         GROUP BY nhom_tuoi, n.gioitinh
@@ -1299,15 +1305,16 @@ def thongke_danso():
             END, n.gioitinh
     """
     
-    stats_age_gender = execute_query(query_age_gender, tuple(params) if params else None, fetch_all=True)
+    stats_age_gender = execute_query(query_age_gender, tuple(params_age_gender) if params_age_gender else None, fetch_all=True)
+    stats_age_gender = stats_age_gender or []
     
     # Query thống kê theo địa bàn (top 10)
     query_diaban = """
         SELECT 
             dc.xaphuong,
             COUNT(DISTINCT n.cccd) as tong,
-            COUNT(DISTINCT CASE WHEN n.gioitinh = 'Nam' THEN n.cccd END) as nam,
-            COUNT(DISTINCT CASE WHEN n.gioitinh = 'Nữ' THEN n.cccd END) as nu
+            COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nam' THEN n.cccd END) as nam,
+            COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nu' THEN n.cccd END) as nu
         FROM nguoidung n
         INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
         INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
@@ -1315,8 +1322,10 @@ def thongke_danso():
         WHERE tv.ngayketthuc IS NULL
     """
     
+    params_diaban = []
     if xaphuong:
         query_diaban += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
+        params_diaban.append(f'%{xaphuong}%')
     
     query_diaban += """
         GROUP BY dc.xaphuong
@@ -1324,7 +1333,8 @@ def thongke_danso():
         LIMIT 10
     """
     
-    stats_diaban = execute_query(query_diaban, tuple(params) if params else None, fetch_all=True)
+    stats_diaban = execute_query(query_diaban, tuple(params_diaban) if params_diaban else None, fetch_all=True)
+    stats_diaban = stats_diaban or []
     
     return render_template('thongke_danso.html',
                          stats_total=stats_total,
@@ -1424,10 +1434,13 @@ def thongke_tamvangtru():
     
     details = execute_query(query_detail, tuple(params_detail) if params_detail else None, fetch_all=True)
     
-    # Tổng hợp
+    # Đảm bảo stats không phải None để tránh lỗi for qua NoneType
+    stats = stats or []
     tong_tamvang = sum(row[2] for row in stats if row[0] == 'TamVang')
     tong_tamtru = sum(row[2] for row in stats if row[0] == 'TamTru')
     
+    # Đảm bảo details không phải None để tránh lỗi len(None)
+    details = details or []
     return render_template('thongke_tamvangtru.html',
                          stats=stats,
                          details=details,
@@ -1752,6 +1765,64 @@ def nguoidung_add():
     return render_template('nguoidung_add.html')
 
 
+@app.route('/nguoidung/<string:cccd>')
+@login_required
+def nguoidung_detail(cccd):
+    """Xem chi tiết nhân khẩu"""
+    
+    # Lấy thông tin nhân khẩu
+    query = """
+        SELECT cccd, name, user_name, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep
+        FROM nguoidung WHERE cccd = %s
+    """
+    nguoidung = execute_query(query, (cccd,), fetch_one=True)
+    
+    if not nguoidung:
+        flash('Không tìm thấy nhân khẩu!', 'danger')
+        return redirect(url_for('nguoidung_list'))
+    
+    # Lấy danh sách hộ khẩu mà người này tham gia (hiện tại và quá khứ)
+    query_hokhau = """
+        SELECT 
+            hk.mahokhau,
+            dc.xaphuong,
+            dc.chitiet,
+            tv.quanhechuho,
+            tv.ngaybatdau,
+            tv.ngayketthuc,
+            hk.ghichu
+        FROM thanhvienhokhau tv
+        INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
+        LEFT JOIN diachi dc ON hk.madiachi = dc.madiachi
+        WHERE tv.cccd = %s
+        ORDER BY tv.ngaybatdau DESC
+    """
+    ds_hokhau = execute_query(query_hokhau, (cccd,), fetch_all=True)
+    ds_hokhau = ds_hokhau or []
+    
+    # Lấy lịch sử tạm vắng/tạm trú
+    query_tamvangtru = """
+        SELECT 
+            dn.loaidiachi,
+            dc.xaphuong,
+            dc.chitiet,
+            dn.ngaybatdau,
+            dn.ngayketthuc,
+            dn.lydo
+        FROM diachinguoidung dn
+        LEFT JOIN diachi dc ON dn.madiachi = dc.madiachi
+        WHERE dn.cccd = %s AND dn.loaidiachi IN ('TamVang', 'TamTru')
+        ORDER BY dn.ngaybatdau DESC
+    """
+    ds_tamvangtru = execute_query(query_tamvangtru, (cccd,), fetch_all=True)
+    ds_tamvangtru = ds_tamvangtru or []
+    
+    return render_template('nguoidung_detail.html', 
+                         nguoidung=nguoidung,
+                         ds_hokhau=ds_hokhau,
+                         ds_tamvangtru=ds_tamvangtru)
+
+
 @app.route('/nguoidung/edit/<string:cccd>', methods=['GET', 'POST'])
 @login_required
 def nguoidung_edit(cccd):
@@ -1812,9 +1883,7 @@ def nguoidung_edit(cccd):
     
     # GET: Load dữ liệu hiện tại
     query = """
-        SELECT cccd, name, user_name, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep,
-               bidanh, noilamviec, noisinh, nguyenquan, ngaycapcccd, noicapcccd,
-               ngaydangkythuongtru, diachitruoc
+        SELECT cccd, name, user_name, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep
         FROM nguoidung WHERE cccd = %s
     """
     nguoidung = execute_query(query, (cccd,), fetch_one=True)
@@ -1823,7 +1892,13 @@ def nguoidung_edit(cccd):
         flash('Không tìm thấy nhân khẩu!', 'danger')
         return redirect(url_for('nguoidung_list'))
     
-    return render_template('nguoidung_edit.html', nguoidung=nguoidung)
+    # Tạo tuple mở rộng với các giá trị mặc định cho các cột chưa có trong DB
+    # Thứ tự: cccd, name, user_name, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep,
+    #         bidanh, noilamviec, noisinh, nguyenquan, ngaycapcccd, noicapcccd,
+    #         ngaydangkythuongtru, diachitruoc
+    nguoidung_extended = nguoidung + ('', '', '', '', None, '', None, '')  # Thêm 8 cột mặc định
+    
+    return render_template('nguoidung_edit.html', nguoidung=nguoidung_extended)
 
 
 @app.route('/nguoidung/delete/<string:cccd>', methods=['POST'])

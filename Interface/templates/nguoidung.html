@@ -175,7 +175,7 @@
                                         </td>
                                         <td class="text-center pe-4">
                                             <div class="btn-group btn-group-sm">
-                                                <a href="#" class="btn btn-outline-primary" title="Xem chi tiết">
+                                                <a href="{{ url_for('nguoidung_detail', cccd=nd[0]|trim) }}" class="btn btn-outline-primary" title="Xem chi tiết">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                                 <a href="{{ url_for('nguoidung_edit', cccd=nd[0]|trim) }}" class="btn btn-outline-secondary" title="Chỉnh sửa">

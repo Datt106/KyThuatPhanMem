@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-person-badge me-2"></i>Chi tiết nhân khẩu</h2>
+        <div>
+            <a href="{{ url_for('nguoidung_list') }}" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Quay lại
+            </a>
+            <a href="{{ url_for('nguoidung_edit', cccd=nguoidung[0]) }}" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+            </a>
+        </div>
+    </div>
+
+    <!-- Thông tin cơ bản -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Thông tin cơ bản</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Căn cước công dân (CCCD)</label>
+                    <h6><code class="bg-light p-2 rounded">{{ nguoidung[0] }}</code></h6>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Họ và tên</label>
+                    <h6><strong>{{ nguoidung[1] or 'N/A' }}</strong></h6>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Tên đăng nhập</label>
+                    <h6>{{ nguoidung[2] or 'N/A' }}</h6>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Số điện thoại</label>
+                    <h6>{{ nguoidung[3] or 'N/A' }}</h6>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="text-muted">Ngày sinh</label>
+                    <h6>
+                        {% if nguoidung[4] %}
+                            {{ nguoidung[4].strftime('%d/%m/%Y') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="text-muted">Giới tính</label>
+                    <h6>
+                        {% if nguoidung[5] %}
+                            {% if nguoidung[5].lower() == 'nam' %}
+                                <span class="badge bg-info">Nam</span>
+                            {% else %}
+                                <span class="badge bg-danger">Nữ</span>
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="text-muted">Dân tộc</label>
+                    <h6>{{ nguoidung[6] or 'N/A' }}</h6>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Vai trò</label>
+                    <h6>
+                        {% if nguoidung[7] == 'Admin' %}
+                            <span class="badge bg-danger">Quản trị viên</span>
+                        {% elif nguoidung[7] == 'CanBo' %}
+                            <span class="badge bg-warning text-dark">Cán bộ</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Người dân</span>
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="text-muted">Nghề nghiệp</label>
+                    <h6>{{ nguoidung[8] or 'N/A' }}</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách hộ khẩu -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-house-fill me-2"></i>Lịch sử hộ khẩu ({{ ds_hokhau|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if ds_hokhau %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã hộ</th>
+                                <th>Địa chỉ</th>
+                                <th>Quan hệ chủ hộ</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hk in ds_hokhau %}
+                            <tr>
+                                <td><code class="bg-light p-1 rounded">HK{{ hk[0] }}</code></td>
+                                <td>{{ hk[2] or '' }}, {{ hk[1] or '' }}</td>
+                                <td>
+                                    {% if hk[3] == 'Chủ hộ' %}
+                                        <span class="badge bg-primary">{{ hk[3] }}</span>
+                                    {% else %}
+                                        {{ hk[3] or 'N/A' }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if hk[4] %}
+                                        {{ hk[4].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if hk[5] %}
+                                        {{ hk[5].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not hk[5] %}
+                                        <span class="badge bg-success">Đang cư trú</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Đã rời</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('hokhau_detail', mahokhau=hk[0]) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>Xem
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Chưa có hộ khẩu</h5>
+                    <p class="text-muted">Người này chưa thuộc hộ khẩu nào</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Lịch sử tạm vắng/tạm trú -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Lịch sử tạm vắng/tạm trú ({{ ds_tamvangtru|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if ds_tamvangtru %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Loại</th>
+                                <th>Địa chỉ</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Lý do</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tv in ds_tamvangtru %}
+                            <tr>
+                                <td>
+                                    {% if tv[0] == 'TamVang' %}
+                                        <span class="badge bg-warning">Tạm vắng</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Tạm trú</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ tv[2] or '' }}, {{ tv[1] or '' }}</td>
+                                <td>
+                                    {% if tv[3] %}
+                                        {{ tv[3].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tv[4] %}
+                                        {{ tv[4].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>{{ tv[5] or 'N/A' }}</td>
+                                <td>
+                                    {% if tv[4] %}
+                                        {% if tv[4] >= now().date() %}
+                                            <span class="badge bg-success">Hiệu lực</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Hết hạn</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Chưa có lịch sử</h5>
+                    <p class="text-muted">Người này chưa có tạm vắng/tạm trú</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
