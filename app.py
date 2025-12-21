@@ -2079,7 +2079,7 @@ def phananh_add():
                 mota, tieude, is_public, allow_comment,
                 thoigiantao
             )
-            VALUES (%s, %s, %s, 'ChuaXuLy', %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            VALUES (%s, %s, %s, 'Mới', %s, %s, %s, %s, CURRENT_TIMESTAMP)
             RETURNING maphananh
         """
         

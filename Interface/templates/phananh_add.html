@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Tạo Phản ánh mới{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('phananh_list') }}">Phản ánh</a></li>
+                    <li class="breadcrumb-item active">Tạo mới</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Tạo Phản ánh & Kiến nghị</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('phananh_add') }}">
+                        <!-- Tiêu đề -->
+                        <div class="mb-3">
+                            <label for="tieude" class="form-label">
+                                <i class="fas fa-heading"></i> Tiêu đề <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="tieude" 
+                                   name="tieude" 
+                                   placeholder="Nhập tiêu đề ngắn gọn cho phản ánh"
+                                   required 
+                                   maxlength="200">
+                            <small class="form-text text-muted">Tối đa 200 ký tự</small>
+                        </div>
+
+                        <!-- Loại phản ánh -->
+                        <div class="mb-3">
+                            <label for="loaiphananh" class="form-label">
+                                <i class="fas fa-tag"></i> Loại phản ánh
+                            </label>
+                            <select class="form-select" id="loaiphananh" name="loaiphananh">
+                                <option value="">-- Chọn loại phản ánh --</option>
+                                <option value="Hạ tầng">🏗️ Hạ tầng (Đường xá, cầu, thoát nước)</option>
+                                <option value="An ninh">🚨 An ninh trật tự</option>
+                                <option value="Môi trường">🌳 Môi trường (Rác thải, ô nhiễm)</option>
+                                <option value="Giao thông">🚦 Giao thông</option>
+                                <option value="Y tế">🏥 Y tế</option>
+                                <option value="Giáo dục">📚 Giáo dục</option>
+                                <option value="Điện nước">💡 Điện - Nước</option>
+                                <option value="Khác">📋 Khác</option>
+                            </select>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label for="mota" class="form-label">
+                                <i class="fas fa-align-left"></i> Mô tả chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="mota" 
+                                      name="mota" 
+                                      rows="6" 
+                                      placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..."
+                                      required></textarea>
+                            <small class="form-text text-muted">Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
+                        </div>
+
+                        <!-- Địa chỉ -->
+                        <div class="card mb-3 bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Vị trí (Tùy chọn)</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="tinh" class="form-label">Tỉnh/Thành phố</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="tinh" 
+                                               name="tinh" 
+                                               placeholder="VD: Hà Nội, TP.HCM">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="xaphuong" class="form-label">Quận/Huyện/Xã</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="xaphuong" 
+                                               name="xaphuong" 
+                                               placeholder="VD: Quận 1, Huyện Gia Lâm">
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label for="chitiet" class="form-label">Địa chỉ chi tiết</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="chitiet" 
+                                           name="chitiet" 
+                                           placeholder="VD: Số 123 đường Nguyễn Trãi">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy & Settings -->
+                        <div class="card mb-3 bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-cog"></i> Cài đặt</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="is_public" 
+                                           name="is_public" 
+                                           checked>
+                                    <label class="form-check-label" for="is_public">
+                                        <i class="fas fa-globe text-success"></i> <strong>Công khai</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            Phản ánh sẽ hiển thị trên Newsfeed để mọi người xem và tương tác. 
+                                            Nếu bỏ chọn, phản ánh sẽ chỉ cán bộ xem được.
+                                        </small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="allow_comment" 
+                                           name="allow_comment" 
+                                           checked>
+                                    <label class="form-check-label" for="allow_comment">
+                                        <i class="fas fa-comments text-info"></i> <strong>Cho phép bình luận</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            Người dùng khác có thể bình luận và thảo luận về phản ánh này
+                                        </small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alert Info -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Lưu ý:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Phản ánh của bạn sẽ được cán bộ xem xét và xử lý</li>
+                                <li>Nếu chọn <strong>riêng tư</strong>, một hộp chat sẽ tự động được tạo để bạn liên hệ với cán bộ</li>
+                                <li>Bạn có thể chỉnh sửa hoặc xóa phản ánh sau khi tạo</li>
+                            </ul>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Gửi Phản ánh
+                            </button>
+                            <a href="{{ url_for('phananh_list') }}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle privacy info
+document.getElementById('is_public').addEventListener('change', function() {
+    const publicIcon = this.parentElement.querySelector('i');
+    if (this.checked) {
+        publicIcon.className = 'fas fa-globe text-success';
+    } else {
+        publicIcon.className = 'fas fa-lock text-secondary';
+    }
+});
+</script>
+{% endblock %}
