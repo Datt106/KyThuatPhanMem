@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo Vấn đề{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-tasks"></i> Báo cáo hiệu suất xử lý Vấn đề</h2>
+                <div>
+                    <a href="{{ url_for('reports_overview') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    <a href="{{ url_for('reports_export', type='vande', from_date=from_date, to_date=to_date) }}" 
+                       class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports_vande') }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Từ ngày</label>
+                                <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Đến ngày</label>
+                                <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> Lọc
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <!-- Tỷ lệ giải quyết -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-success text-white">
+                            <h5><i class="fas fa-check-circle"></i> Tỷ lệ giải quyết</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if resolution_rate %}
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Trạng thái</th>
+                                        <th class="text-end">Số lượng</th>
+                                        <th class="text-end">Tỷ lệ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rate in resolution_rate %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if rate[0] == 'Đã giải quyết' else 'primary' if rate[0] == 'Đóng' else 'warning' if rate[0] == 'Đang xử lý' else 'secondary' }}">
+                                                {{ rate[0] }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end"><strong>{{ rate[1] }}</strong></td>
+                                        <td class="text-end">
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" style="width: {{ rate[2] }}%">
+                                                    {{ rate[2] }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted text-center mb-0">Không có dữ liệu</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thời gian xử lý trung bình -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-warning text-white">
+                            <h5><i class="fas fa-clock"></i> Thời gian xử lý TB (ngày)</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if avg_resolution_time %}
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Phân loại</th>
+                                        <th class="text-end">Số vấn đề</th>
+                                        <th class="text-end">TB (ngày)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for time in avg_resolution_time %}
+                                    <tr>
+                                        <td><span class="badge bg-info">{{ time[0] }}</span></td>
+                                        <td class="text-end">{{ time[1] }}</td>
+                                        <td class="text-end">
+                                            <strong class="text-{{ 'danger' if time[2] > 30 else 'warning' if time[2] > 15 else 'success' }}">
+                                                {{ time[2] }} ngày
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted text-center mb-0">Không có dữ liệu</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance cán bộ -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-user-tie"></i> Hiệu suất xử lý theo Cán bộ</h5>
+                </div>
+                <div class="card-body">
+                    {% if canbo_performance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Cán bộ</th>
+                                    <th class="text-center">Tổng xử lý</th>
+                                    <th class="text-center">Đã giải quyết</th>
+                                    <th class="text-center">Đã đóng</th>
+                                    <th class="text-center">TB (ngày)</th>
+                                    <th class="text-center">Tỷ lệ thành công</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cb in canbo_performance %}
+                                <tr>
+                                    <td><strong>{{ cb[0] }}</strong></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ cb[2] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{ cb[3] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ cb[4] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if cb[5] %}
+                                            <span class="badge bg-{{ 'danger' if cb[5] > 30 else 'warning' if cb[5] > 15 else 'success' }}">
+                                                {{ cb[5] }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if cb[2] > 0 %}
+                                            {% set success_rate = ((cb[3] + cb[4]) / cb[2] * 100) %}
+                                            <div class="progress" style="height: 20px; min-width: 100px;">
+                                                <div class="progress-bar bg-{{ 'success' if success_rate >= 80 else 'warning' if success_rate >= 50 else 'danger' }}" 
+                                                     style="width: {{ success_rate }}%">
+                                                    {{ "%.0f"|format(success_rate) }}%
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Thống kê theo phân loại -->
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-list"></i> Thống kê theo Phân loại</h5>
+                </div>
+                <div class="card-body">
+                    {% if category_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Phân loại</th>
+                                    <th class="text-center">Tổng</th>
+                                    <th class="text-center">Đã giải quyết</th>
+                                    <th class="text-center">Tỷ lệ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in category_stats %}
+                                <tr>
+                                    <td><span class="badge bg-info">{{ cat[0] }}</span></td>
+                                    <td class="text-center"><span class="badge bg-primary">{{ cat[1] }}</span></td>
+                                    <td class="text-center"><span class="badge bg-success">{{ cat[2] }}</span></td>
+                                    <td class="text-center">
+                                        {% if cat[1] > 0 %}
+                                            {% set rate = (cat[2] / cat[1] * 100) %}
+                                            <div class="progress" style="height: 20px; min-width: 150px;">
+                                                <div class="progress-bar bg-{{ 'success' if rate >= 80 else 'warning' if rate >= 50 else 'danger' }}" 
+                                                     style="width: {{ rate }}%">
+                                                    {{ "%.1f"|format(rate) }}%
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

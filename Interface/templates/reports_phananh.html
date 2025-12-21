@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo Phản ánh{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-bar"></i> Báo cáo chi tiết Phản ánh</h2>
+                <div>
+                    <a href="{{ url_for('reports_overview') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    <a href="{{ url_for('reports_export', type='phananh', from_date=from_date, to_date=to_date, trangthai=trangthai) }}" 
+                       class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports_phananh') }}">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Từ ngày</label>
+                                <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Đến ngày</label>
+                                <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Trạng thái</label>
+                                <select name="trangthai" class="form-select">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="Mới" {% if trangthai == 'Mới' %}selected{% endif %}>Mới</option>
+                                    <option value="Đang xử lý" {% if trangthai == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
+                                    <option value="Đã xử lý" {% if trangthai == 'Đã xử lý' %}selected{% endif %}>Đã xử lý</option>
+                                    <option value="Đã từ chối" {% if trangthai == 'Đã từ chối' %}selected{% endif %}>Đã từ chối</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> Lọc
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <!-- Thống kê theo trạng thái -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5><i class="fas fa-tasks"></i> Phân bố theo trạng thái</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if status_stats %}
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Trạng thái</th>
+                                        <th class="text-end">Số lượng</th>
+                                        <th class="text-end">Tỷ lệ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in status_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if stat[0] == 'Đã xử lý' else 'warning' if stat[0] == 'Đang xử lý' else 'secondary' }}">
+                                                {{ stat[0] }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end"><strong>{{ stat[1] }}</strong></td>
+                                        <td class="text-end">{{ stat[2] }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted text-center mb-0">Không có dữ liệu</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Công khai vs Riêng tư -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-info text-white">
+                            <h5><i class="fas fa-eye"></i> Phân loại theo quyền riêng tư</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if privacy_stats %}
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Loại</th>
+                                        <th class="text-end">Số lượng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in privacy_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if stat[0] == 'Công khai' else 'secondary' }}">
+                                                {{ stat[0] }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end"><strong>{{ stat[1] }}</strong></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted text-center mb-0">Không có dữ liệu</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Xu hướng theo ngày -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-chart-line"></i> Xu hướng 30 ngày gần nhất</h5>
+                </div>
+                <div class="card-body">
+                    {% if daily_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th class="text-end">Tổng PA</th>
+                                    <th class="text-end">Công khai</th>
+                                    <th class="text-end">Tỷ lệ công khai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in daily_stats %}
+                                <tr>
+                                    <td>{{ day[0].strftime('%d/%m/%Y') if day[0] else '' }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-primary">{{ day[1] }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success">{{ day[2] }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if day[1] > 0 %}
+                                            {{ "%.1f"|format((day[2] / day[1] * 100)) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Top engagement -->
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-fire"></i> Top 10 phản ánh có engagement cao nhất</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_engagement %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã PA</th>
+                                    <th>Tiêu đề</th>
+                                    <th class="text-center"><i class="fas fa-heart text-danger"></i> Likes</th>
+                                    <th class="text-center"><i class="fas fa-comment text-info"></i> Comments</th>
+                                    <th class="text-center"><i class="fas fa-eye text-secondary"></i> Views</th>
+                                    <th class="text-center">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in top_engagement %}
+                                <tr>
+                                    <td>{{ post[0] }}</td>
+                                    <td>
+                                        <a href="{{ url_for('phananh_detail', maphananh=post[0]) }}" target="_blank">
+                                            {{ post[1][:50] }}{% if post[1]|length > 50 %}...{% endif %}
+                                        </a>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-danger">{{ post[2] }}</span></td>
+                                    <td class="text-center"><span class="badge bg-info">{{ post[3] }}</span></td>
+                                    <td class="text-center"><span class="badge bg-secondary">{{ post[4] }}</span></td>
+                                    <td class="text-center"><strong>{{ "%.1f"|format(post[5]) }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

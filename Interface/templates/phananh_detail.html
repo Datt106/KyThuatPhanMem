@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Chi tiết Phản ánh #{{ phananh[0] }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('phananh_list') }}">Phản ánh</a></li>
+                    <li class="breadcrumb-item active">Chi tiết #{{ phananh[0] }}</li>
+                </ol>
+            </nav>
+
+            <!-- Post Card -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-bullhorn"></i> {{ phananh[4] }}</h4>
+                    <span class="badge bg-{{ 'success' if phananh[7] == 'Đã xử lý' else 'warning' if phananh[7] == 'Đang xử lý' else 'secondary' }}">
+                        {{ phananh[7] }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Author & Time -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-user fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ nguoidung_name }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ phananh[13].strftime('%d/%m/%Y %H:%M') if phananh[13] else '' }}
+                                </small>
+                            </div>
+                        </div>
+                        <div>
+                            {% if phananh[8] %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-globe"></i> Công khai
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-lock"></i> Riêng tư
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="mb-4">
+                        <p class="lead">{{ phananh[5] }}</p>
+                    </div>
+
+                    <!-- Location if available -->
+                    {% if phananh[20] or phananh[21] or phananh[22] %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-map-marker-alt"></i> <strong>Vị trí:</strong> 
+                        {{ [phananh[22], phananh[21], phananh[20]] | select | join(', ') }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Images if available -->
+                    {% if phananh[23] %}
+                    <div class="mb-3">
+                        <h6><i class="fas fa-images"></i> Hình ảnh đính kèm:</h6>
+                        <div class="row">
+                            {% set images = phananh[23].split(',') %}
+                            {% for img in images %}
+                            <div class="col-md-4 mb-2">
+                                <img src="{{ url_for('static', filename='uploads/' ~ img.strip()) }}" 
+                                     class="img-fluid rounded shadow-sm" alt="Hình ảnh phản ánh">
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Engagement Stats -->
+                    <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
+                        <div>
+                            <form method="POST" action="{{ url_for('phananh_like' if not user_liked else 'phananh_unlike', maphananh=phananh[0]) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-{{ 'danger' if user_liked else 'outline-danger' }}">
+                                    <i class="fas fa-heart"></i> {{ phananh[10] or 0 }} Likes
+                                </button>
+                            </form>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-info">
+                                <i class="fas fa-comment"></i> {{ phananh[11] or 0 }} Comments
+                            </button>
+                        </div>
+                        <div>
+                            <span class="btn btn-outline-secondary">
+                                <i class="fas fa-eye"></i> {{ phananh[12] or 0 }} Views
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        {% if session.user.cccd == phananh[1] %}
+                        <a href="{{ url_for('phananh_edit', maphananh=phananh[0]) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <form method="POST" action="{{ url_for('phananh_delete', maphananh=phananh[0]) }}" 
+                              onsubmit="return confirm('Bạn có chắc muốn xóa phản ánh này?');" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                            <i class="fas fa-edit"></i> Cập nhật trạng thái
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-comments"></i> Bình luận ({{ comments|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Comment Form -->
+                    <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}" class="mb-4">
+                        <div class="mb-3">
+                            <textarea name="noidung" class="form-control" rows="3" 
+                                      placeholder="Viết bình luận của bạn..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Gửi bình luận
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Comments List -->
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="mb-3 {% if not comment[6] %}border-start border-primary border-3{% endif %} ps-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-secondary rounded-circle text-white d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 35px; height: 35px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ comment[2] }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> 
+                                                {{ comment[5].strftime('%d/%m/%Y %H:%M') if comment[5] else '' }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 ms-5">{{ comment[4] }}</p>
+                                    
+                                    <!-- Reply button -->
+                                    <button class="btn btn-sm btn-link text-decoration-none ms-5" 
+                                            onclick="showReplyForm({{ comment[0] }})">
+                                        <i class="fas fa-reply"></i> Trả lời
+                                    </button>
+
+                                    <!-- Reply form (hidden by default) -->
+                                    <div id="replyForm{{ comment[0] }}" style="display: none;" class="ms-5 mt-2">
+                                        <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}">
+                                            <input type="hidden" name="parent_id" value="{{ comment[0] }}">
+                                            <div class="input-group">
+                                                <input type="text" name="noidung" class="form-control" 
+                                                       placeholder="Nhập câu trả lời..." required>
+                                                <button type="submit" class="btn btn-sm btn-primary">Gửi</button>
+                                                <button type="button" class="btn btn-sm btn-secondary" 
+                                                        onclick="hideReplyForm({{ comment[0] }})">Hủy</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                                <form method="POST" action="{{ url_for('comment_hide', mabinhluan=comment[0]) }}" 
+                                      onsubmit="return confirm('Ẩn bình luận này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Child comments (replies) -->
+                            {% if comment[6] == None %}
+                                {% set replies = comments|selectattr(6, 'equalto', comment[0])|list %}
+                                {% if replies %}
+                                <div class="ms-5 mt-2 border-start ps-3">
+                                    {% for reply in replies %}
+                                    <div class="mb-2">
+                                        <small>
+                                            <strong>{{ reply[2] }}</strong>: {{ reply[4] }}
+                                            <span class="text-muted">
+                                                - {{ reply[5].strftime('%d/%m/%Y %H:%M') if reply[5] else '' }}
+                                            </span>
+                                        </small>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <hr>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-light text-center">
+                            <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Issue Info -->
+            {% if phananh[15] %}
+            <div class="card shadow mb-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-link"></i> Thuộc vấn đề</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <a href="{{ url_for('vande_detail', mavande=phananh[15]) }}" class="text-decoration-none">
+                            <strong>{{ vande_name or 'Vấn đề #' ~ phananh[15] }}</strong>
+                        </a>
+                    </p>
+                    <small class="text-muted">Phản ánh này đã được gộp vào vấn đề chung</small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Processing Info -->
+            {% if phananh[14] %}
+            <div class="card shadow mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-check-circle"></i> Thông tin xử lý</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Thời gian tạo:</strong><br>
+                       {{ phananh[13].strftime('%d/%m/%Y %H:%M') if phananh[13] else 'N/A' }}</p>
+                    <p><strong>Thời gian xử lý:</strong><br>
+                       {{ phananh[14].strftime('%d/%m/%Y %H:%M') if phananh[14] else 'Chưa xử lý' }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Chat Box Link -->
+            {% if boxchat_id %}
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0"><i class="fas fa-comments"></i> Hỗ trợ trực tiếp</h6>
+                </div>
+                <div class="card-body text-center">
+                    <p class="mb-3">Nhắn tin trực tiếp với cán bộ xử lý</p>
+                    <a href="{{ url_for('chat_detail', maboxchat=boxchat_id) }}" class="btn btn-warning w-100">
+                        <i class="fas fa-comment-dots"></i> Mở chat
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Update Status (Cán bộ) -->
+{% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('phananh_edit', maphananh=phananh[0]) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập nhật trạng thái xử lý</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="trangthaiphananh" class="form-select" required>
+                            <option value="Mới" {% if phananh[7] == 'Mới' %}selected{% endif %}>Mới</option>
+                            <option value="Đang xử lý" {% if phananh[7] == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
+                            <option value="Đã xử lý" {% if phananh[7] == 'Đã xử lý' %}selected{% endif %}>Đã xử lý</option>
+                            <option value="Đã từ chối" {% if phananh[7] == 'Đã từ chối' %}selected{% endif %}>Đã từ chối</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function showReplyForm(commentId) {
+    document.getElementById('replyForm' + commentId).style.display = 'block';
+}
+
+function hideReplyForm(commentId) {
+    document.getElementById('replyForm' + commentId).style.display = 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Chi tiết vấn đề #{{ vande[0] }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('vande_list') }}">Vấn đề</a></li>
+                    <li class="breadcrumb-item active">Chi tiết #{{ vande[0] }}</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4><i class="fas fa-tasks"></i> {{ vande[1] }}</h4>
+                    {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                    <div>
+                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                            <i class="fas fa-edit"></i> Cập nhật trạng thái
+                        </button>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#gopThemModal">
+                            <i class="fas fa-plus"></i> Gộp thêm PA
+                        </button>
+                        <form method="POST" action="{{ url_for('vande_delete', mavande=vande[0]) }}" style="display: inline;"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa vấn đề này?');">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Phân loại:</strong> <span class="badge bg-info">{{ vande[2] }}</span></p>
+                            <p><strong>Trạng thái:</strong> 
+                                <span class="badge bg-{{ 'success' if vande[3] == 'Đã giải quyết' else 'warning' if vande[3] == 'Đang xử lý' else 'secondary' }}">
+                                    {{ vande[3] }}
+                                </span>
+                            </p>
+                            <p><strong>Cán bộ xử lý:</strong> {{ vande[7] or 'Chưa gán' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Ngày tạo:</strong> {{ vande[5].strftime('%d/%m/%Y %H:%M') if vande[5] else '' }}</p>
+                            <p><strong>Ngày cập nhật:</strong> {{ vande[6].strftime('%d/%m/%Y %H:%M') if vande[6] else 'Chưa cập nhật' }}</p>
+                        </div>
+                    </div>
+
+                    {% if vande[4] %}
+                    <div class="alert alert-success">
+                        <strong><i class="fas fa-check-circle"></i> Kết quả xử lý:</strong>
+                        <p class="mb-0 mt-2">{{ vande[4] }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Danh sách phản ánh thuộc vấn đề -->
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5><i class="fas fa-list"></i> Danh sách phản ánh ({{ phananh_list|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if phananh_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mã PA</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Người gửi</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pa in phananh_list %}
+                                    <tr>
+                                        <td>{{ pa[0] }}</td>
+                                        <td>{{ pa[1] }}</td>
+                                        <td>{{ pa[2] }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if pa[3] == 'Đã xử lý' else 'warning' if pa[3] == 'Đang xử lý' else 'secondary' }}">
+                                                {{ pa[3] }}
+                                            </span>
+                                        </td>
+                                        <td>{{ pa[4].strftime('%d/%m/%Y') if pa[4] else '' }}</td>
+                                        <td>
+                                            <a href="{{ url_for('phananh_detail', maphananh=pa[0]) }}" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> Xem
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Chưa có phản ánh nào được gộp vào vấn đề này.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cập nhật trạng thái -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('vande_update_status', mavande=vande[0]) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập nhật trạng thái vấn đề</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="trangthai" class="form-select" required>
+                            <option value="Mới" {% if vande[3] == 'Mới' %}selected{% endif %}>Mới</option>
+                            <option value="Đang xử lý" {% if vande[3] == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
+                            <option value="Đã giải quyết" {% if vande[3] == 'Đã giải quyết' %}selected{% endif %}>Đã giải quyết</option>
+                            <option value="Đóng" {% if vande[3] == 'Đóng' %}selected{% endif %}>Đóng</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kết quả xử lý</label>
+                        <textarea name="ketqua" class="form-control" rows="4" 
+                                  placeholder="Mô tả kết quả xử lý...">{{ vande[4] or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Gộp thêm PA -->
+<div class="modal fade" id="gopThemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('vande_gop_them', mavande=vande[0]) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gộp thêm phản ánh</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã phản ánh (cách nhau bởi dấu phẩy)</label>
+                        <input type="text" name="list_maphananh" class="form-control" 
+                               placeholder="VD: 10,15,20" required>
+                        <small class="text-muted">Nhập các mã phản ánh bạn muốn gộp vào vấn đề này</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-success">Gộp</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

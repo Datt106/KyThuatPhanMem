@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo Tương tác{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-heart"></i> Báo cáo Tương tác người dùng</h2>
+                <a href="{{ url_for('reports_overview') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            <!-- Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports_engagement') }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Từ ngày</label>
+                                <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Đến ngày</label>
+                                <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> Lọc
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tổng quan tương tác -->
+            {% if engagement_overview %}
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <div class="card bg-danger text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-heart fa-2x mb-2"></i>
+                            <h3>{{ engagement_overview[0] or 0 }}</h3>
+                            <small>Tổng Likes</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-info text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-comment fa-2x mb-2"></i>
+                            <h3>{{ engagement_overview[1] or 0 }}</h3>
+                            <small>Tổng Comments</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-secondary text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-eye fa-2x mb-2"></i>
+                            <h3>{{ engagement_overview[2] or 0 }}</h3>
+                            <small>Tổng Views</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-warning text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-heart-broken fa-2x mb-2"></i>
+                            <h3>{{ "%.1f"|format(engagement_overview[3] or 0) }}</h3>
+                            <small>TB Likes/Post</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-success text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <h3>{{ "%.1f"|format(engagement_overview[4] or 0) }}</h3>
+                            <small>TB Comments/Post</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-primary text-white text-center">
+                        <div class="card-body">
+                            <i class="fas fa-eye-slash fa-2x mb-2"></i>
+                            <h3>{{ "%.1f"|format(engagement_overview[5] or 0) }}</h3>
+                            <small>TB Views/Post</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Top bài viết hot -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-fire"></i> Top 10 bài viết HOT nhất</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_posts %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Tác giả</th>
+                                    <th class="text-center"><i class="fas fa-heart text-danger"></i></th>
+                                    <th class="text-center"><i class="fas fa-comment text-info"></i></th>
+                                    <th class="text-center"><i class="fas fa-eye text-secondary"></i></th>
+                                    <th class="text-center">Hot Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in top_posts %}
+                                <tr>
+                                    <td>{{ post[0] }}</td>
+                                    <td>
+                                        <a href="{{ url_for('phananh_detail', maphananh=post[0]) }}" target="_blank">
+                                            {{ post[1][:60] }}{% if post[1]|length > 60 %}...{% endif %}
+                                        </a>
+                                    </td>
+                                    <td>{{ post[5] }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger">{{ post[2] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ post[3] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">{{ post[4] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="text-primary">{{ "%.1f"|format(post[6]) }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Top người dùng tích cực -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-star"></i> Top 10 người dùng tích cực nhất</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ tên</th>
+                                    <th class="text-center">Số bài viết</th>
+                                    <th class="text-center">Số likes</th>
+                                    <th class="text-center">Số comments</th>
+                                    <th class="text-center">Activity Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in top_users %}
+                                <tr>
+                                    <td>
+                                        {% if loop.index <= 3 %}
+                                            <span class="badge bg-{{ 'warning' if loop.index == 1 else 'secondary' if loop.index == 2 else 'danger' }}">
+                                                {{ loop.index }}
+                                            </span>
+                                        {% else %}
+                                            {{ loop.index }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ user[0] }}</strong>
+                                        {% if loop.index == 1 %}
+                                            <i class="fas fa-trophy text-warning ms-2"></i>
+                                        {% elif loop.index == 2 %}
+                                            <i class="fas fa-medal text-secondary ms-2"></i>
+                                        {% elif loop.index == 3 %}
+                                            <i class="fas fa-award text-danger ms-2"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ user[2] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger">{{ user[3] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ user[4] }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="text-success">{{ user[5] }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tương tác theo ngày -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-line"></i> Xu hướng tương tác 30 ngày gần nhất</h5>
+                </div>
+                <div class="card-body">
+                    {% if daily_engagement %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th class="text-end">Likes</th>
+                                    <th class="text-end">Comments</th>
+                                    <th class="text-end">Views</th>
+                                    <th class="text-end">Total Engagement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in daily_engagement %}
+                                <tr>
+                                    <td>{{ day[0].strftime('%d/%m/%Y') if day[0] else '' }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-danger">{{ day[1] or 0 }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-info">{{ day[2] or 0 }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-secondary">{{ day[3] or 0 }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% set total = (day[1] or 0) + (day[2] or 0) + (day[3] or 0) %}
+                                        <strong>{{ total }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Không có dữ liệu</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

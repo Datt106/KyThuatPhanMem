@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Tin nhắn{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fas fa-comments"></i> Tin nhắn</h2>
+            <hr>
+
+            {% if boxchat_list %}
+                <div class="list-group">
+                    {% for chat in boxchat_list %}
+                    <a href="{{ url_for('chat_detail', maboxchat=chat[0]) }}" 
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">
+                                    <i class="fas fa-comment-dots"></i> {{ chat[2] or 'Chat về phản ánh #' ~ chat[1] }}
+                                    {% if chat[7] > 0 %}
+                                        <span class="badge bg-danger">{{ chat[7] }}</span>
+                                    {% endif %}
+                                </h5>
+                                <p class="mb-1 text-muted">
+                                    {% if chat[3] %}
+                                        <strong>{{ chat[6] }}:</strong> {{ chat[3][:100] }}{% if chat[3]|length > 100 %}...{% endif %}
+                                    {% else %}
+                                        <em>Chưa có tin nhắn</em>
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted">
+                                    {{ chat[4].strftime('%d/%m/%Y %H:%M') if chat[4] else 'Mới tạo' }}
+                                </small>
+                            </div>
+                            <div class="ms-3">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Bạn chưa có cuộc trò chuyện nào.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

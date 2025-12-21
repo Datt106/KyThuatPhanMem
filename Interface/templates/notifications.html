@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Thông báo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-bell"></i> Thông báo 
+                    {% if unread_count > 0 %}
+                        <span class="badge bg-danger">{{ unread_count }}</span>
+                    {% endif %}
+                </h2>
+                <div>
+                    <a href="{{ url_for('notifications', filter='unread') }}" 
+                       class="btn btn-sm btn-outline-primary {% if filter_type == 'unread' %}active{% endif %}">
+                        Chưa đọc
+                    </a>
+                    <a href="{{ url_for('notifications', filter='all') }}" 
+                       class="btn btn-sm btn-outline-secondary {% if filter_type == 'all' %}active{% endif %}">
+                        Tất cả
+                    </a>
+                    {% if unread_count > 0 %}
+                    <form method="POST" action="{{ url_for('notifications_mark_all_read') }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="fas fa-check-double"></i> Đọc tất cả
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if notification_list %}
+                <div class="list-group">
+                    {% for notif in notification_list %}
+                    <div class="list-group-item {% if not notif[4] %}list-group-item-light border-start border-primary border-3{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-start mb-2">
+                                    <div class="me-3">
+                                        {% if notif[2] == 'cap_nhat_vande' %}
+                                            <i class="fas fa-tasks fa-2x text-primary"></i>
+                                        {% elif notif[2] == 'phananh_moi' %}
+                                            <i class="fas fa-comment-alt fa-2x text-success"></i>
+                                        {% elif notif[2] == 'binh_luan' %}
+                                            <i class="fas fa-comment fa-2x text-info"></i>
+                                        {% elif notif[2] == 'like' %}
+                                            <i class="fas fa-heart fa-2x text-danger"></i>
+                                        {% else %}
+                                            <i class="fas fa-bell fa-2x text-warning"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1">{{ notif[1] }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> 
+                                            {{ notif[3].strftime('%d/%m/%Y %H:%M') if notif[3] else '' }}
+                                        </small>
+                                        
+                                        {% if notif[5] %}
+                                            <a href="{{ url_for('vande_detail', mavande=notif[5]) }}" 
+                                               class="btn btn-sm btn-outline-primary ms-2">
+                                                <i class="fas fa-external-link-alt"></i> Xem vấn đề
+                                            </a>
+                                        {% elif notif[6] %}
+                                            <a href="{{ url_for('phananh_detail', maphananh=notif[6]) }}" 
+                                               class="btn btn-sm btn-outline-primary ms-2">
+                                                <i class="fas fa-external-link-alt"></i> Xem phản ánh
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% if not notif[4] %}
+                            <div>
+                                <button class="btn btn-sm btn-outline-success" 
+                                        onclick="markAsRead({{ notif[0] }})">
+                                    <i class="fas fa-check"></i> Đã đọc
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('notifications', filter=filter_type, page=page-1) }}">Trước</a>
+                        </li>
+                        {% endif %}
+
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                            {% elif p >= page - 2 and p <= page + 2 %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('notifications', filter=filter_type, page=p) }}">{{ p }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('notifications', filter=filter_type, page=page+1) }}">Sau</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    {% if filter_type == 'unread' %}
+                        Bạn không có thông báo chưa đọc nào.
+                    {% else %}
+                        Bạn chưa có thông báo nào.
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function markAsRead(mathongbao_nguoidung) {
+    fetch(`/notification/${mathongbao_nguoidung}/read`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra!');
+    });
+}
+</script>
+{% endblock %}
