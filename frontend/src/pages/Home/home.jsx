@@ -27,7 +27,7 @@ export default function HomePage() {
         setItems(json);
       })
       .catch(() => {
-        localStorage.removeItem("token");
+        // localStorage.removeItem("token");
         navigate("/login");
       });
   }, []);

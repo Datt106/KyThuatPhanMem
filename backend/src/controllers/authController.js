@@ -41,8 +41,9 @@ exports.register = async (req, res) => {
       `INSERT INTO nguoidung 
       (cccd, name, sdt, ngaysinh, gioitinh, dantoc, vaitro, user_name, matkhau, baomatthongtin)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-      RETURNING cccd, name, sdt, ngaysinh, gioitinh, dantoc, vaitro, user_name, baomatthongtin`,
+      RETURNING id, cccd, name, sdt, ngaysinh, gioitinh, dantoc, vaitro, user_name, baomatthongtin`,
       [
+        id, 
         cccd,
         name,
         sdt,
@@ -88,6 +89,7 @@ exports.login = async (req, res) => {
     } 
     const token = jwt.sign(
       {
+        id: user.id,
         cccd: user.cccd,
         vaitro: user.vaitro,
         name: user.name
@@ -100,6 +102,7 @@ exports.login = async (req, res) => {
       message: "Đăng nhập thành công",
       token: token,
       user: {
+        id: user.id,
         cccd: user.cccd,
         name: user.name,
         vaitro: user.vaitro,
@@ -108,7 +111,6 @@ exports.login = async (req, res) => {
         dantoc: user.dantoc
       }
     });
-    localStorage.setItem("user", JSON.stringify(data.user));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Lỗi server" });

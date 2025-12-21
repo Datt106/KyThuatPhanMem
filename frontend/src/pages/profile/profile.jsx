@@ -30,7 +30,7 @@ export default function ProfilePage() {
         setLoading(false);
       })
       .catch(() => {
-        localStorage.removeItem("token");
+        // localStorage.removeItem("token");
         navigate("/home");
       });
   }, []);
