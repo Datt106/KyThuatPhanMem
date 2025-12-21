@@ -26,10 +26,17 @@
                     <!-- Author & Time -->
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                         <div class="d-flex align-items-center">
-                            <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" 
-                                 style="width: 50px; height: 50px;">
-                                <i class="fas fa-user fa-lg"></i>
-                            </div>
+                            {% if phananh[24] and phananh[24] != './image/default_avatar.png' %}
+                            <img src="/{{ phananh[24] }}" 
+                                 alt="Avatar" 
+                                 class="rounded-circle me-3" 
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                            <img src="/image/default_avatar.png" 
+                                 alt="Avatar" 
+                                 class="rounded-circle me-3" 
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                            {% endif %}
                             <div>
                                 <h6 class="mb-0">{{ nguoidung_name }}</h6>
                                 <small class="text-muted">
@@ -149,10 +156,17 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center mb-2">
-                                        <div class="bg-secondary rounded-circle text-white d-flex align-items-center justify-content-center me-2" 
-                                             style="width: 35px; height: 35px;">
-                                            <i class="fas fa-user"></i>
-                                        </div>
+                                        {% if comment[3] and comment[3] != './image/default_avatar.png' %}
+                                        <img src="/{{ comment[3] }}" 
+                                             alt="Avatar" 
+                                             class="rounded-circle me-2" 
+                                             style="width: 35px; height: 35px; object-fit: cover;">
+                                        {% else %}
+                                        <img src="/image/default_avatar.png" 
+                                             alt="Avatar" 
+                                             class="rounded-circle me-2" 
+                                             style="width: 35px; height: 35px; object-fit: cover;">
+                                        {% endif %}
                                         <div>
                                             <strong>{{ comment[2] }}</strong>
                                             <br>

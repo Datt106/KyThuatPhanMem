@@ -157,9 +157,17 @@
                     <!-- User dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <div class="avatar-circle me-2">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
+                            {% if session.user.avatar_url and session.user.avatar_url != './image/default_avatar.png' %}
+                            <img src="/{{ session.user.avatar_url }}" 
+                                 alt="Avatar" 
+                                 class="rounded-circle me-2" 
+                                 style="width: 32px; height: 32px; object-fit: cover;">
+                            {% else %}
+                            <img src="/image/default_avatar.png" 
+                                 alt="Avatar" 
+                                 class="rounded-circle me-2" 
+                                 style="width: 32px; height: 32px; object-fit: cover;">
+                            {% endif %}
                             <span>{{ session.user.name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow">
@@ -170,12 +178,12 @@
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="{{ url_for('profile') }}">
                                     <i class="bi bi-person me-2"></i>Thông tin cá nhân
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="{{ url_for('settings') }}">
                                     <i class="bi bi-gear me-2"></i>Cài đặt
                                 </a>
                             </li>

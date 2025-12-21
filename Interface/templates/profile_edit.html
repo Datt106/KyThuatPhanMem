@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Chỉnh sửa thông tin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('profile') }}">Thông tin cá nhân</a></li>
+                    <li class="breadcrumb-item active">Chỉnh sửa</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Chỉnh sửa thông tin</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile_edit') }}" enctype="multipart/form-data">
+                        <!-- Hiển thị avatar hiện tại -->
+                        <div class="text-center mb-4">
+                            {% if user_info[8] and user_info[8] != './image/default_avatar.png' %}
+                            <img src="/{{ user_info[8] }}" 
+                                 alt="Avatar" 
+                                 class="rounded-circle shadow mb-3" 
+                                 id="avatar-preview"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                            {% else %}
+                            <img src="/image/default_avatar.png" 
+                                 alt="Avatar" 
+                                 class="rounded-circle shadow mb-3" 
+                                 id="avatar-preview"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+
+                        <!-- Upload ảnh đại diện -->
+                        <div class="mb-3">
+                            <label for="avatar" class="form-label">
+                                <i class="bi bi-image"></i> Ảnh đại diện
+                            </label>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="avatar" 
+                                   name="avatar" 
+                                   accept="image/png,image/jpeg,image/jpg,image/gif"
+                                   onchange="previewAvatar(event)">
+                            <small class="form-text text-muted">Ảnh sẽ được lưu với tên {{ user_info[0] }}.png. Chấp nhận: PNG, JPG, JPEG, GIF</small>
+                        </div>
+
+                        <hr>
+
+                        <!-- Thông tin chỉ đọc -->
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-credit-card"></i> CCCD</label>
+                            <input type="text" class="form-control" value="{{ user_info[0] }}" readonly disabled>
+                            <small class="form-text text-muted">Không thể thay đổi CCCD</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-person"></i> Họ và tên</label>
+                            <input type="text" class="form-control" value="{{ user_info[1] }}" readonly disabled>
+                            <small class="form-text text-muted">Không thể thay đổi tên</small>
+                        </div>
+
+                        <!-- Số điện thoại -->
+                        <div class="mb-3">
+                            <label for="sdt" class="form-label">
+                                <i class="bi bi-telephone"></i> Số điện thoại <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="sdt" 
+                                   name="sdt" 
+                                   value="{{ user_info[2] }}"
+                                   placeholder="Nhập số điện thoại"
+                                   required 
+                                   pattern="[0-9]{10,11}"
+                                   maxlength="15">
+                            <small class="form-text text-muted">Nhập 10-11 số</small>
+                        </div>
+
+                        <!-- Tên đăng nhập -->
+                        <div class="mb-3">
+                            <label for="user_name" class="form-label">
+                                <i class="bi bi-person-badge"></i> Tên đăng nhập <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="user_name" 
+                                   name="user_name" 
+                                   value="{{ user_info[3] }}"
+                                   placeholder="Nhập tên đăng nhập"
+                                   required 
+                                   pattern="[a-zA-Z0-9_]{4,50}"
+                                   maxlength="50">
+                            <small class="form-text text-muted">4-50 ký tự, chỉ chữ, số và dấu gạch dưới</small>
+                        </div>
+
+                        <!-- Thông tin chỉ đọc -->
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-calendar"></i> Ngày sinh</label>
+                            <input type="text" class="form-control" 
+                                   value="{{ user_info[4].strftime('%d/%m/%Y') if user_info[4] else 'Chưa cập nhật' }}" 
+                                   readonly disabled>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-gender-ambiguous"></i> Giới tính</label>
+                                <input type="text" class="form-control" value="{{ user_info[5] or 'N/A' }}" readonly disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-flag"></i> Dân tộc</label>
+                                <input type="text" class="form-control" value="{{ user_info[6] or 'N/A' }}" readonly disabled>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Lưu ý:</strong> Chỉ có thể chỉnh sửa số điện thoại và tên đăng nhập. 
+                            Để thay đổi thông tin khác, vui lòng liên hệ cán bộ.
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Lưu thay đổi
+                            </button>
+                            <a href="{{ url_for('profile') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview avatar before upload
+function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatar-preview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+{% endblock %}

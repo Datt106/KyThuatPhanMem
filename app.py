@@ -138,6 +138,13 @@ def role_required(allowed_roles):
 
 # ========== ROUTES ==========
 
+@app.route('/image/<path:filename>')
+def serve_image(filename):
+    """Serve images from image folder"""
+    from flask import send_from_directory
+    return send_from_directory('image', filename)
+
+
 @app.route('/')
 def index():
     """Trang chủ - Redirect đến login hoặc dashboard"""
@@ -159,7 +166,7 @@ def login():
         
         # Query kiểm tra đăng nhập bằng CCCD
         query = """
-            SELECT cccd, name, vaitro, user_name 
+            SELECT cccd, name, vaitro, user_name, avatar_url 
             FROM nguoidung 
             WHERE cccd = %s AND matkhau = %s
         """
@@ -170,7 +177,8 @@ def login():
                 'cccd': user[0].strip() if user[0] else '',
                 'name': user[1],
                 'vaitro': user[2],
-                'user_name': user[3]
+                'user_name': user[3],
+                'avatar_url': user[4] if user[4] else './image/default_avatar.png'
             }
             flash(f'Chào mừng {user[1]}!', 'success')
             return redirect(url_for('dashboard'))
@@ -186,6 +194,183 @@ def logout():
     session.pop('user', None)
     flash('Đã đăng xuất thành công!', 'info')
     return redirect(url_for('login'))
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    """Trang thông tin cá nhân"""
+    user_cccd = session['user']['cccd']
+    
+    # Lấy thông tin đầy đủ của người dùng
+    query = """
+        SELECT 
+            n.cccd,
+            n.name,
+            n.sdt,
+            n.ngaysinh,
+            n.gioitinh,
+            n.dantoc,
+            n.vaitro,
+            n.user_name,
+            n.baomatthongtin,
+            d.tinh,
+            d.xaphuong,
+            d.chitiet,
+            n.avatar_url
+        FROM nguoidung n
+        LEFT JOIN diachinguoidung dn ON n.cccd = dn.cccd AND dn.loaidiachi = 'CuTru'
+        LEFT JOIN diachi d ON dn.madiachi = d.madiachi
+        WHERE n.cccd = %s
+    """
+    user_info = execute_query(query, (user_cccd,), fetch_one=True)
+    
+    if not user_info:
+        flash('Không tìm thấy thông tin người dùng!', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Lấy thông tin hộ khẩu nếu có
+    query_hokhau = """
+        SELECT 
+            h.mahokhau,
+            tv.quanhechuo,
+            h.ngaycap,
+            d.tinh as hk_tinh,
+            d.xaphuong as hk_xaphuong,
+            d.chitiet as hk_chitiet
+        FROM thanhvienhokhau tv
+        JOIN hokhau h ON tv.mahokhau = h.mahokhau
+        LEFT JOIN diachi d ON h.madiachi = d.madiachi
+        WHERE tv.cccd = %s AND tv.ngayketthuc IS NULL
+    """
+    hokhau_info = execute_query(query_hokhau, (user_cccd,), fetch_one=True)
+    
+    return render_template('profile.html', user_info=user_info, hokhau_info=hokhau_info)
+
+
+@app.route('/profile/edit', methods=['GET', 'POST'])
+@login_required
+def profile_edit():
+    """Chỉnh sửa thông tin cá nhân"""
+    user_cccd = session['user']['cccd']
+    
+    if request.method == 'POST':
+        sdt = request.form.get('sdt', '').strip()
+        user_name = request.form.get('user_name', '').strip()
+        
+        # Validate
+        if not sdt or not user_name:
+            flash('Vui lòng nhập đầy đủ thông tin!', 'warning')
+            return redirect(url_for('profile_edit'))
+        
+        # Xử lý upload ảnh đại diện
+        avatar_url = None
+        if 'avatar' in request.files:
+            file = request.files['avatar']
+            if file and file.filename != '':
+                # Kiểm tra định dạng file
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+                file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+                
+                if file_ext in allowed_extensions:
+                    # Lưu file với tên cccd.png
+                    import os
+                    filename = f"{user_cccd}.png"
+                    filepath = os.path.join('image', filename)
+                    file.save(filepath)
+                    avatar_url = f"./image/{filename}"
+                else:
+                    flash('Chỉ chấp nhận file ảnh (PNG, JPG, JPEG, GIF)!', 'warning')
+                    return redirect(url_for('profile_edit'))
+        
+        # Update thông tin
+        if avatar_url:
+            query = """
+                UPDATE nguoidung
+                SET sdt = %s, user_name = %s, avatar_url = %s
+                WHERE cccd = %s
+            """
+            execute_query(query, (sdt, user_name, avatar_url, user_cccd))
+            # Cập nhật session với avatar mới
+            session['user']['avatar_url'] = avatar_url
+        else:
+            query = """
+                UPDATE nguoidung
+                SET sdt = %s, user_name = %s
+                WHERE cccd = %s
+            """
+            execute_query(query, (sdt, user_name, user_cccd))
+        
+        # Cập nhật session
+        session['user']['sdt'] = sdt
+        session['user']['user_name'] = user_name
+        
+        flash('Đã cập nhật thông tin thành công!', 'success')
+        return redirect(url_for('profile'))
+    
+    # GET - hiển thị form
+    query = """
+        SELECT cccd, name, sdt, user_name, ngaysinh, gioitinh, dantoc, vaitro, avatar_url
+        FROM nguoidung
+        WHERE cccd = %s
+    """
+    user_info = execute_query(query, (user_cccd,), fetch_one=True)
+    
+    return render_template('profile_edit.html', user_info=user_info)
+
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    """Trang cài đặt - Đổi mật khẩu và cài đặt quyền riêng tư"""
+    user_cccd = session['user']['cccd']
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'change_password':
+            old_password = request.form.get('old_password', '').strip()
+            new_password = request.form.get('new_password', '').strip()
+            confirm_password = request.form.get('confirm_password', '').strip()
+            
+            # Validate
+            if not old_password or not new_password or not confirm_password:
+                flash('Vui lòng nhập đầy đủ thông tin!', 'warning')
+                return redirect(url_for('settings'))
+            
+            if new_password != confirm_password:
+                flash('Mật khẩu mới không khớp!', 'danger')
+                return redirect(url_for('settings'))
+            
+            # Kiểm tra mật khẩu cũ
+            query_check = "SELECT matkhau FROM nguoidung WHERE cccd = %s"
+            result = execute_query(query_check, (user_cccd,), fetch_one=True)
+            
+            if not result or result[0] != old_password:
+                flash('Mật khẩu cũ không đúng!', 'danger')
+                return redirect(url_for('settings'))
+            
+            # Cập nhật mật khẩu mới
+            query_update = "UPDATE nguoidung SET matkhau = %s WHERE cccd = %s"
+            execute_query(query_update, (new_password, user_cccd))
+            
+            flash('Đã đổi mật khẩu thành công!', 'success')
+            return redirect(url_for('settings'))
+        
+        elif action == 'update_privacy':
+            baomatthongtin = request.form.get('baomatthongtin') == 'on'
+            
+            query_update = "UPDATE nguoidung SET baomatthongtin = %s WHERE cccd = %s"
+            execute_query(query_update, (baomatthongtin, user_cccd))
+            
+            flash('Đã cập nhật cài đặt quyền riêng tư!', 'success')
+            return redirect(url_for('settings'))
+    
+    # GET - hiển thị trang cài đặt
+    query = "SELECT baomatthongtin FROM nguoidung WHERE cccd = %s"
+    user_settings = execute_query(query, (user_cccd,), fetch_one=True)
+    
+    return render_template('settings.html', baomatthongtin=user_settings[0] if user_settings else True)
 
 
 @app.route('/dashboard')
@@ -2139,7 +2324,8 @@ def phananh_detail(maphananh):
             d.tinh,
             d.xaphuong,
             d.chitiet AS diachi_chitiet,
-            t.duongdan AS hinh_anh
+            t.duongdan AS hinh_anh,
+            n.avatar_url
         FROM phananh p
         LEFT JOIN nguoidung n ON p.cccd = n.cccd
         LEFT JOIN vande v ON p.mavande = v.mavande

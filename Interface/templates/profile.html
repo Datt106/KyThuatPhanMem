@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Thông tin cá nhân{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item active">Thông tin cá nhân</li>
+                </ol>
+            </nav>
+
+            <!-- Profile Card -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="bi bi-person-circle"></i> Thông tin cá nhân</h4>
+                    <a href="{{ url_for('profile_edit') }}" class="btn btn-light btn-sm">
+                        <i class="bi bi-pencil"></i> Chỉnh sửa
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Avatar -->
+                    <div class="text-center mb-4">
+                        {% if user_info[12] and user_info[12] != './image/default_avatar.png' %}
+                        <img src="/{{ user_info[12] }}" 
+                             alt="Avatar" 
+                             class="rounded-circle shadow" 
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <img src="/image/default_avatar.png" 
+                             alt="Avatar" 
+                             class="rounded-circle shadow" 
+                             style="width: 120px; height: 120px; object-fit: cover;">
+                        {% endif %}
+                        <h4 class="mt-3 mb-1">{{ user_info[1] }}</h4>
+                        <span class="badge bg-{{ 'danger' if user_info[6] == 'CanBo' else 'info' if user_info[6] == 'QuanLy' else 'secondary' }}">
+                            {{ 'Cán bộ' if user_info[6] == 'CanBo' else 'Quản lý' if user_info[6] == 'QuanLy' else 'Người dân' }}
+                        </span>
+                    </div>
+
+                    <hr>
+
+                    <!-- Personal Information -->
+                    <h5 class="mb-3"><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-credit-card text-primary"></i> CCCD:</strong><br>
+                               {{ user_info[0] }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-person-badge text-primary"></i> Tên đăng nhập:</strong><br>
+                               {{ user_info[7] }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-telephone text-success"></i> Số điện thoại:</strong><br>
+                               {{ user_info[2] or 'Chưa cập nhật' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-calendar text-info"></i> Ngày sinh:</strong><br>
+                               {{ user_info[3].strftime('%d/%m/%Y') if user_info[3] else 'Chưa cập nhật' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-gender-ambiguous text-warning"></i> Giới tính:</strong><br>
+                               {{ user_info[4] or 'Chưa cập nhật' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-flag text-danger"></i> Dân tộc:</strong><br>
+                               {{ user_info[5] or 'Chưa cập nhật' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    {% if user_info[9] or user_info[10] or user_info[11] %}
+                    <hr>
+                    <h5 class="mb-3"><i class="bi bi-geo-alt"></i> Địa chỉ cư trú</h5>
+                    <div class="alert alert-light">
+                        <i class="bi bi-house-door"></i>
+                        {{ [user_info[11], user_info[10], user_info[9]] | select | join(', ') }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Household Info -->
+                    {% if hokhau_info %}
+                    <hr>
+                    <h5 class="mb-3"><i class="bi bi-people"></i> Thông tin hộ khẩu</h5>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <p class="mb-1"><strong>Mã hộ khẩu:</strong></p>
+                                    <p>{{ hokhau_info[0] }}</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <p class="mb-1"><strong>Quan hệ chủ hộ:</strong></p>
+                                    <span class="badge bg-primary">{{ hokhau_info[1] }}</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <p class="mb-1"><strong>Ngày cấp:</strong></p>
+                                    <p>{{ hokhau_info[2].strftime('%d/%m/%Y') if hokhau_info[2] else 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <p class="mb-1"><strong>Địa chỉ hộ khẩu:</strong></p>
+                                    <p>{{ [hokhau_info[5], hokhau_info[4], hokhau_info[3]] | select | join(', ') }}</p>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('hokhau_detail', mahokhau=hokhau_info[0]) }}" class="btn btn-sm btn-outline-primary mt-2">
+                                <i class="bi bi-eye"></i> Xem chi tiết hộ khẩu
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <hr>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Bạn chưa thuộc hộ khẩu nào.
+                    </div>
+                    {% endif %}
+
+                    <!-- Privacy Settings -->
+                    <hr>
+                    <h5 class="mb-3"><i class="bi bi-shield-lock"></i> Quyền riêng tư</h5>
+                    <div class="alert alert-{{ 'warning' if user_info[8] else 'success' }}">
+                        <i class="bi bi-{{ 'shield-exclamation' if user_info[8] else 'shield-check' }}"></i>
+                        <strong>Bảo mật thông tin:</strong>
+                        {{ 'BẬT - Thông tin của bạn sẽ được ẩn cho đến khi cán bộ xử lý phản ánh' if user_info[8] else 'TẮT - Thông tin của bạn có thể được xem bởi cán bộ' }}
+                    </div>
+                    <a href="{{ url_for('settings') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear"></i> Cài đặt quyền riêng tư
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

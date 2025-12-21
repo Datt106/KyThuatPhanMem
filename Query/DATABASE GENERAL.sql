@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.nguoidung
     baomatthongtin boolean DEFAULT true,
     nghenghiep character varying(100) COLLATE pg_catalog."default",
     noilamviec character varying(255) COLLATE pg_catalog."default",
-    avatar_url text COLLATE pg_catalog."default" DEFAULT 'default_avatar.png'::text,
+    avatar_url text COLLATE pg_catalog."default" DEFAULT 'image/default_avatar.png'::text,
     CONSTRAINT nguoidung_pkey PRIMARY KEY (cccd),
     CONSTRAINT nguoidung_user_name_key UNIQUE (user_name)
 );
@@ -110,11 +110,23 @@ CREATE TABLE IF NOT EXISTS public.phananh
     like_count integer DEFAULT 0,
     comment_count integer DEFAULT 0,
     view_count integer DEFAULT 0,
+    mavande integer,
+    thoigiantao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    thoigianxuly timestamp without time zone,
     CONSTRAINT phananh_pkey PRIMARY KEY (maphananh)
 );
 
 COMMENT ON TABLE public.phananh
     IS 'Lưu thông tin phản ánh của người dân.';
+
+COMMENT ON COLUMN public.phananh.mavande
+    IS 'Mã vấn đề mà phản ánh này thuộc về (FK -> vande.mavande)';
+
+COMMENT ON COLUMN public.phananh.thoigiantao
+    IS 'Thời điểm tạo phản ánh';
+
+COMMENT ON COLUMN public.phananh.thoigianxuly
+    IS 'Thời điểm xử lý/cập nhật trạng thái';
 
 CREATE TABLE IF NOT EXISTS public.tepdinhkem
 (
@@ -157,6 +169,50 @@ COMMENT ON TABLE public.thongbao
 COMMENT ON COLUMN public.thongbao.matepdinhkem
     IS 'Tệp đính kèm đi kèm thông báo (nếu có).';
 
+CREATE TABLE IF NOT EXISTS public.thongbao_nguoidung
+(
+    mathongbao_nguoidung serial NOT NULL,
+    cccd character(12) COLLATE pg_catalog."default" NOT NULL,
+    mathongbao integer,
+    noidung text COLLATE pg_catalog."default" NOT NULL,
+    loai character varying(50) COLLATE pg_catalog."default" DEFAULT 'General'::character varying,
+    trangthai_doc boolean DEFAULT false,
+    thoigian timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    mavande integer,
+    maphananh integer,
+    CONSTRAINT thongbao_nguoidung_pkey PRIMARY KEY (mathongbao_nguoidung)
+);
+
+COMMENT ON TABLE public.thongbao_nguoidung
+    IS 'Lưu thông báo cá nhân cho từng người dùng với trạng thái đã đọc';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.mathongbao_nguoidung
+    IS 'Mã thông báo người dùng (Primary Key)';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.cccd
+    IS 'CCCD người nhận thông báo';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.mathongbao
+    IS 'Mã thông báo chung (nếu liên kết từ bảng thongbao)';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.noidung
+    IS 'Nội dung thông báo';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.loai
+    IS 'Loại: General, PhanAnh, VanDe, Chat, System, LichSu';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.trangthai_doc
+    IS 'Trạng thái đã đọc (TRUE/FALSE)';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.thoigian
+    IS 'Thời điểm tạo thông báo';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.mavande
+    IS 'Liên kết đến vấn đề (nếu thông báo về vấn đề)';
+
+COMMENT ON COLUMN public.thongbao_nguoidung.maphananh
+    IS 'Liên kết đến phản ánh (nếu thông báo về phản ánh)';
+
 CREATE TABLE IF NOT EXISTS public.tinnhan
 (
     tinnhanid serial NOT NULL,
@@ -171,6 +227,46 @@ CREATE TABLE IF NOT EXISTS public.tinnhan
 
 COMMENT ON TABLE public.tinnhan
     IS 'Lưu tin nhắn giữa người dân và cán bộ trong từng box chat.';
+
+CREATE TABLE IF NOT EXISTS public.vande
+(
+    mavande serial NOT NULL,
+    tenvande character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    phanloai character varying(100) COLLATE pg_catalog."default" DEFAULT 'Khac'::character varying,
+    trangthai character varying(50) COLLATE pg_catalog."default" DEFAULT 'Moi'::character varying,
+    ketqua text COLLATE pg_catalog."default",
+    ngaytao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    ngaycapnhat timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    cccd_canbo_xuly character(12) COLLATE pg_catalog."default",
+    CONSTRAINT vande_pkey PRIMARY KEY (mavande)
+);
+
+COMMENT ON TABLE public.vande
+    IS 'Lưu thông tin vấn đề/sự việc được tổng hợp từ nhiều phản ánh của người dân';
+
+COMMENT ON COLUMN public.vande.mavande
+    IS 'Mã vấn đề (Primary Key)';
+
+COMMENT ON COLUMN public.vande.tenvande
+    IS 'Tên vấn đề (VD: Mất nước khu vực 7, Đường bị hỏng...)';
+
+COMMENT ON COLUMN public.vande.phanloai
+    IS 'Phân loại: HaTang, MoiTruong, AnNinh, GiaoThong, YTe, GiaoDuc, VanHoa, Khac';
+
+COMMENT ON COLUMN public.vande.trangthai
+    IS 'Trạng thái: Moi, DangXuLy, DaGiaiQuyet, KhongGiaiQuyet';
+
+COMMENT ON COLUMN public.vande.ketqua
+    IS 'Kết quả giải quyết vấn đề';
+
+COMMENT ON COLUMN public.vande.ngaytao
+    IS 'Thời điểm tạo vấn đề';
+
+COMMENT ON COLUMN public.vande.ngaycapnhat
+    IS 'Thời điểm cập nhật cuối cùng';
+
+COMMENT ON COLUMN public.vande.cccd_canbo_xuly
+    IS 'CCCD cán bộ được phân công xử lý';
 
 ALTER TABLE IF EXISTS public.binhluan
     ADD CONSTRAINT binhluan_maphananh_fkey FOREIGN KEY (maphananh)
@@ -245,6 +341,8 @@ ALTER TABLE IF EXISTS public.like_post
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_like_post_cccd
+    ON public.like_post(cccd);
 
 
 ALTER TABLE IF EXISTS public.like_post
@@ -279,6 +377,15 @@ ALTER TABLE IF EXISTS public.phananh
     ON DELETE NO ACTION;
 
 
+ALTER TABLE IF EXISTS public.phananh
+    ADD CONSTRAINT phananh_mavande_fkey FOREIGN KEY (mavande)
+    REFERENCES public.vande (mavande) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_phananh_mavande
+    ON public.phananh(mavande);
+
+
 ALTER TABLE IF EXISTS public.thanhvienhokhau
     ADD CONSTRAINT thanhvienhokhau_cccd_fkey FOREIGN KEY (cccd)
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
@@ -311,6 +418,38 @@ ALTER TABLE IF EXISTS public.thongbao
     ON DELETE SET NULL;
 
 
+ALTER TABLE IF EXISTS public.thongbao_nguoidung
+    ADD CONSTRAINT thongbao_nguoidung_cccd_fkey FOREIGN KEY (cccd)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.thongbao_nguoidung
+    ADD CONSTRAINT thongbao_nguoidung_maphananh_fkey FOREIGN KEY (maphananh)
+    REFERENCES public.phananh (maphananh) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_thongbao_nguoidung_maphananh
+    ON public.thongbao_nguoidung(maphananh);
+
+
+ALTER TABLE IF EXISTS public.thongbao_nguoidung
+    ADD CONSTRAINT thongbao_nguoidung_mathongbao_fkey FOREIGN KEY (mathongbao)
+    REFERENCES public.thongbao (mathongbao) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.thongbao_nguoidung
+    ADD CONSTRAINT thongbao_nguoidung_mavande_fkey FOREIGN KEY (mavande)
+    REFERENCES public.vande (mavande) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_thongbao_nguoidung_mavande
+    ON public.thongbao_nguoidung(mavande);
+
+
 ALTER TABLE IF EXISTS public.tinnhan
     ADD CONSTRAINT tinnhan_maboxchat_fkey FOREIGN KEY (maboxchat)
     REFERENCES public.boxchat (maboxchat) MATCH SIMPLE
@@ -332,5 +471,14 @@ ALTER TABLE IF EXISTS public.tinnhan
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.vande
+    ADD CONSTRAINT vande_cccd_canbo_fkey FOREIGN KEY (cccd_canbo_xuly)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_vande_canbo
+    ON public.vande(cccd_canbo_xuly);
 
 END;
