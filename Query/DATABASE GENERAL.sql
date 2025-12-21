@@ -3,6 +3,18 @@
 BEGIN;
 
 
+CREATE TABLE IF NOT EXISTS public.binhluan
+(
+    id serial NOT NULL,
+    maphananh integer NOT NULL,
+    cccd_nguoidung character(12) COLLATE pg_catalog."default" NOT NULL,
+    noidung text COLLATE pg_catalog."default" NOT NULL,
+    thoigian timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_hidden boolean DEFAULT false,
+    parent_id integer,
+    CONSTRAINT binhluan_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS public.boxchat
 (
     maboxchat serial NOT NULL,
@@ -50,6 +62,14 @@ CREATE TABLE IF NOT EXISTS public.hokhau
 COMMENT ON TABLE public.hokhau
     IS 'Lưu thông tin hộ khẩu, gắn với một địa chỉ cư trú.';
 
+CREATE TABLE IF NOT EXISTS public.like_post
+(
+    maphananh integer NOT NULL,
+    cccd character(12) COLLATE pg_catalog."default" NOT NULL,
+    thoigian timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT like_post_pkey PRIMARY KEY (maphananh, cccd)
+);
+
 CREATE TABLE IF NOT EXISTS public.nguoidung
 (
     cccd character(12) COLLATE pg_catalog."default" NOT NULL,
@@ -63,6 +83,8 @@ CREATE TABLE IF NOT EXISTS public.nguoidung
     matkhau character varying(255) COLLATE pg_catalog."default" NOT NULL,
     baomatthongtin boolean DEFAULT true,
     nghenghiep character varying(100) COLLATE pg_catalog."default",
+    noilamviec character varying(255) COLLATE pg_catalog."default",
+    avatar_url text COLLATE pg_catalog."default" DEFAULT 'default_avatar.png'::text,
     CONSTRAINT nguoidung_pkey PRIMARY KEY (cccd),
     CONSTRAINT nguoidung_user_name_key UNIQUE (user_name)
 );
@@ -82,6 +104,12 @@ CREATE TABLE IF NOT EXISTS public.phananh
     trangthaiphananh character varying(50) COLLATE pg_catalog."default" DEFAULT 'ChuaXuLy'::character varying,
     mota text COLLATE pg_catalog."default",
     matepdinhkem integer,
+    tieude character varying(255) COLLATE pg_catalog."default",
+    is_public boolean DEFAULT false,
+    allow_comment boolean DEFAULT true,
+    like_count integer DEFAULT 0,
+    comment_count integer DEFAULT 0,
+    view_count integer DEFAULT 0,
     CONSTRAINT phananh_pkey PRIMARY KEY (maphananh)
 );
 
@@ -144,6 +172,20 @@ CREATE TABLE IF NOT EXISTS public.tinnhan
 COMMENT ON TABLE public.tinnhan
     IS 'Lưu tin nhắn giữa người dân và cán bộ trong từng box chat.';
 
+ALTER TABLE IF EXISTS public.binhluan
+    ADD CONSTRAINT binhluan_maphananh_fkey FOREIGN KEY (maphananh)
+    REFERENCES public.phananh (maphananh) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.binhluan
+    ADD CONSTRAINT binhluan_nguoidung_fkey FOREIGN KEY (cccd_nguoidung)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
 ALTER TABLE IF EXISTS public.boxchat
     ADD CONSTRAINT boxchat_cccd_canbo_fkey FOREIGN KEY (cccd_canbo)
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
@@ -196,6 +238,20 @@ ALTER TABLE IF EXISTS public.hokhau
     ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_hokhau_madiadi
     ON public.hokhau(madiachi);
+
+
+ALTER TABLE IF EXISTS public.like_post
+    ADD CONSTRAINT likepost_nguoidung_fkey FOREIGN KEY (cccd)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.like_post
+    ADD CONSTRAINT likepost_phananh_fkey FOREIGN KEY (maphananh)
+    REFERENCES public.phananh (maphananh) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
 
 
 ALTER TABLE IF EXISTS public.phananh
