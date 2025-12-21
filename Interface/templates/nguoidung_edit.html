@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Sửa Nhân khẩu - Quản lý Dân cư{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-pencil-square me-2"></i>Sửa thông tin Nhân khẩu
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('nguoidung_list') }}">Nhân khẩu</a></li>
+                            <li class="breadcrumb-item active">Sửa</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{{ url_for('nguoidung_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-file-earmark-text text-primary me-2"></i>Thông tin nhân khẩu
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('nguoidung_edit', cccd=nguoidung[0]|trim) }}">
+                        <!-- Thông tin cơ bản -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <i class="bi bi-person-fill me-2"></i>Thông tin cơ bản
+                                    <span class="text-danger ms-2" style="font-size: 12px;">* Bắt buộc</span>
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="cccd" class="form-label fw-semibold">
+                                    CCCD <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control bg-light" 
+                                       id="cccd" 
+                                       value="{{ nguoidung[0]|trim }}"
+                                       readonly>
+                                <div class="form-text">CCCD không thể thay đổi</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="name" class="form-label fw-semibold">
+                                    Họ và tên <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name" 
+                                       required
+                                       value="{{ nguoidung[1] or '' }}"
+                                       placeholder="Nhập họ và tên đầy đủ">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="user_name" class="form-label fw-semibold">
+                                    Tên đăng nhập <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="user_name" 
+                                       name="user_name" 
+                                       required
+                                       value="{{ nguoidung[2] or '' }}"
+                                       placeholder="Tên dùng để đăng nhập">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="bidanh" class="form-label fw-semibold">Bí danh</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="bidanh" 
+                                       name="bidanh"
+                                       value="{{ nguoidung[9] or '' }}"
+                                       placeholder="Tên gọi khác (nếu có)">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Thông tin CCCD -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <i class="bi bi-card-text me-2"></i>Thông tin CCCD
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="ngaycapcccd" class="form-label fw-semibold">Ngày cấp CCCD</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="ngaycapcccd" 
+                                       name="ngaycapcccd"
+                                       value="{% if nguoidung[13] %}{{ nguoidung[13].strftime('%Y-%m-%d') }}{% endif %}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="noicapcccd" class="form-label fw-semibold">Nơi cấp CCCD</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="noicapcccd" 
+                                       name="noicapcccd"
+                                       value="{{ nguoidung[14] or '' }}"
+                                       placeholder="Ví dụ: Cục Cảnh sát ĐKQL cư trú và DLQG về dân cư">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Thông tin bổ sung -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6 class="text-secondary fw-bold mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>Thông tin bổ sung
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="sdt" class="form-label fw-semibold">Số điện thoại</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="sdt" 
+                                       name="sdt"
+                                       pattern="[0-9]{10,11}"
+                                       value="{{ nguoidung[3] or '' }}"
+                                       placeholder="Nhập số điện thoại">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="ngaysinh" class="form-label fw-semibold">Ngày sinh</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="ngaysinh" 
+                                       name="ngaysinh"
+                                       value="{% if nguoidung[4] %}{{ nguoidung[4].strftime('%Y-%m-%d') }}{% endif %}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="gioitinh" class="form-label fw-semibold">Giới tính</label>
+                                <select class="form-select" id="gioitinh" name="gioitinh">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="nam" {% if nguoidung[5]|lower == 'nam' %}selected{% endif %}>Nam</option>
+                                    <option value="nu" {% if nguoidung[5]|lower == 'nu' %}selected{% endif %}>Nữ</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="dantoc" class="form-label fw-semibold">Dân tộc</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="dantoc" 
+                                       name="dantoc"
+                                       value="{{ nguoidung[6] or '' }}"
+                                       placeholder="Ví dụ: Kinh">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="vaitro" class="form-label fw-semibold">Vai trò</label>
+                                <select class="form-select" id="vaitro" name="vaitro">
+                                    <option value="NguoiDan" {% if nguoidung[7] == 'NguoiDan' %}selected{% endif %}>Người dân</option>
+                                    <option value="CanBo" {% if nguoidung[7] == 'CanBo' %}selected{% endif %}>Cán bộ</option>
+                                    <option value="QuanLy" {% if nguoidung[7] == 'QuanLy' %}selected{% endif %}>Quản lý</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="nghenghiep" class="form-label fw-semibold">Nghề nghiệp</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nghenghiep" 
+                                       name="nghenghiep"
+                                       value="{{ nguoidung[8] or '' }}"
+                                       placeholder="Nghề nghiệp hiện tại">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="noilamviec" class="form-label fw-semibold">Nơi làm việc</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="noilamviec" 
+                                       name="noilamviec"
+                                       value="{{ nguoidung[10] or '' }}"
+                                       placeholder="Tên công ty/cơ quan">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="noisinh" class="form-label fw-semibold">Nơi sinh</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="noisinh" 
+                                       name="noisinh"
+                                       value="{{ nguoidung[11] or '' }}"
+                                       placeholder="Tỉnh/Thành phố nơi sinh">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="nguyenquan" class="form-label fw-semibold">Nguyên quán</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nguyenquan" 
+                                       name="nguyenquan"
+                                       value="{{ nguoidung[12] or '' }}"
+                                       placeholder="Quê quán gốc">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Địa chỉ thường trú -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6 class="text-success fw-bold mb-3">
+                                    <i class="bi bi-geo-alt me-2"></i>Địa chỉ thường trú
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="ngaydangkythuongtru" class="form-label fw-semibold">Ngày đăng ký thường trú</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="ngaydangkythuongtru" 
+                                       name="ngaydangkythuongtru"
+                                       value="{% if nguoidung[15] %}{{ nguoidung[15].strftime('%Y-%m-%d') }}{% endif %}">
+                            </div>
+
+                            <div class="col-md-6"></div>
+
+                            <div class="col-12">
+                                <label for="diachitruoc" class="form-label fw-semibold">Địa chỉ thường trú trước khi chuyển đến</label>
+                                <textarea class="form-control" 
+                                          id="diachitruoc" 
+                                          name="diachitruoc"
+                                          rows="2"
+                                          placeholder="Nhập địa chỉ cũ hoặc ghi 'Mới sinh' nếu sinh ra tại đây">{{ nguoidung[16] or '' }}</textarea>
+                                <div class="form-text">
+                                    <i class="bi bi-lightbulb me-1"></i>
+                                    Nếu trẻ mới sinh, nhập "Mới sinh"
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('nguoidung_list') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

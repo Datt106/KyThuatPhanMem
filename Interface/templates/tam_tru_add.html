@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-house-heart me-2"></i>Cấp giấy tạm trú</h2>
+        <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Danh sách
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info bg-opacity-10">
+            <h5 class="mb-0 text-info"><i class="bi bi-file-earmark-text me-2"></i>Thông tin tạm trú</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Giấy tạm trú:</strong> Dành cho người dân từ nơi khác đến tạm trú tại địa phương 
+                trong một khoảng thời gian nhất định (thường trên 30 ngày).
+            </div>
+
+            <form method="POST" action="{{ url_for('tam_tru_add') }}">
+                <!-- Chọn người -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-person-fill me-2"></i>Thông tin người tạm trú
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cccd" class="form-label">
+                                Chọn người dân <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="cccd" name="cccd" required>
+                                <option value="">-- Chọn người dân --</option>
+                                {% for nd in nguoidung_list %}
+                                <option value="{{ nd[0]|trim }}">
+                                    {{ nd[1] }} - {{ nd[0]|trim }}
+                                    {% if nd[2] %} ({{ nd[2].strftime('%d/%m/%Y') }}){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Người đến từ nơi khác tạm trú tại địa phương</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Địa chỉ tạm trú -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ tạm trú
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="xaphuong" class="form-label">
+                                Xã/Phường <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
+                                   placeholder="Ví dụ: Phường Bến Nghé" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="diachi_tamtru" class="form-label">
+                                Địa chỉ chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="diachi_tamtru" name="diachi_tamtru" 
+                                   placeholder="Số nhà, đường..." required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thời gian -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-calendar-range me-2"></i>Thời gian tạm trú
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="ngaybatdau" class="form-label">
+                                Ngày bắt đầu <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="ngaybatdau" name="ngaybatdau" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="ngayketthuc" class="form-label">
+                                Ngày kết thúc (dự kiến)
+                            </label>
+                            <input type="date" class="form-control" id="ngayketthuc" name="ngayketthuc">
+                            <small class="text-muted">Để trống nếu chưa xác định</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lý do -->
+                <div class="mb-4">
+                    <label for="lydo" class="form-label">Lý do tạm trú</label>
+                    <select class="form-select" id="lydo" name="lydo">
+                        <option value="Công tác dài hạn">Công tác dài hạn</option>
+                        <option value="Học tập">Học tập</option>
+                        <option value="Chữa bệnh">Chữa bệnh</option>
+                        <option value="Làm việc">Làm việc</option>
+                        <option value="Tạm trú cùng người thân">Tạm trú cùng người thân</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-info">
+                        <i class="bi bi-check-circle me-2"></i>Cấp giấy tạm trú
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set ngày hiện tại làm ngày bắt đầu
+document.getElementById('ngaybatdau').valueAsDate = new Date();
+
+// Validate: ngày kết thúc phải sau ngày bắt đầu
+document.getElementById('ngayketthuc').addEventListener('change', function() {
+    const ngayBatDau = document.getElementById('ngaybatdau').value;
+    const ngayKetThuc = this.value;
+    
+    if (ngayBatDau && ngayKetThuc && ngayKetThuc < ngayBatDau) {
+        alert('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu!');
+        this.value = '';
+    }
+});
+</script>
+{% endblock %}

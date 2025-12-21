@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-file-earmark-bar-graph me-2"></i>Báo cáo tạm vắng/tạm trú</h2>
+        {% if openpyxl_available %}
+        <a href="{{ url_for('export_tamvangtru', thang=thang, nam=nam, loai=loai, xaphuong=xaphuong) }}" 
+           class="btn btn-success">
+            <i class="bi bi-file-earmark-excel me-2"></i>Xuất Excel
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filter form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('thongke_tamvangtru') }}" class="row g-3">
+                <div class="col-md-2">
+                    <label for="thang" class="form-label">Tháng</label>
+                    <select class="form-select" id="thang" name="thang">
+                        <option value="">Tất cả</option>
+                        {% for m in range(1, 13) %}
+                        <option value="{{ m }}" {% if thang == m|string %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="nam" class="form-label">Năm</label>
+                    <select class="form-select" id="nam" name="nam">
+                        <option value="">Tất cả</option>
+                        {% for y in range(2020, 2031) %}
+                        <option value="{{ y }}" {% if nam == y|string %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="loai" class="form-label">Loại</label>
+                    <select class="form-select" id="loai" name="loai">
+                        <option value="">Tất cả</option>
+                        <option value="TamVang" {% if loai == 'TamVang' %}selected{% endif %}>Tạm vắng</option>
+                        <option value="TamTru" {% if loai == 'TamTru' %}selected{% endif %}>Tạm trú</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="xaphuong" class="form-label">Xã/Phường</label>
+                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
+                           value="{{ xaphuong }}" placeholder="Nhập để lọc">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-2"></i>Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center border-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="bi bi-box-arrow-right text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Tạm vắng</h5>
+                    <h2 class="mb-0 text-warning">{{ tong_tamvang }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center border-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="bi bi-box-arrow-in-left text-info" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Tạm trú</h5>
+                    <h2 class="mb-0 text-info">{{ tong_tamtru }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center border-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="bi bi-people-fill text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Tổng cộng</h5>
+                    <h2 class="mb-0 text-primary">{{ tong_tamvang + tong_tamtru }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics by district -->
+    {% if stats %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Thống kê theo địa bàn</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Loại</th>
+                            <th>Xã/Phường</th>
+                            <th class="text-center">Tổng số</th>
+                            <th class="text-center">Đang hiệu lực</th>
+                            <th class="text-center">Đã hết hạn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in stats %}
+                        <tr>
+                            <td>
+                                {% if row[0] == 'TamVang' %}
+                                    <span class="badge bg-warning">Tạm vắng</span>
+                                {% else %}
+                                    <span class="badge bg-info">Tạm trú</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ row[1] or 'N/A' }}</strong></td>
+                            <td class="text-center"><span class="badge bg-primary">{{ row[2] }}</span></td>
+                            <td class="text-center"><span class="badge bg-success">{{ row[3] }}</span></td>
+                            <td class="text-center"><span class="badge bg-secondary">{{ row[4] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Detail records -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Chi tiết ({{ details|length }} bản ghi)</h5>
+        </div>
+        <div class="card-body">
+            {% if details %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>STT</th>
+                                <th>CCCD</th>
+                                <th>Họ tên</th>
+                                <th>Ngày sinh</th>
+                                <th>Loại</th>
+                                <th>Xã/Phường</th>
+                                <th>Địa chỉ</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in details %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td><code class="bg-light p-1 rounded">{{ row[0] }}</code></td>
+                                <td><strong>{{ row[1] }}</strong></td>
+                                <td>
+                                    {% if row[2] %}
+                                        {{ row[2].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row[4] == 'TamVang' %}
+                                        <span class="badge bg-warning">Tạm vắng</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Tạm trú</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ row[5] or 'N/A' }}</td>
+                                <td><small>{{ row[6] or 'N/A' }}</small></td>
+                                <td>
+                                    {% if row[7] %}
+                                        {{ row[7].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row[8] %}
+                                        {{ row[8].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row[8] %}
+                                        {% if row[8] >= now().date() %}
+                                            <span class="badge bg-success">Hiệu lực</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Hết hạn</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Không có dữ liệu</h5>
+                    <p class="text-muted">Vui lòng thay đổi tiêu chí lọc</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not openpyxl_available %}
+    <div class="alert alert-warning mt-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Lưu ý:</strong> Để sử dụng tính năng xuất Excel, vui lòng cài đặt thư viện openpyxl: 
+        <code>pip install openpyxl</code>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

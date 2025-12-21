@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-house-fill me-2"></i>Chỉnh sửa hộ khẩu HK{{ hokhau[0] }}</h2>
+        <a href="{{ url_for('hokhau') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('hokhau_edit', mahokhau=hokhau[0]) }}">
+                <!-- Thông tin địa chỉ -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Thông tin địa chỉ</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="xaphuong" class="form-label">Xã/Phường <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
+                                   value="{{ hokhau[5] or '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="chitiet" class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="chitiet" name="chitiet" 
+                                   value="{{ hokhau[6] or '' }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ghi chú -->
+                <div class="mb-4">
+                    <label for="ghichu" class="form-label">Ghi chú</label>
+                    <textarea class="form-control" id="ghichu" name="ghichu" rows="3">{{ hokhau[3] or '' }}</textarea>
+                </div>
+
+                <!-- Danh sách thành viên -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-people-fill me-2"></i>Thành viên trong hộ</h5>
+                    {% if thanhvien %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>CCCD</th>
+                                        <th>Họ tên</th>
+                                        <th>Ngày sinh</th>
+                                        <th>Quan hệ</th>
+                                        <th>Ngày bắt đầu</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tv in thanhvien %}
+                                    <tr>
+                                        <td>{{ tv[0] }}</td>
+                                        <td><strong>{{ tv[1] }}</strong></td>
+                                        <td>{{ tv[2].strftime('%d/%m/%Y') if tv[2] else '' }}</td>
+                                        <td>
+                                            {% if tv[3] %}
+                                                <span class="badge bg-primary">{{ tv[3] }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ tv[4].strftime('%d/%m/%Y') if tv[4] else '' }}</td>
+                                        <td>
+                                            {% if tv[5] %}
+                                                <span class="badge bg-warning">Đã kết thúc: {{ tv[5].strftime('%d/%m/%Y') }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Đang sinh sống</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>Chưa có thành viên nào trong hộ.
+                        </div>
+                    {% endif %}
+                    <div class="mt-3">
+                        <p class="text-muted small">
+                            <i class="bi bi-lightbulb-fill me-1"></i>
+                            <strong>Lưu ý:</strong> Để thêm/xóa thành viên, vui lòng sử dụng chức năng quản lý thành viên hộ khẩu.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('hokhau') }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

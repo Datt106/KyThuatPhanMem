@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-arrow-right-circle me-2"></i>Chuyển đi/Qua đời thành viên</h2>
+        <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Thông tin hộ khẩu -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-house-fill me-2"></i>Thông tin hộ khẩu</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Mã hộ khẩu:</strong> HK{{ hokhau[0] }}
+                </div>
+                <div class="col-md-8">
+                    <strong>Địa chỉ:</strong> {{ hokhau[2] or 'N/A' }}, {{ hokhau[3] or 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin thành viên -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Thông tin thành viên</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>CCCD:</strong> 
+                    <code class="bg-light p-1 rounded">{{ thanhvien[0] }}</code>
+                </div>
+                <div class="col-md-4">
+                    <strong>Họ tên:</strong> {{ thanhvien[1] }}
+                </div>
+                <div class="col-md-4">
+                    <strong>Ngày sinh:</strong> 
+                    {% if thanhvien[2] %}
+                        {{ thanhvien[2].strftime('%d/%m/%Y') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Quan hệ:</strong> 
+                    <span class="badge bg-primary">{{ thanhvien[3] or 'N/A' }}</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>Ngày bắt đầu:</strong>
+                    {% if thanhvien[4] %}
+                        {{ thanhvien[4].strftime('%d/%m/%Y') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form chuyển đi -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning bg-opacity-10">
+            <h5 class="mb-0 text-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Thông tin chuyển đi</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Lưu ý:</strong> Thao tác này sẽ đánh dấu thành viên không còn sinh sống tại hộ khẩu này. 
+                Dữ liệu sẽ được lưu lại trong lịch sử biến động.
+            </div>
+
+            <form method="POST" action="{{ url_for('thanhvien_chuyen_di', mahokhau=mahokhau, cccd=thanhvien[0]|trim) }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="ngaychuyen" class="form-label">Ngày chuyển đi/Qua đời <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="ngaychuyen" name="ngaychuyen" 
+                               max="{{ now.strftime('%Y-%m-%d') }}" required>
+                        <small class="text-muted">Ngày kết thúc sinh sống tại hộ khẩu này</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="lydochuyen" class="form-label">Lý do <span class="text-danger">*</span></label>
+                        <select class="form-select" id="lydochuyen" name="lydochuyen" required>
+                            <option value="">-- Chọn lý do --</option>
+                            <option value="Chuyển đi nơi khác">Chuyển đi nơi khác</option>
+                            <option value="Qua đời">Qua đời</option>
+                            <option value="Tách hộ">Tách hộ</option>
+                            <option value="Đi học">Đi học</option>
+                            <option value="Đi làm">Đi làm</option>
+                            <option value="Kết hôn">Kết hôn</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="noichuyenden" class="form-label">Nơi chuyển đến</label>
+                    <input type="text" class="form-control" id="noichuyenden" name="noichuyenden" 
+                           placeholder="Ví dụ: Số 10 Trần Hưng Đạo, Phường 5, Quận 1, TP.HCM">
+                    <small class="text-muted">Địa chỉ nơi chuyển đến (nếu có)</small>
+                </div>
+
+                <div class="mb-4">
+                    <label for="ghichu" class="form-label">Ghi chú</label>
+                    <textarea class="form-control" id="ghichu" name="ghichu" rows="3" 
+                              placeholder="Thông tin bổ sung về lý do chuyển đi..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle me-2"></i>Xác nhận chuyển đi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set ngày hiện tại làm mặc định
+document.getElementById('ngaychuyen').valueAsDate = new Date();
+</script>
+{% endblock %}

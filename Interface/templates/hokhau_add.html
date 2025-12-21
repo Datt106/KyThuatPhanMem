@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Thêm Hộ khẩu mới - Quản lý Dân cư{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-house-add me-2"></i>Thêm Hộ khẩu mới
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('hokhau_list') }}">Hộ khẩu</a></li>
+                            <li class="breadcrumb-item active">Thêm mới</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{{ url_for('hokhau_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-file-earmark-text text-primary me-2"></i>Thông tin hộ khẩu
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('hokhau_add') }}" id="hokhauForm">
+                        <!-- Địa chỉ -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <i class="bi bi-geo-alt me-2"></i>Địa chỉ hộ khẩu
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="tinh" class="form-label fw-semibold">Tỉnh/Thành phố</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="tinh" 
+                                       value="Hà Nội" 
+                                       readonly>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="quan" class="form-label fw-semibold">Quận/Huyện</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="quan" 
+                                       value="Ba Đình" 
+                                       readonly>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="xaphuong" class="form-label fw-semibold">
+                                    Xã/Phường <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="xaphuong" 
+                                       name="xaphuong" 
+                                       required
+                                       placeholder="Nhập tên xã/phường">
+                            </div>
+
+                            <div class="col-md-8">
+                                <label for="diachichitiet" class="form-label fw-semibold">
+                                    Địa chỉ chi tiết <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="diachichitiet" 
+                                       name="diachichitiet" 
+                                       required
+                                       placeholder="Số nhà, tên đường/ngõ/ngách...">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="ghichu" class="form-label fw-semibold">Ghi chú</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="ghichu" 
+                                       name="ghichu"
+                                       placeholder="Ghi chú thêm (nếu có)">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Chủ hộ -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <i class="bi bi-person-badge me-2"></i>Chủ hộ <span class="text-danger">*</span>
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="chuho_cccd" class="form-label fw-semibold">Nhập CCCD chủ hộ</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="chuho_cccd" 
+                                       name="chuho_cccd" 
+                                       required
+                                       pattern="[0-9]{12}"
+                                       maxlength="12"
+                                       placeholder="Nhập 12 số CCCD của người làm chủ hộ">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Nhập CCCD của người đã có trong hệ thống. Hệ thống sẽ tự kiểm tra khi bạn submit.
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Thành viên khác -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="text-secondary fw-bold mb-0">
+                                        <i class="bi bi-people me-2"></i>Thành viên khác (tùy chọn)
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="addMemberBtn">
+                                        <i class="bi bi-plus-circle me-1"></i>Thêm thành viên
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="membersContainer" class="row g-3">
+                            <!-- Members will be added dynamically here -->
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('hokhau_list') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Thêm hộ khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let memberCount = 0;
+
+document.getElementById('addMemberBtn').addEventListener('click', function() {
+    memberCount++;
+    const membersContainer = document.getElementById('membersContainer');
+    
+    const memberDiv = document.createElement('div');
+    memberDiv.className = 'col-12 member-item';
+    memberDiv.id = `member-${memberCount}`;
+    
+    memberDiv.innerHTML = `
+        <div class="card bg-light border">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="text-primary mb-0">Thành viên ${memberCount}</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMember(${memberCount})">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">Nhập CCCD thành viên</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="member_cccd[]" 
+                               pattern="[0-9]{12}"
+                               maxlength="12"
+                               placeholder="Nhập 12 số CCCD">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Quan hệ với chủ hộ</label>
+                        <select class="form-select" name="member_quanhe[]">
+                            <option value="">-- Chọn quan hệ --</option>
+                            <option value="Vo/Chong">Vợ/Chồng</option>
+                            <option value="Con">Con</option>
+                            <option value="Cha">Cha</option>
+                            <option value="Me">Mẹ</option>
+                            <option value="Anh/Chi/Em">Anh/Chị/Em</option>
+                            <option value="Khac">Khác</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    membersContainer.appendChild(memberDiv);
+});
+
+function removeMember(id) {
+    const memberDiv = document.getElementById(`member-${id}`);
+    if (memberDiv) {
+        memberDiv.remove();
+    }
+}
+
+// Validate form before submit
+document.getElementById('hokhauForm').addEventListener('submit', function(e) {
+    const chuho = document.getElementById('chuho_cccd').value;
+    const memberInputs = document.querySelectorAll('input[name="member_cccd[]"]');
+    
+    // Validate CCCD format
+    const cccdPattern = /^[0-9]{12}$/;
+    if (!cccdPattern.test(chuho)) {
+        e.preventDefault();
+        alert('CCCD chủ hộ phải là 12 chữ số!');
+        return false;
+    }
+    
+    // Check if any member is the same as chuho
+    for (let input of memberInputs) {
+        if (input.value) {
+            if (!cccdPattern.test(input.value)) {
+                e.preventDefault();
+                alert('CCCD thành viên phải là 12 chữ số!');
+                return false;
+            }
+            if (input.value === chuho) {
+                e.preventDefault();
+                alert('Chủ hộ không thể là thành viên khác! Vui lòng kiểm tra lại.');
+                return false;
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

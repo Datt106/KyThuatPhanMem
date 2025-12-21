@@ -213,6 +213,77 @@
                         </table>
                     </div>
                 </div>
+                
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <div class="card-footer bg-white border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <!-- Thông tin trang -->
+                        <div class="text-muted small">
+                            Trang <strong>{{ page }}</strong> / <strong>{{ total_pages }}</strong>
+                            <span class="d-none d-md-inline">
+                                (Hiển thị {{ per_page }} hộ khẩu mỗi trang)
+                            </span>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <nav aria-label="Pagination">
+                            <ul class="pagination pagination-sm mb-0">
+                                <!-- Nút Previous -->
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                                    <a class="page-link" 
+                                       href="{% if page > 1 %}{{ url_for('dashboard', page=page-1) }}{% else %}#{% endif %}"
+                                       aria-label="Previous">
+                                        <i class="bi bi-chevron-left"></i>
+                                        <span class="d-none d-sm-inline ms-1">Trước</span>
+                                    </a>
+                                </li>
+                                
+                                <!-- Trang đầu tiên -->
+                                {% if page > 3 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('dashboard', page=1) }}">1</a>
+                                </li>
+                                {% if page > 4 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                                {% endif %}
+                                
+                                <!-- Các trang lân cận -->
+                                {% for p in range([1, page - 2]|max, [total_pages, page + 2]|min + 1) %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('dashboard', page=p) }}">{{ p }}</a>
+                                </li>
+                                {% endfor %}
+                                
+                                <!-- Trang cuối cùng -->
+                                {% if page < total_pages - 2 %}
+                                {% if page < total_pages - 3 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('dashboard', page=total_pages) }}">{{ total_pages }}</a>
+                                </li>
+                                {% endif %}
+                                
+                                <!-- Nút Next -->
+                                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                                    <a class="page-link" 
+                                       href="{% if page < total_pages %}{{ url_for('dashboard', page=page+1) }}{% else %}#{% endif %}"
+                                       aria-label="Next">
+                                        <span class="d-none d-sm-inline me-1">Sau</span>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

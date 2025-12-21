@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history me-2"></i>Lịch sử biến động nhân khẩu</h2>
+        <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    <!-- Thông tin hộ khẩu -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-house-fill me-2"></i>Hộ khẩu HK{{ hokhau[0] }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Địa chỉ:</strong> {{ hokhau[2] or 'N/A' }}, {{ hokhau[3] or 'N/A' }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Ngày cấp:</strong> 
+                    {% if hokhau[4] %}
+                        {{ hokhau[4].strftime('%d/%m/%Y') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <strong>Số thành viên hiện tại:</strong> {{ thanhvien_hientai|length }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thành viên hiện tại -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success bg-opacity-10">
+            <h5 class="mb-0 text-success">
+                <i class="bi bi-people-fill me-2"></i>Thành viên hiện tại ({{ thanhvien_hientai|length }})
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if thanhvien_hientai %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>CCCD</th>
+                                <th>Họ tên</th>
+                                <th>Ngày sinh</th>
+                                <th>Giới tính</th>
+                                <th>Quan hệ</th>
+                                <th>Ngày bắt đầu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tv in thanhvien_hientai %}
+                            <tr>
+                                <td><code class="bg-light p-1 rounded">{{ tv[0] }}</code></td>
+                                <td>
+                                    <strong>{{ tv[1] }}</strong>
+                                    {% if tv[4] == 'Chủ hộ' %}
+                                        <span class="badge bg-primary ms-1">Chủ hộ</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tv[2] %}
+                                        {{ tv[2].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tv[3] == 'Nam' %}
+                                        <span class="badge bg-info">Nam</span>
+                                    {% elif tv[3] == 'Nữ' %}
+                                        <span class="badge bg-danger">Nữ</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ tv[4] or 'N/A' }}</td>
+                                <td>
+                                    {% if tv[5] %}
+                                        {{ tv[5].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Chưa có thành viên nào</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Lịch sử thay đổi chủ hộ -->
+    {% if lichsu_doichuho %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info bg-opacity-10">
+            <h5 class="mb-0 text-info">
+                <i class="bi bi-arrow-repeat me-2"></i>Lịch sử thay đổi chủ hộ ({{ lichsu_doichuho|length }})
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                {% for ls in lichsu_doichuho %}
+                <div class="timeline-item mb-4">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <div class="timeline-badge bg-info text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <strong>{{ ls[1] or 'N/A' }}</strong> → <strong>{{ ls[2] or 'N/A' }}</strong>
+                                        <span class="badge bg-info ms-2">Đổi chủ hộ</span>
+                                    </h6>
+                                    <p class="card-text text-muted mb-2">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        {% if ls[0] %}
+                                            {{ ls[0].strftime('%d/%m/%Y') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </p>
+                                    {% if ls[3] %}
+                                        <p class="mb-1"><strong>Lý do:</strong> {{ ls[3] }}</p>
+                                    {% endif %}
+                                    {% if ls[4] %}
+                                        <p class="mb-1"><small class="text-muted">{{ ls[4] }}</small></p>
+                                    {% endif %}
+                                    {% if ls[5] %}
+                                        <p class="mb-0"><small class="text-muted">Người thực hiện: {{ ls[5] }}</small></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Lịch sử biến động (người đã rời khỏi hộ) -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning bg-opacity-10">
+            <h5 class="mb-0 text-warning">
+                <i class="bi bi-clock-history me-2"></i>Lịch sử người đã rời khỏi hộ ({{ lichsu|length }})
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if lichsu %}
+                <div class="timeline">
+                    {% for ls in lichsu %}
+                    <div class="timeline-item mb-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="timeline-badge bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <strong>{{ ls[1] }}</strong>
+                                            <code class="bg-light p-1 rounded ms-2">{{ ls[0] }}</code>
+                                        </h6>
+                                        <div class="row text-muted mb-2">
+                                            <div class="col-md-4">
+                                                <small>
+                                                    <i class="bi bi-calendar-plus me-1"></i>Bắt đầu: 
+                                                    {% if ls[4] %}
+                                                        {{ ls[4].strftime('%d/%m/%Y') }}
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small>
+                                                    <i class="bi bi-calendar-x me-1"></i>Kết thúc: 
+                                                    {% if ls[5] %}
+                                                        <strong class="text-danger">{{ ls[5].strftime('%d/%m/%Y') }}</strong>
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small>
+                                                    Quan hệ: <strong>{{ ls[3] or 'N/A' }}</strong>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if ls[6] %}
+                                            <p class="mb-1">
+                                                <span class="badge bg-secondary">{{ ls[6] }}</span>
+                                            </p>
+                                        {% endif %}
+                                        {% if ls[7] %}
+                                            <p class="mb-1"><strong>Nơi chuyển đến:</strong> {{ ls[7] }}</p>
+                                        {% endif %}
+                                        {% if ls[8] %}
+                                            <p class="mb-0"><small class="text-muted">{{ ls[8] }}</small></p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Chưa có biến động</h5>
+                    <p class="text-muted">Hộ khẩu chưa có người nào rời khỏi</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item:last-child .timeline::before {
+    display: none;
+}
+</style>
+{% endblock %}

@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS public.nguoidung
     user_name character varying(50) COLLATE pg_catalog."default" NOT NULL,
     matkhau character varying(255) COLLATE pg_catalog."default" NOT NULL,
     baomatthongtin boolean DEFAULT true,
+    nghenghiep character varying(100) COLLATE pg_catalog."default",
     CONSTRAINT nguoidung_pkey PRIMARY KEY (cccd),
     CONSTRAINT nguoidung_user_name_key UNIQUE (user_name)
 );
@@ -148,6 +149,8 @@ ALTER TABLE IF EXISTS public.boxchat
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_boxchat_canbo
+    ON public.boxchat(cccd_canbo);
 
 
 ALTER TABLE IF EXISTS public.boxchat
@@ -155,6 +158,8 @@ ALTER TABLE IF EXISTS public.boxchat
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_boxchat_nguoidan
+    ON public.boxchat(cccd_nguoidan);
 
 
 ALTER TABLE IF EXISTS public.boxchat
@@ -171,6 +176,8 @@ ALTER TABLE IF EXISTS public.diachinguoidung
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_diachinguoidung_cccd
+    ON public.diachinguoidung(cccd);
 
 
 ALTER TABLE IF EXISTS public.diachinguoidung
@@ -178,6 +185,8 @@ ALTER TABLE IF EXISTS public.diachinguoidung
     REFERENCES public.diachi (madiachi) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_diachinguoidung_madiadi
+    ON public.diachinguoidung(madiachi);
 
 
 ALTER TABLE IF EXISTS public.hokhau
@@ -185,6 +194,8 @@ ALTER TABLE IF EXISTS public.hokhau
     REFERENCES public.diachi (madiachi) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_hokhau_madiadi
+    ON public.hokhau(madiachi);
 
 
 ALTER TABLE IF EXISTS public.phananh
@@ -192,6 +203,8 @@ ALTER TABLE IF EXISTS public.phananh
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_phananh_cccd
+    ON public.phananh(cccd);
 
 
 ALTER TABLE IF EXISTS public.phananh
@@ -199,6 +212,8 @@ ALTER TABLE IF EXISTS public.phananh
     REFERENCES public.diachi (madiachi) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
+CREATE INDEX IF NOT EXISTS idx_phananh_madiadi
+    ON public.phananh(madiachi);
 
 
 ALTER TABLE IF EXISTS public.phananh
@@ -213,6 +228,8 @@ ALTER TABLE IF EXISTS public.thanhvienhokhau
     REFERENCES public.nguoidung (cccd) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_thanhvienhokhau_cccd
+    ON public.thanhvienhokhau(cccd);
 
 
 ALTER TABLE IF EXISTS public.thanhvienhokhau
@@ -220,6 +237,8 @@ ALTER TABLE IF EXISTS public.thanhvienhokhau
     REFERENCES public.hokhau (mahokhau) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_thanhvienhokhau_mahokhau
+    ON public.thanhvienhokhau(mahokhau);
 
 
 ALTER TABLE IF EXISTS public.thongbao
@@ -241,6 +260,8 @@ ALTER TABLE IF EXISTS public.tinnhan
     REFERENCES public.boxchat (maboxchat) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_tinnhan_maboxchat
+    ON public.tinnhan(maboxchat);
 
 
 ALTER TABLE IF EXISTS public.tinnhan

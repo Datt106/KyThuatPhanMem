@@ -40,16 +40,58 @@
                             <i class="bi bi-speedometer2 me-1"></i> Dashboard
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'hokhau_list' %}active{% endif %}" href="{{ url_for('hokhau_list') }}">
-                            <i class="bi bi-house me-1"></i> Hộ khẩu
+                    
+                    <!-- Quản lý dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['nguoidung_list', 'hokhau_list', 'tam_vang_tru_list'] %}active{% endif %}" 
+                           href="#" id="quanlyDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-folder me-1"></i> Quản lý
                         </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'nguoidung_list' %}active{% endif %}" 
+                                   href="{{ url_for('nguoidung_list') }}">
+                                    <i class="bi bi-people me-2"></i>Nhân khẩu
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'hokhau_list' %}active{% endif %}" 
+                                   href="{{ url_for('hokhau_list') }}">
+                                    <i class="bi bi-house me-2"></i>Hộ khẩu
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'tam_vang_tru_list' %}active{% endif %}" 
+                                   href="{{ url_for('tam_vang_tru_list') }}">
+                                    <i class="bi bi-arrow-left-right me-2"></i>Tạm vắng/Tạm trú
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'nguoidung_list' %}active{% endif %}" href="{{ url_for('nguoidung_list') }}">
-                            <i class="bi bi-people me-1"></i> Nhân khẩu
+                    
+                    <!-- Thống kê dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['thongke_danso', 'thongke_tamvangtru'] %}active{% endif %}" 
+                           href="#" id="thongkeDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-bar-chart-line me-1"></i> Thống kê
                         </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'thongke_danso' %}active{% endif %}" 
+                                   href="{{ url_for('thongke_danso') }}">
+                                    <i class="bi bi-bar-chart-fill me-2"></i>Dân số
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'thongke_tamvangtru' %}active{% endif %}" 
+                                   href="{{ url_for('thongke_tamvangtru') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Báo cáo Tạm vắng/Tạm trú
+                                </a>
+                            </li>
+                        </ul>
                     </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'phananh_list' %}active{% endif %}" href="{{ url_for('phananh_list') }}">
                             <i class="bi bi-chat-left-text me-1"></i> Phản ánh

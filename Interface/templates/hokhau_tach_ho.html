@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-diagram-3 me-2"></i>Tách hộ khẩu</h2>
+        <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Thông tin hộ khẩu hiện tại -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-house-fill me-2"></i>Hộ khẩu hiện tại</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Mã hộ khẩu:</strong> HK{{ hokhau[0] }}
+                </div>
+                <div class="col-md-8">
+                    <strong>Địa chỉ:</strong> {{ hokhau[2] or 'N/A' }}, {{ hokhau[3] or 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form tách hộ -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning bg-opacity-10">
+            <h5 class="mb-0 text-warning"><i class="bi bi-diagram-3 me-2"></i>Thông tin tách hộ</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Hướng dẫn:</strong>
+                <ol class="mb-0 mt-2">
+                    <li>Chọn các thành viên sẽ tách ra khỏi hộ khẩu này (checkbox)</li>
+                    <li>Chỉ định một người trong số đó làm chủ hộ mới</li>
+                    <li>Nhập địa chỉ mới cho hộ khẩu được tách</li>
+                    <li>Hệ thống sẽ tự động tạo hộ khẩu mới và chuyển các thành viên sang</li>
+                </ol>
+            </div>
+
+            <form method="POST" action="{{ url_for('hokhau_tach_ho', mahokhau=mahokhau) }}" id="formTachHo">
+                <!-- Chọn thành viên tách -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-people-fill me-2"></i>Chọn thành viên tách ra
+                        <span class="text-danger">*</span>
+                    </h6>
+                    
+                    {% if thanhvien %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">
+                                            <input type="checkbox" id="selectAll" class="form-check-input">
+                                        </th>
+                                        <th>CCCD</th>
+                                        <th>Họ tên</th>
+                                        <th>Ngày sinh</th>
+                                        <th>Giới tính</th>
+                                        <th>Quan hệ hiện tại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tv in thanhvien %}
+                                    <tr>
+                                        <td>
+                                            {% if tv[4] != 'Chủ hộ' %}
+                                            <input type="checkbox" name="thanhvien_tach" 
+                                                   value="{{ tv[0]|trim }}" 
+                                                   class="form-check-input member-checkbox"
+                                                   data-name="{{ tv[1] }}"
+                                                   data-cccd="{{ tv[0]|trim }}">
+                                            {% else %}
+                                            <span class="text-muted" title="Chủ hộ không được tách">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td><code class="bg-light p-1 rounded">{{ tv[0] }}</code></td>
+                                        <td>
+                                            <strong>{{ tv[1] }}</strong>
+                                            {% if tv[4] == 'Chủ hộ' %}
+                                                <span class="badge bg-primary ms-2">Chủ hộ</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if tv[2] %}
+                                                {{ tv[2].strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if tv[3] == 'Nam' %}
+                                                <span class="badge bg-info">Nam</span>
+                                            {% elif tv[3] == 'Nữ' %}
+                                                <span class="badge bg-danger">Nữ</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if tv[4] == 'Chủ hộ' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                                {{ tv[4] or 'N/A' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Đã chọn: <strong id="selectedCount">0</strong> thành viên
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Chọn chủ hộ mới -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-person-badge me-2"></i>Chủ hộ mới
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="cccd_chuho_moi" class="form-label">
+                                Chọn chủ hộ mới <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="cccd_chuho_moi" name="cccd_chuho_moi" required>
+                                <option value="">-- Chọn từ danh sách đã chọn --</option>
+                            </select>
+                            <small class="text-muted">Chủ hộ phải nằm trong danh sách thành viên được tách</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ngaytach" class="form-label">
+                                Ngày tách hộ <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="ngaytach" name="ngaytach" 
+                                   max="{{ now.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Địa chỉ hộ mới -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ hộ khẩu mới
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="xaphuong_moi" class="form-label">
+                                Xã/Phường <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="xaphuong_moi" 
+                                   name="xaphuong_moi" placeholder="Ví dụ: Phường Bến Nghé" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="chitiet_moi" class="form-label">
+                                Địa chỉ chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="chitiet_moi" 
+                                   name="chitiet_moi" placeholder="Số nhà, đường, khu vực..." required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lý do và ghi chú -->
+                <div class="mb-4">
+                    <h6 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-journal-text me-2"></i>Thông tin bổ sung
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="lydotach" class="form-label">Lý do tách hộ</label>
+                            <select class="form-select" id="lydotach" name="lydotach">
+                                <option value="Kết hôn">Kết hôn, lập gia đình riêng</option>
+                                <option value="Mâu thuẫn gia đình">Mâu thuẫn gia đình</option>
+                                <option value="Tự lập kinh tế">Tự lập kinh tế</option>
+                                <option value="Di chuyển nơi ở">Di chuyển nơi ở khác</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="ghichu_moi" class="form-label">Ghi chú</label>
+                            <textarea class="form-control" id="ghichu_moi" name="ghichu_moi" rows="2"
+                                      placeholder="Thông tin bổ sung về hộ khẩu mới..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle me-2"></i>Xác nhận tách hộ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set ngày hiện tại
+document.getElementById('ngaytach').valueAsDate = new Date();
+
+// Select all checkbox
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.member-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    updateSelectedCount();
+    updateChuHoOptions();
+});
+
+// Update count and chủ hộ options when checkbox changes
+document.querySelectorAll('.member-checkbox').forEach(cb => {
+    cb.addEventListener('change', function() {
+        updateSelectedCount();
+        updateChuHoOptions();
+    });
+});
+
+function updateSelectedCount() {
+    const count = document.querySelectorAll('.member-checkbox:checked').length;
+    document.getElementById('selectedCount').textContent = count;
+}
+
+function updateChuHoOptions() {
+    const select = document.getElementById('cccd_chuho_moi');
+    const currentValue = select.value;
+    
+    // Clear options except first
+    select.innerHTML = '<option value="">-- Chọn từ danh sách đã chọn --</option>';
+    
+    // Add options for checked members
+    document.querySelectorAll('.member-checkbox:checked').forEach(cb => {
+        const option = document.createElement('option');
+        option.value = cb.dataset.cccd;
+        option.textContent = `${cb.dataset.name} (${cb.dataset.cccd})`;
+        if (cb.dataset.cccd === currentValue) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+}
+
+// Form validation
+document.getElementById('formTachHo').addEventListener('submit', function(e) {
+    const checkedCount = document.querySelectorAll('.member-checkbox:checked').length;
+    
+    if (checkedCount === 0) {
+        e.preventDefault();
+        alert('Vui lòng chọn ít nhất 1 thành viên để tách!');
+        return;
+    }
+    
+    const chuHoMoi = document.getElementById('cccd_chuho_moi').value;
+    if (!chuHoMoi) {
+        e.preventDefault();
+        alert('Vui lòng chọn chủ hộ mới!');
+        return;
+    }
+    
+    if (!confirm(`Xác nhận tách hộ?\n\nSố thành viên tách: ${checkedCount}\nThao tác này sẽ tạo hộ khẩu mới và không thể hoàn tác!`)) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

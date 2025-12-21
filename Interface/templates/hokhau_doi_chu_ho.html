@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-arrow-repeat me-2"></i>Thay đổi chủ hộ</h2>
+        <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Thông tin hộ khẩu -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-house-fill me-2"></i>Thông tin hộ khẩu</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Mã hộ khẩu:</strong> HK{{ hokhau[0] }}
+                </div>
+                <div class="col-md-8">
+                    <strong>Địa chỉ:</strong> {{ hokhau[2] or 'N/A' }}, {{ hokhau[3] or 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách thành viên -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Danh sách thành viên</h5>
+        </div>
+        <div class="card-body">
+            {% if thanhvien %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>CCCD</th>
+                                <th>Họ tên</th>
+                                <th>Ngày sinh</th>
+                                <th>Giới tính</th>
+                                <th>Quan hệ hiện tại</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tv in thanhvien %}
+                            <tr {% if tv[4] == 'Chủ hộ' %}class="table-primary"{% endif %}>
+                                <td><code class="bg-light p-1 rounded">{{ tv[0] }}</code></td>
+                                <td>
+                                    <strong>{{ tv[1] }}</strong>
+                                    {% if tv[4] == 'Chủ hộ' %}
+                                        <span class="badge bg-primary ms-2">Chủ hộ hiện tại</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tv[2] %}
+                                        {{ tv[2].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tv[3] == 'Nam' %}
+                                        <span class="badge bg-info">Nam</span>
+                                    {% elif tv[3] == 'Nữ' %}
+                                        <span class="badge bg-danger">Nữ</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if tv[4] == 'Chủ hộ' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                        {{ tv[4] or 'N/A' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>Chưa có thành viên nào trong hộ.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Form thay đổi chủ hộ -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary bg-opacity-10">
+            <h5 class="mb-0 text-primary"><i class="bi bi-arrow-repeat me-2"></i>Thông tin thay đổi</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Lưu ý:</strong> Thao tác này sẽ:
+                <ul class="mb-0 mt-2">
+                    <li>Đổi quan hệ của chủ hộ hiện tại thành "Thành viên"</li>
+                    <li>Đổi quan hệ của người được chọn thành "Chủ hộ"</li>
+                    <li>Lưu lại lịch sử thay đổi để tra cứu</li>
+                </ul>
+            </div>
+
+            <form method="POST" action="{{ url_for('hokhau_doi_chu_ho', mahokhau=mahokhau) }}" id="formDoiChuHo">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="cccd_moi" class="form-label">Chủ hộ mới <span class="text-danger">*</span></label>
+                        <select class="form-select" id="cccd_moi" name="cccd_moi" required>
+                            <option value="">-- Chọn chủ hộ mới --</option>
+                            {% for tv in thanhvien %}
+                                {% if tv[4] != 'Chủ hộ' %}
+                                <option value="{{ tv[0]|trim }}">
+                                    {{ tv[1] }} ({{ tv[0]|trim }})
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Chọn thành viên sẽ trở thành chủ hộ mới</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="ngaythaydoi" class="form-label">Ngày thay đổi <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="ngaythaydoi" name="ngaythaydoi" 
+                               max="{{ now.strftime('%Y-%m-%d') }}" required>
+                        <small class="text-muted">Ngày có hiệu lực thay đổi chủ hộ</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="lydothaydoi" class="form-label">Lý do thay đổi <span class="text-danger">*</span></label>
+                    <select class="form-select" id="lydothaydoi" name="lydothaydoi" required>
+                        <option value="">-- Chọn lý do --</option>
+                        <option value="Chủ hộ cũ qua đời">Chủ hộ cũ qua đời</option>
+                        <option value="Chủ hộ cũ chuyển đi">Chủ hộ cũ chuyển đi</option>
+                        <option value="Yêu cầu đổi chủ hộ">Yêu cầu đổi chủ hộ</option>
+                        <option value="Điều chỉnh hành chính">Điều chỉnh hành chính</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="noidung" class="form-label">Nội dung chi tiết</label>
+                    <textarea class="form-control" id="noidung" name="noidung" rows="3" 
+                              placeholder="Mô tả chi tiết về lý do và hoàn cảnh thay đổi chủ hộ..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('hokhau_detail', mahokhau=mahokhau) }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Xác nhận thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set ngày hiện tại làm mặc định
+document.getElementById('ngaythaydoi').valueAsDate = new Date();
+
+// Xác nhận trước khi submit
+document.getElementById('formDoiChuHo').addEventListener('submit', function(e) {
+    const select = document.getElementById('cccd_moi');
+    const selectedText = select.options[select.selectedIndex].text;
+    
+    if (!confirm(`Xác nhận thay đổi chủ hộ?\n\nChủ hộ mới: ${selectedText}\n\nThao tác này không thể hoàn tác!`)) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

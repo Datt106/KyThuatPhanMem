@@ -24,8 +24,20 @@
                     <a href="{{ url_for('hokhau_list') }}" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left me-1"></i>Quay lại
                     </a>
-                    <button class="btn btn-primary">
+                    <a href="{{ url_for('hokhau_lich_su', mahokhau=hokhau[0]) }}" class="btn btn-secondary me-2">
+                        <i class="bi bi-clock-history me-2"></i>Lịch sử
+                    </a>
+                    <a href="{{ url_for('hokhau_doi_chu_ho', mahokhau=hokhau[0]) }}" class="btn btn-info me-2">
+                        <i class="bi bi-arrow-repeat me-2"></i>Đổi chủ hộ
+                    </a>
+                    <a href="{{ url_for('hokhau_tach_ho', mahokhau=hokhau[0]) }}" class="btn btn-warning me-2">
+                        <i class="bi bi-diagram-3 me-2"></i>Tách hộ
+                    </a>
+                    <a href="{{ url_for('hokhau_edit', mahokhau=hokhau[0]) }}" class="btn btn-primary me-2">
                         <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                    </a>
+                    <button onclick="confirmDeleteHokhau({{ hokhau[0] }}, '{{ hokhau[6] or 'N/A' }}')" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Xóa
                     </button>
                 </div>
             </div>
@@ -179,14 +191,10 @@
                                                 <button class="btn btn-outline-primary" title="Xem chi tiết">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-secondary" title="Chỉnh sửa">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                {% if tv[6] != 'Chủ hộ' %}
-                                                <button class="btn btn-outline-danger" title="Xóa khỏi hộ">
-                                                    <i class="bi bi-person-x"></i>
-                                                </button>
-                                                {% endif %}
+                                                <a href="{{ url_for('thanhvien_chuyen_di', mahokhau=hokhau[0], cccd=tv[0]|trim) }}" 
+                                                   class="btn btn-outline-warning" title="Chuyển đi">
+                                                    <i class="bi bi-arrow-right-circle"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -210,4 +218,16 @@
         </div>
     </div>
 </div>
+
+<script>
+function confirmDeleteHokhau(mahokhau, diachi) {
+    if (confirm(`Bạn có chắc chắn muốn xóa hộ khẩu HK${mahokhau} (${diachi})?\n\nCảnh báo: Thao tác này sẽ xóa:\n- Tất cả thành viên trong hộ\n- Thông tin địa chỉ\n- Dữ liệu không thể khôi phục!`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/hokhau/delete/${mahokhau}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
 {% endblock %}
