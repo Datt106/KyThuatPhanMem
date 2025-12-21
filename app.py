@@ -3139,7 +3139,7 @@ def chat_list():
                     maboxchat,
                     COUNT(*) as unread_count
                 FROM tinnhan
-                WHERE is_read = FALSE AND nguoigui != %s
+                WHERE dadoc = FALSE AND nguoigui != %s
                 GROUP BY maboxchat
             )
             SELECT 
@@ -3149,14 +3149,14 @@ def chat_list():
                 lm.last_message,
                 lm.last_time,
                 lm.last_sender,
-                n.hovaten as last_sender_name,
+                n.name as last_sender_name,
                 COALESCE(uc.unread_count, 0) as unread_count
             FROM boxchat b
             LEFT JOIN phananh p ON b.maphananh = p.maphananh
             LEFT JOIN latest_messages lm ON b.maboxchat = lm.maboxchat
             LEFT JOIN nguoidung n ON lm.last_sender = n.cccd
             LEFT JOIN unread_counts uc ON b.maboxchat = uc.maboxchat
-            WHERE b.cccd_nguoidung = %s OR b.cccd_canbo = %s
+            WHERE b.cccd_nguoidan = %s OR b.cccd_canbo = %s
             ORDER BY lm.last_time DESC NULLS LAST
         """, (cccd, cccd, cccd))
         
@@ -3189,14 +3189,14 @@ def chat_detail(maboxchat):
             SELECT 
                 b.maboxchat,
                 b.maphananh,
-                b.cccd_nguoidung,
+                b.cccd_nguoidan,
                 b.cccd_canbo,
                 p.tieude,
-                n1.hovaten as nguoidung_name,
-                n2.hovaten as canbo_name
+                n1.name as nguoidung_name,
+                n2.name as canbo_name
             FROM boxchat b
             LEFT JOIN phananh p ON b.maphananh = p.maphananh
-            LEFT JOIN nguoidung n1 ON b.cccd_nguoidung = n1.cccd
+            LEFT JOIN nguoidung n1 ON b.cccd_nguoidan = n1.cccd
             LEFT JOIN nguoidung n2 ON b.cccd_canbo = n2.cccd
             WHERE b.maboxchat = %s
         """, (maboxchat,))
@@ -3220,12 +3220,12 @@ def chat_detail(maboxchat):
         # Lấy tất cả tin nhắn
         cur.execute("""
             SELECT 
-                t.matinnhan,
+                t.tinnhanid,
                 t.nguoigui,
                 t.noidung,
                 t.thoigiangui,
-                t.is_read,
-                n.hovaten as sender_name
+                t.dadoc,
+                n.name as sender_name
             FROM tinnhan t
             JOIN nguoidung n ON t.nguoigui = n.cccd
             WHERE t.maboxchat = %s
@@ -3237,8 +3237,8 @@ def chat_detail(maboxchat):
         # Đánh dấu tất cả tin nhắn là đã đọc (trừ tin nhắn do mình gửi)
         cur.execute("""
             UPDATE tinnhan
-            SET is_read = TRUE
-            WHERE maboxchat = %s AND nguoigui != %s AND is_read = FALSE
+            SET dadoc = TRUE
+            WHERE maboxchat = %s AND nguoigui != %s AND dadoc = FALSE
         """, (maboxchat, cccd))
         
         conn.commit()
@@ -3275,7 +3275,7 @@ def chat_send_message(maboxchat):
     try:
         # Kiểm tra quyền gửi tin nhắn (chỉ người trong boxchat)
         cur.execute("""
-            SELECT cccd_nguoidung, cccd_canbo
+            SELECT cccd_nguoidan, cccd_canbo
             FROM boxchat
             WHERE maboxchat = %s
         """, (maboxchat,))
@@ -3297,7 +3297,7 @@ def chat_send_message(maboxchat):
         
         # Thêm tin nhắn
         cur.execute("""
-            INSERT INTO tinnhan (maboxchat, nguoigui, noidung, thoigiangui, is_read)
+            INSERT INTO tinnhan (maboxchat, nguoigui, noidung, thoigiangui, dadoc)
             VALUES (%s, %s, %s, NOW(), FALSE)
         """, (maboxchat, cccd, noidung))
         
