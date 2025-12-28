@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Chỉnh sửa Phản ánh{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('phananh_list') }}">Phản ánh</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('phananh_detail', maphananh=phananh[0]) }}">Chi tiết</a></li>
+                    <li class="breadcrumb-item active">Chỉnh sửa</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Chỉnh sửa Phản ánh #{{ phananh[0] }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('phananh_edit', maphananh=phananh[0]) }}">
+                        <!-- Tiêu đề -->
+                        <div class="mb-3">
+                            <label for="tieude" class="form-label">
+                                <i class="fas fa-heading"></i> Tiêu đề <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="tieude" 
+                                   name="tieude" 
+                                   value="{{ phananh[1] or '' }}"
+                                   placeholder="Nhập tiêu đề ngắn gọn cho phản ánh"
+                                   required 
+                                   maxlength="200">
+                            <small class="form-text text-muted">Tối đa 200 ký tự</small>
+                        </div>
+
+                        <!-- Loại phản ánh -->
+                        <div class="mb-3">
+                            <label for="loaiphananh" class="form-label">
+                                <i class="fas fa-tag"></i> Loại phản ánh
+                            </label>
+                            <select class="form-select" id="loaiphananh" name="loaiphananh">
+                                <option value="" {% if not phananh[3] %}selected{% endif %}>-- Chọn loại phản ánh --</option>
+                                <option value="Hạ tầng" {% if phananh[3] == 'Hạ tầng' %}selected{% endif %}>🏗️ Hạ tầng (Đường xá, cầu, thoát nước)</option>
+                                <option value="An ninh" {% if phananh[3] == 'An ninh' %}selected{% endif %}>🚨 An ninh trật tự</option>
+                                <option value="Môi trường" {% if phananh[3] == 'Môi trường' %}selected{% endif %}>🌳 Môi trường (Rác thải, ô nhiễm)</option>
+                                <option value="Giao thông" {% if phananh[3] == 'Giao thông' %}selected{% endif %}>🚦 Giao thông</option>
+                                <option value="Y tế" {% if phananh[3] == 'Y tế' %}selected{% endif %}>🏥 Y tế</option>
+                                <option value="Giáo dục" {% if phananh[3] == 'Giáo dục' %}selected{% endif %}>📚 Giáo dục</option>
+                                <option value="Điện nước" {% if phananh[3] == 'Điện nước' %}selected{% endif %}>💡 Điện - Nước</option>
+                                <option value="Khác" {% if phananh[3] == 'Khác' %}selected{% endif %}>📋 Khác</option>
+                            </select>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label for="mota" class="form-label">
+                                <i class="fas fa-align-left"></i> Mô tả chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="mota" 
+                                      name="mota" 
+                                      rows="6" 
+                                      placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..."
+                                      required>{{ phananh[2] or '' }}</textarea>
+                            <small class="form-text text-muted">Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
+                        </div>
+
+                        <!-- Trạng thái (chỉ cán bộ/quản lý) -->
+                        {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                        <div class="mb-3">
+                            <label for="trangthaiphananh" class="form-label">
+                                <i class="fas fa-tasks"></i> Trạng thái
+                            </label>
+                            <select class="form-select" id="trangthaiphananh" name="trangthaiphananh">
+                                <option value="ChuaXuLy" {% if phananh[4] == 'ChuaXuLy' %}selected{% endif %}>Chưa xử lý</option>
+                                <option value="DangXuLy" {% if phananh[4] == 'DangXuLy' %}selected{% endif %}>Đang xử lý</option>
+                                <option value="DaXuLy" {% if phananh[4] == 'DaXuLy' %}selected{% endif %}>Đã xử lý</option>
+                                <option value="TuChoi" {% if phananh[4] == 'TuChoi' %}selected{% endif %}>Từ chối</option>
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <!-- Địa chỉ (read-only) -->
+                        {% if phananh[7] or phananh[8] or phananh[9] %}
+                        <div class="card mb-3 bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Vị trí</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">
+                                    <strong>Địa chỉ:</strong> 
+                                    {{ phananh[9] or '' }}{% if phananh[8] %}, {{ phananh[8] }}{% endif %}{% if phananh[7] %}, {{ phananh[7] }}{% endif %}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Để thay đổi địa chỉ, vui lòng liên hệ cán bộ
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Cài đặt (read-only) -->
+                        <div class="card mb-3 bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-cog"></i> Cài đặt</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    {% if phananh[5] %}
+                                    <i class="fas fa-globe text-success"></i> <strong>Công khai</strong> - Hiển thị trên Newsfeed
+                                    {% else %}
+                                    <i class="fas fa-lock text-secondary"></i> <strong>Riêng tư</strong> - Chỉ cán bộ xem được
+                                    {% endif %}
+                                </p>
+                                <p class="mb-0">
+                                    {% if phananh[6] %}
+                                    <i class="fas fa-comments text-info"></i> <strong>Cho phép bình luận</strong>
+                                    {% else %}
+                                    <i class="fas fa-comment-slash text-muted"></i> <strong>Không cho phép bình luận</strong>
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Để thay đổi cài đặt này, vui lòng liên hệ cán bộ
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save"></i> Lưu thay đổi
+                            </button>
+                            <a href="{{ url_for('phananh_detail', maphananh=phananh[0]) }}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

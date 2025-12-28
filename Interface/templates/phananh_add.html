@@ -69,8 +69,13 @@
 
                         <!-- Địa chỉ -->
                         <div class="card mb-3 bg-light">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Vị trí (Tùy chọn)</h6>
+                                {% if hokhau_diachi %}
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btn-auto-fill">
+                                    <i class="fas fa-magic"></i> Tự động điền địa chỉ hộ khẩu
+                                </button>
+                                {% endif %}
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -80,6 +85,7 @@
                                                class="form-control" 
                                                id="tinh" 
                                                name="tinh" 
+                                               value="Hà Nội"
                                                placeholder="VD: Hà Nội, TP.HCM">
                                     </div>
                                     <div class="col-md-6 mb-3">
@@ -178,5 +184,43 @@ document.getElementById('is_public').addEventListener('change', function() {
         publicIcon.className = 'fas fa-lock text-secondary';
     }
 });
+
+// Auto fill địa chỉ hộ khẩu
+{% if hokhau_diachi %}
+document.getElementById('btn-auto-fill').addEventListener('click', function() {
+    {% if hokhau_diachi[0] %}
+    document.getElementById('tinh').value = '{{ hokhau_diachi[0] }}';
+    {% endif %}
+    {% if hokhau_diachi[1] %}
+    document.getElementById('xaphuong').value = '{{ hokhau_diachi[1] }}';
+    {% endif %}
+    {% if hokhau_diachi[2] %}
+    document.getElementById('chitiet').value = '{{ hokhau_diachi[2] }}';
+    {% endif %}
+    
+    // Hiệu ứng nhấp nháy để người dùng biết đã điền
+    const inputs = [document.getElementById('tinh'), document.getElementById('xaphuong'), document.getElementById('chitiet')];
+    inputs.forEach(input => {
+        if (input.value) {
+            input.classList.add('border-success');
+            setTimeout(() => {
+                input.classList.remove('border-success');
+            }, 1500);
+        }
+    });
+    
+    // Thông báo
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Đã điền!';
+    btn.classList.remove('btn-outline-primary');
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-primary');
+    }, 2000);
+});
+{% endif %}
 </script>
 {% endblock %}

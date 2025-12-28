@@ -191,9 +191,11 @@
                                                    title="Xem chi tiết">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <button class="btn btn-outline-secondary" title="Chỉnh sửa">
+                                                <a href="{{ url_for('hokhau_edit', mahokhau=hk[0]) }}" 
+                                                   class="btn btn-outline-secondary" 
+                                                   title="Chỉnh sửa">
                                                     <i class="bi bi-pencil"></i>
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

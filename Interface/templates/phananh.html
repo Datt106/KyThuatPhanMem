@@ -45,7 +45,7 @@
                         <div>
                             <small class="opacity-75">Chưa xử lý</small>
                             <h3 class="mb-0 fw-bold">
-                                {{ ds_phananh|selectattr(3, 'equalto', 'ChuaXuLy')|list|length if ds_phananh else 0 }}
+                                {{ ds_phananh|selectattr(4, 'equalto', 'ChuaXuLy')|list|length if ds_phananh else 0 }}
                             </h3>
                         </div>
                         <i class="bi bi-clock-history opacity-50" style="font-size: 2rem;"></i>
@@ -60,7 +60,7 @@
                         <div>
                             <small class="text-white-50">Đang xử lý</small>
                             <h3 class="mb-0 fw-bold">
-                                {{ ds_phananh|selectattr(3, 'equalto', 'DangXuLy')|list|length if ds_phananh else 0 }}
+                                {{ ds_phananh|selectattr(4, 'equalto', 'DangXuLy')|list|length if ds_phananh else 0 }}
                             </h3>
                         </div>
                         <i class="bi bi-arrow-repeat opacity-50" style="font-size: 2rem;"></i>
@@ -75,7 +75,7 @@
                         <div>
                             <small class="text-white-50">Đã hoàn thành</small>
                             <h3 class="mb-0 fw-bold">
-                                {{ ds_phananh|selectattr(3, 'equalto', 'DaXuLy')|list|length if ds_phananh else 0 }}
+                                {{ ds_phananh|selectattr(4, 'equalto', 'DaXuLy')|list|length if ds_phananh else 0 }}
                             </h3>
                         </div>
                         <i class="bi bi-check-circle opacity-50" style="font-size: 2rem;"></i>
@@ -173,35 +173,35 @@
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary bg-opacity-10 text-secondary">
-                                                {{ pa[2] or 'Chưa phân loại' }}
+                                                {{ pa[3] or 'Chưa phân loại' }}
                                             </span>
                                         </td>
                                         <td>
-                                            {% if pa[3] == 'ChuaXuLy' %}
+                                            {% if pa[4] == 'ChuaXuLy' %}
                                                 <span class="badge bg-warning text-dark">
                                                     <i class="bi bi-clock me-1"></i>Chưa xử lý
                                                 </span>
-                                            {% elif pa[3] == 'DangXuLy' %}
+                                            {% elif pa[4] == 'DangXuLy' %}
                                                 <span class="badge bg-info">
                                                     <i class="bi bi-arrow-repeat me-1"></i>Đang xử lý
                                                 </span>
-                                            {% elif pa[3] == 'DaXuLy' %}
+                                            {% elif pa[4] == 'DaXuLy' %}
                                                 <span class="badge bg-success">
                                                     <i class="bi bi-check-circle me-1"></i>Đã xử lý
                                                 </span>
                                             {% else %}
-                                                <span class="badge bg-secondary">{{ pa[3] }}</span>
+                                                <span class="badge bg-secondary">{{ pa[4] }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ pa[4] }}">
-                                                {{ pa[4] or 'Không có mô tả' }}
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ pa[5] }}">
+                                                {{ pa[5] or 'Không có mô tả' }}
                                             </span>
                                         </td>
                                         <td>
                                             <small class="text-muted">
-                                                {% if pa[7] %}
-                                                    {{ pa[7] }}, {{ pa[6] or '' }}
+                                                {% if pa[13] %}
+                                                    {{ pa[14] or '' }}, {{ pa[13] }}
                                                 {% else %}
                                                     N/A
                                                 {% endif %}
@@ -209,15 +209,18 @@
                                         </td>
                                         <td class="text-center pe-4">
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" title="Xem chi tiết">
+                                                <a href="{{ url_for('phananh_detail', maphananh=pa[0]) }}" 
+                                                   class="btn btn-outline-primary" title="Xem chi tiết">
                                                     <i class="bi bi-eye"></i>
-                                                </button>
-                                                <button class="btn btn-outline-success" title="Xử lý">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                                <button class="btn btn-outline-info" title="Nhắn tin">
+                                                </a>
+                                                <a href="{{ url_for('phananh_edit', maphananh=pa[0]) }}" 
+                                                   class="btn btn-outline-success" title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{{ url_for('phananh_chat', maphananh=pa[0]) }}" 
+                                                   class="btn btn-outline-info" title="Nhắn tin">
                                                     <i class="bi bi-chat"></i>
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

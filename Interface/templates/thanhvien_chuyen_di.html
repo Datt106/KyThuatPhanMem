@@ -113,7 +113,7 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3" id="noichuyenden-group">
                     <label for="noichuyenden" class="form-label">Nơi chuyển đến</label>
                     <input type="text" class="form-control" id="noichuyenden" name="noichuyenden" 
                            placeholder="Ví dụ: Số 10 Trần Hưng Đạo, Phường 5, Quận 1, TP.HCM">
@@ -142,5 +142,26 @@
 <script>
 // Set ngày hiện tại làm mặc định
 document.getElementById('ngaychuyen').valueAsDate = new Date();
+
+// Ẩn/hiện trường "Nơi chuyển đến" dựa trên lý do
+document.getElementById('lydochuyen').addEventListener('change', function() {
+    const noichuyendenGroup = document.getElementById('noichuyenden-group');
+    const noichuyendenInput = document.getElementById('noichuyenden');
+    
+    if (this.value === 'Qua đời') {
+        // Ẩn trường nơi chuyển đến khi chọn "Qua đời"
+        noichuyendenGroup.style.display = 'none';
+        noichuyendenInput.value = ''; // Xóa giá trị
+        noichuyendenInput.removeAttribute('required');
+    } else {
+        // Hiện trường nơi chuyển đến với các lý do khác
+        noichuyendenGroup.style.display = 'block';
+    }
+});
+
+// Kiểm tra giá trị ban đầu khi load trang
+if (document.getElementById('lydochuyen').value === 'Qua đời') {
+    document.getElementById('noichuyenden-group').style.display = 'none';
+}
 </script>
 {% endblock %}

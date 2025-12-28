@@ -460,6 +460,9 @@ def dashboard():
 def hokhau_list():
     """Danh sách hộ khẩu chi tiết với phân trang, tìm kiếm và lọc"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     # ========== CẤU HÌNH PHÂN TRANG ==========
     per_page = 20  # Số bản ghi mỗi trang
     
@@ -481,6 +484,11 @@ def hokhau_list():
     # ========== XÂY DỰNG ĐIỀU KIỆN WHERE ==========
     where_conditions = []
     params = []
+    
+    # Nếu là Người dân, chỉ xem hộ khẩu của mình
+    if user_role == 'NguoiDan':
+        where_conditions.append("h.mahokhau IN (SELECT mahokhau FROM thanhvienhokhau WHERE cccd = %s)")
+        params.append(user_cccd)
     
     if search:
         where_conditions.append("(CAST(h.mahokhau AS TEXT) LIKE %s OR d.chitiet ILIKE %s OR d.xaphuong ILIKE %s)")
@@ -664,6 +672,9 @@ def hokhau_add():
 def hokhau_detail(mahokhau):
     """Chi tiết một hộ khẩu"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     # Thông tin hộ khẩu
     query_hokhau = """
         SELECT 
@@ -682,6 +693,14 @@ def hokhau_detail(mahokhau):
     if not hokhau:
         flash('Không tìm thấy hộ khẩu!', 'danger')
         return redirect(url_for('hokhau_list'))
+    
+    # Nếu là Người dân, kiểm tra xem có phải thành viên trong hộ không
+    if user_role == 'NguoiDan':
+        query_check = "SELECT 1 FROM thanhvienhokhau WHERE mahokhau = %s AND cccd = %s"
+        is_member = execute_query(query_check, (mahokhau, user_cccd), fetch_one=True)
+        if not is_member:
+            flash('Bạn không có quyền xem hộ khẩu này!', 'danger')
+            return redirect(url_for('hokhau_list'))
     
     # Danh sách thành viên
     query_thanhvien = """
@@ -1430,107 +1449,164 @@ def thongke_danso():
     # Lấy tham số filter
     xaphuong = request.args.get('xaphuong', '').strip()
     
-    # Query tổng quan
-    query_total = """
-        SELECT 
-            COUNT(DISTINCT n.cccd) as tong,
-            COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nam' THEN n.cccd END) as nam,
-            COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nu' THEN n.cccd END) as nu
-        FROM nguoidung n
-        INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
-        INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
-        INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
-        WHERE tv.ngayketthuc IS NULL
-    """
-    params_total = []
-    
+    # Query tổng quan - Lấy toàn bộ người dùng hoặc lọc theo xã/phường nếu có
     if xaphuong:
-        query_total += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
-        params_total.append(f'%{xaphuong}%')
+        # Có filter theo xã/phường - phải JOIN với hộ khẩu
+        query_total = """
+            SELECT 
+                COUNT(DISTINCT n.cccd) as tong,
+                COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nam' THEN n.cccd END) as nam,
+                COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nu' THEN n.cccd END) as nu
+            FROM nguoidung n
+            LEFT JOIN thanhvienhokhau tv ON n.cccd = tv.cccd AND tv.ngayketthuc IS NULL
+            LEFT JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
+            LEFT JOIN diachi dc ON hk.madiachi = dc.madiachi
+            WHERE LOWER(dc.xaphuong) LIKE LOWER(%s)
+        """
+        params_total = [f'%{xaphuong}%']
+    else:
+        # Không filter - lấy toàn bộ người dùng
+        query_total = """
+            SELECT 
+                COUNT(cccd) as tong,
+                COUNT(CASE WHEN LOWER(gioitinh) = 'nam' THEN cccd END) as nam,
+                COUNT(CASE WHEN LOWER(gioitinh) = 'nu' THEN cccd END) as nu
+            FROM nguoidung
+        """
+        params_total = []
     
     stats_total = execute_query(query_total, tuple(params_total) if params_total else None, fetch_one=True)
     stats_total = stats_total or (0, 0, 0)
     
     # Query phân nhóm tuổi (0-5, 6-10, 11-14, 15-17, 18-59, 60+)
-    query_age = """
-        SELECT 
-            CASE 
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 0 AND 5 THEN '0-5'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 6 AND 10 THEN '6-10'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 11 AND 14 THEN '11-14'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 15 AND 17 THEN '15-17'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 18 AND 59 THEN '18-59'
-                ELSE '60+'
-            END as nhom_tuoi,
-            COUNT(DISTINCT n.cccd) as soluong
-        FROM nguoidung n
-        INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
-        INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
-        INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
-        WHERE tv.ngayketthuc IS NULL AND n.ngaysinh IS NOT NULL
-    """
-    
-    params_age = []
     if xaphuong:
-        query_age += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
-        params_age.append(f'%{xaphuong}%')
-    
-    query_age += """
-        GROUP BY nhom_tuoi
-        ORDER BY 
-            CASE nhom_tuoi
-                WHEN '0-5' THEN 1
-                WHEN '6-10' THEN 2
-                WHEN '11-14' THEN 3
-                WHEN '15-17' THEN 4
-                WHEN '18-59' THEN 5
-                WHEN '60+' THEN 6
-            END
-    """
+        query_age = """
+            SELECT 
+                CASE 
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 0 AND 5 THEN '0-5'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 6 AND 10 THEN '6-10'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 11 AND 14 THEN '11-14'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 15 AND 17 THEN '15-17'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 18 AND 59 THEN '18-59'
+                    ELSE '60+'
+                END as nhom_tuoi,
+                COUNT(n.cccd) as soluong
+            FROM nguoidung n
+            LEFT JOIN thanhvienhokhau tv ON n.cccd = tv.cccd AND tv.ngayketthuc IS NULL
+            LEFT JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
+            LEFT JOIN diachi dc ON hk.madiachi = dc.madiachi
+            WHERE n.ngaysinh IS NOT NULL AND LOWER(dc.xaphuong) LIKE LOWER(%s)
+            GROUP BY 1
+            ORDER BY 1
+        """
+        params_age = [f'%{xaphuong}%']
+    else:
+        query_age = """
+            SELECT 
+                CASE 
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 0 AND 5 THEN '0-5'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 6 AND 10 THEN '6-10'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 11 AND 14 THEN '11-14'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 15 AND 17 THEN '15-17'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 18 AND 59 THEN '18-59'
+                    ELSE '60+'
+                END as nhom_tuoi,
+                COUNT(cccd) as soluong
+            FROM nguoidung
+            WHERE ngaysinh IS NOT NULL
+            GROUP BY 1
+            ORDER BY 1
+        """
+        params_age = []
     
     stats_age = execute_query(query_age, tuple(params_age) if params_age else None, fetch_all=True)
-    stats_age = stats_age or []
+    # Đảm bảo tất cả nhóm tuổi đều có trong kết quả
+    age_order = {'0-5': 1, '6-10': 2, '11-14': 3, '15-17': 4, '18-59': 5, '60+': 6}
+    all_age_groups = ['0-5', '6-10', '11-14', '15-17', '18-59', '60+']
+    
+    # Tạo dict từ kết quả query
+    age_dict = {row[0]: row[1] for row in (stats_age or [])}
+    
+    # Đảm bảo tất cả nhóm tuổi đều có (với giá trị 0 nếu không có)
+    stats_age = [(age_group, age_dict.get(age_group, 0)) for age_group in all_age_groups]
+    
+    # Debug - In ra để kiểm tra
+    print("="*80)
+    print("DEBUG - KIỂM TRA STATS_AGE:")
+    print(f"Query trả về {len(age_dict)} nhóm tuổi: {list(age_dict.keys())}")
+    print(f"Sau khi xử lý có {len(stats_age)} nhóm tuổi:")
+    for age_group, count in stats_age:
+        print(f"  - {age_group}: {count} người")
+    print("="*80)
     
     # Query phân nhóm tuổi theo giới tính
-    query_age_gender = """
-        SELECT 
-            CASE 
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 0 AND 5 THEN '0-5'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 6 AND 10 THEN '6-10'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 11 AND 14 THEN '11-14'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 15 AND 17 THEN '15-17'
-                WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 18 AND 59 THEN '18-59'
-                ELSE '60+'
-            END as nhom_tuoi,
-            n.gioitinh,
-            COUNT(DISTINCT n.cccd) as soluong
-        FROM nguoidung n
-        INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
-        INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
-        INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
-        WHERE tv.ngayketthuc IS NULL AND n.ngaysinh IS NOT NULL
-    """
-    
-    params_age_gender = []
     if xaphuong:
-        query_age_gender += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
-        params_age_gender.append(f'%{xaphuong}%')
-    
-    query_age_gender += """
-        GROUP BY nhom_tuoi, n.gioitinh
-        ORDER BY 
-            CASE nhom_tuoi
-                WHEN '0-5' THEN 1
-                WHEN '6-10' THEN 2
-                WHEN '11-14' THEN 3
-                WHEN '15-17' THEN 4
-                WHEN '18-59' THEN 5
-                WHEN '60+' THEN 6
-            END, n.gioitinh
-    """
+        query_age_gender = """
+            SELECT 
+                CASE 
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 0 AND 5 THEN '0-5'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 6 AND 10 THEN '6-10'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 11 AND 14 THEN '11-14'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 15 AND 17 THEN '15-17'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, n.ngaysinh)) BETWEEN 18 AND 59 THEN '18-59'
+                    ELSE '60+'
+                END as nhom_tuoi,
+                n.gioitinh,
+                COUNT(n.cccd) as soluong
+            FROM nguoidung n
+            LEFT JOIN thanhvienhokhau tv ON n.cccd = tv.cccd AND tv.ngayketthuc IS NULL
+            LEFT JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
+            LEFT JOIN diachi dc ON hk.madiachi = dc.madiachi
+            WHERE n.ngaysinh IS NOT NULL AND LOWER(dc.xaphuong) LIKE LOWER(%s)
+            GROUP BY 1, 2
+            ORDER BY 1, 2
+        """
+        params_age_gender = [f'%{xaphuong}%']
+    else:
+        query_age_gender = """
+            SELECT 
+                CASE 
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 0 AND 5 THEN '0-5'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 6 AND 10 THEN '6-10'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 11 AND 14 THEN '11-14'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 15 AND 17 THEN '15-17'
+                    WHEN DATE_PART('year', AGE(CURRENT_DATE, ngaysinh)) BETWEEN 18 AND 59 THEN '18-59'
+                    ELSE '60+'
+                END as nhom_tuoi,
+                gioitinh,
+                COUNT(cccd) as soluong
+            FROM nguoidung
+            WHERE ngaysinh IS NOT NULL
+            GROUP BY 1, 2
+            ORDER BY 1, 2
+        """
+        params_age_gender = []
     
     stats_age_gender = execute_query(query_age_gender, tuple(params_age_gender) if params_age_gender else None, fetch_all=True)
-    stats_age_gender = stats_age_gender or []
+    
+    # Đảm bảo tất cả nhóm tuổi và giới tính đều có trong kết quả
+    all_genders = ['Nam', 'Nu']
+    
+    # Tạo dict từ kết quả query
+    age_gender_dict = {(row[0], row[1]): row[2] for row in (stats_age_gender or [])}
+    
+    # Đảm bảo tất cả tổ hợp nhóm tuổi x giới tính đều có
+    stats_age_gender = []
+    for age_group in all_age_groups:
+        for gender in all_genders:
+            count = age_gender_dict.get((age_group, gender), 0)
+            stats_age_gender.append((age_group, gender, count))
+    
+    # Debug - In ra để kiểm tra
+    print("="*80)
+    print("DEBUG - KIỂM TRA STATS_AGE_GENDER:")
+    print(f"Query trả về {len(age_gender_dict)} tổ hợp: {list(age_gender_dict.keys())}")
+    print(f"Sau khi xử lý có {len(stats_age_gender)} tổ hợp:")
+    for age_group, gender, count in stats_age_gender:
+        print(f"  - {age_group} - {gender}: {count} người")
+    print("="*80)
+    print(f"DEBUG stats_total: {stats_total}")
+    print("="*80)
     
     # Query thống kê theo địa bàn (top 10)
     query_diaban = """
@@ -1540,10 +1616,10 @@ def thongke_danso():
             COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nam' THEN n.cccd END) as nam,
             COUNT(DISTINCT CASE WHEN LOWER(n.gioitinh) = 'nu' THEN n.cccd END) as nu
         FROM nguoidung n
-        INNER JOIN thanhvienhokhau tv ON n.cccd = tv.cccd
-        INNER JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
-        INNER JOIN diachi dc ON hk.madiachi = dc.madiachi
-        WHERE tv.ngayketthuc IS NULL
+        LEFT JOIN thanhvienhokhau tv ON n.cccd = tv.cccd AND tv.ngayketthuc IS NULL
+        LEFT JOIN hokhau hk ON tv.mahokhau = hk.mahokhau
+        LEFT JOIN diachi dc ON hk.madiachi = dc.madiachi
+        WHERE dc.xaphuong IS NOT NULL
     """
     
     params_diaban = []
@@ -1829,6 +1905,9 @@ def export_tamvangtru():
 def nguoidung_list():
     """Danh sách người dùng/nhân khẩu với phân trang, tìm kiếm và lọc"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     # ========== CẤU HÌNH PHÂN TRANG ==========
     per_page = 20  # Số bản ghi mỗi trang
     
@@ -1852,6 +1931,19 @@ def nguoidung_list():
     # ========== XÂY DỰNG ĐIỀU KIỆN WHERE ==========
     where_conditions = []
     params = []
+    
+    # Nếu là Người dân, chỉ xem những người trong hộ khẩu của mình
+    if user_role == 'NguoiDan':
+        where_conditions.append("""
+            cccd IN (
+                SELECT DISTINCT tv.cccd 
+                FROM thanhvienhokhau tv
+                WHERE tv.mahokhau IN (
+                    SELECT mahokhau FROM thanhvienhokhau WHERE cccd = %s
+                )
+            )
+        """)
+        params.append(user_cccd)
     
     if search:
         where_conditions.append("(cccd LIKE %s OR name ILIKE %s OR sdt LIKE %s)")
@@ -1996,6 +2088,9 @@ def nguoidung_add():
 def nguoidung_detail(cccd):
     """Xem chi tiết nhân khẩu"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     # Lấy thông tin nhân khẩu
     query = """
         SELECT cccd, name, user_name, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep
@@ -2006,6 +2101,20 @@ def nguoidung_detail(cccd):
     if not nguoidung:
         flash('Không tìm thấy nhân khẩu!', 'danger')
         return redirect(url_for('nguoidung_list'))
+    
+    # Nếu là Người dân, kiểm tra xem người này có trong hộ khẩu của mình không
+    if user_role == 'NguoiDan':
+        query_check = """
+            SELECT 1 FROM thanhvienhokhau tv1
+            WHERE tv1.cccd = %s 
+            AND tv1.mahokhau IN (
+                SELECT mahokhau FROM thanhvienhokhau WHERE cccd = %s
+            )
+        """
+        is_in_same_hokhau = execute_query(query_check, (cccd, user_cccd), fetch_one=True)
+        if not is_in_same_hokhau:
+            flash('Bạn không có quyền xem thông tin người này!', 'danger')
+            return redirect(url_for('nguoidung_list'))
     
     # Lấy danh sách hộ khẩu mà người này tham gia (hiện tại và quá khứ)
     query_hokhau = """
@@ -2228,6 +2337,18 @@ def phananh_list():
 def phananh_add():
     """Tạo phản ánh mới - Người dân có thể tạo phản ánh"""
     
+    # Lấy thông tin địa chỉ hộ khẩu của user để có thể tự động điền (dùng cho cả GET và POST)
+    user_cccd = session['user']['cccd']
+    query_hokhau_diachi = """
+        SELECT d.tinh, d.xaphuong, d.chitiet
+        FROM thanhvienhokhau tv
+        JOIN hokhau h ON tv.mahokhau = h.mahokhau
+        LEFT JOIN diachi d ON h.madiachi = d.madiachi
+        WHERE tv.cccd = %s AND tv.ngayketthuc IS NULL
+        LIMIT 1
+    """
+    hokhau_diachi = execute_query(query_hokhau_diachi, (user_cccd,), fetch_one=True)
+    
     if request.method == 'POST':
         tieude = request.form.get('tieude', '').strip()
         mota = request.form.get('mota', '').strip()
@@ -2240,57 +2361,104 @@ def phananh_add():
         xaphuong = request.form.get('xaphuong', '').strip()
         chitiet = request.form.get('chitiet', '').strip()
         
+        # DEBUG - In ra thông tin form
+        print("="*80)
+        print("DEBUG PHANANH_ADD - FORM DATA:")
+        print(f"  - Tiêu đề: {tieude}")
+        print(f"  - Mô tả: {mota[:100]}..." if len(mota) > 100 else f"  - Mô tả: {mota}")
+        print(f"  - Loại phản ánh: {loaiphananh}")
+        print(f"  - Is public: {is_public}")
+        print(f"  - Allow comment: {allow_comment}")
+        print(f"  - Địa chỉ: {tinh} - {xaphuong} - {chitiet}")
+        print(f"  - CCCD user: {session['user']['cccd']}")
+        print("="*80)
+        
         # Validate
         if not tieude or not mota:
+            print("ERROR: Thiếu tiêu đề hoặc mô tả!")
             flash('Vui lòng nhập đầy đủ tiêu đề và mô tả!', 'warning')
-            return redirect(url_for('phananh_add'))
+            return render_template('phananh_add.html', hokhau_diachi=hokhau_diachi)
         
-        # Tạo địa chỉ nếu có
-        madiachi = None
-        if tinh or xaphuong or chitiet:
-            query_diachi = """
-                INSERT INTO diachi (tinh, xaphuong, chitiet)
-                VALUES (%s, %s, %s)
-                RETURNING madiachi
-            """
-            result = execute_query(query_diachi, (tinh, xaphuong, chitiet), fetch_one=True)
-            if result:
-                madiachi = result[0]
-        
-        # Tạo phản ánh
-        query_phananh = """
-            INSERT INTO phananh (
-                cccd, madiachi, loaiphananh, trangthaiphananh,
-                mota, tieude, is_public, allow_comment,
-                thoigiantao
-            )
-            VALUES (%s, %s, %s, 'Mới', %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            RETURNING maphananh
-        """
-        
-        result = execute_query(
-            query_phananh,
-            (session['user']['cccd'], madiachi, loaiphananh, mota, tieude, is_public, allow_comment),
-            fetch_one=True
-        )
-        
-        if result:
-            maphananh = result[0]
+        try:
+            connection = get_db_connection()
+            if not connection:
+                flash('Không thể kết nối database!', 'danger')
+                return render_template('phananh_add.html', hokhau_diachi=hokhau_diachi)
             
-            # Tự động tạo boxchat nếu phản ánh riêng tư
-            if not is_public:
-                query_boxchat = """
-                    INSERT INTO boxchat (maphananh, cccd_nguoidan)
-                    VALUES (%s, %s)
+            cursor = connection.cursor()
+            
+            # Tạo địa chỉ nếu có
+            madiachi = None
+            if tinh or xaphuong or chitiet:
+                query_diachi = """
+                    INSERT INTO diachi (tinh, xaphuong, chitiet)
+                    VALUES (%s, %s, %s)
+                    RETURNING madiachi
                 """
-                execute_query(query_boxchat, (maphananh, session['user']['cccd']))
+                print(f"DEBUG: Đang tạo địa chỉ: {tinh}, {xaphuong}, {chitiet}")
+                cursor.execute(query_diachi, (tinh, xaphuong, chitiet))
+                result = cursor.fetchone()
+                if result:
+                    madiachi = result[0]
+                    print(f"DEBUG: Đã tạo địa chỉ với madiachi = {madiachi}")
+                else:
+                    print("WARNING: Không tạo được địa chỉ (result = None)")
             
-            flash(f'Đã tạo phản ánh thành công! Mã phản ánh: {maphananh}', 'success')
-            return redirect(url_for('phananh_detail', maphananh=maphananh))
-        else:
-            flash('Có lỗi xảy ra khi tạo phản ánh!', 'danger')
+            # Tạo phản ánh
+            query_phananh = """
+                INSERT INTO phananh (
+                    cccd, madiachi, loaiphananh, trangthaiphananh,
+                    mota, tieude, is_public, allow_comment,
+                    thoigiantao
+                )
+                VALUES (%s, %s, %s, 'ChuaXuLy', %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                RETURNING maphananh
+            """
+            
+            print(f"DEBUG: Đang tạo phản ánh với params: cccd={session['user']['cccd']}, madiachi={madiachi}, loaiphananh={loaiphananh}")
+            cursor.execute(query_phananh, (session['user']['cccd'], madiachi, loaiphananh, mota, tieude, is_public, allow_comment))
+            result = cursor.fetchone()
+            
+            if result:
+                maphananh = result[0]
+                print(f"SUCCESS: Đã tạo phản ánh với maphananh = {maphananh}")
+                
+                # Tự động tạo boxchat nếu phản ánh riêng tư
+                if not is_public:
+                    query_boxchat = """
+                        INSERT INTO boxchat (maphananh, cccd_nguoidan)
+                        VALUES (%s, %s)
+                    """
+                    print(f"DEBUG: Tạo boxchat cho phản ánh riêng tư {maphananh}")
+                    cursor.execute(query_boxchat, (maphananh, session['user']['cccd']))
+                
+                # Commit tất cả thay đổi
+                connection.commit()
+                cursor.close()
+                connection.close()
+                
+                print("="*80)
+                flash(f'Đã tạo phản ánh thành công! Mã phản ánh: {maphananh}', 'success')
+                return redirect(url_for('phananh_detail', maphananh=maphananh))
+            else:
+                print("ERROR: execute_query trả về None khi tạo phản ánh!")
+                connection.rollback()
+                cursor.close()
+                connection.close()
+                flash('Có lỗi xảy ra khi tạo phản ánh!', 'danger')
+                return render_template('phananh_add.html', hokhau_diachi=hokhau_diachi)
+        
+        except Exception as e:
+            print(f"EXCEPTION trong phananh_add: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            if connection:
+                connection.rollback()
+                connection.close()
+            flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+            return render_template('phananh_add.html', hokhau_diachi=hokhau_diachi)
     
-    return render_template('phananh_add.html')
+    return render_template('phananh_add.html', hokhau_diachi=hokhau_diachi)
 
 
 @app.route('/phananh/<int:maphananh>')
@@ -2350,9 +2518,15 @@ def phananh_detail(maphananh):
         flash('Bạn không có quyền xem phản ánh này!', 'danger')
         return redirect(url_for('phananh_list'))
     
-    # Tăng view count
-    update_view = "UPDATE phananh SET view_count = view_count + 1 WHERE maphananh = %s"
-    execute_query(update_view, (maphananh,))
+    # Tăng view count - Chỉ tăng 1 lần cho mỗi user
+    viewed_posts = session.get('viewed_posts', [])
+    if maphananh not in viewed_posts:
+        update_view = "UPDATE phananh SET view_count = view_count + 1 WHERE maphananh = %s"
+        execute_query(update_view, (maphananh,))
+        # Lưu vào session
+        viewed_posts.append(maphananh)
+        session['viewed_posts'] = viewed_posts
+        session.modified = True
     
     # Lấy danh sách bình luận (nếu cho phép)
     comments = []
@@ -2472,6 +2646,70 @@ def phananh_edit(maphananh):
     phananh = execute_query(query, (maphananh,), fetch_one=True)
     
     return render_template('phananh_edit.html', phananh=phananh)
+
+
+@app.route('/phananh/<int:maphananh>/chat')
+@login_required
+def phananh_chat(maphananh):
+    """
+    Chuyển trực tiếp đến trang chat của phản ánh
+    Tự động tìm hoặc tạo boxchat nếu chưa có
+    """
+    user = session.get('user')
+    cccd = user['cccd']
+    user_role = user['vaitro']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Kiểm tra phản ánh có tồn tại không
+        cur.execute("SELECT maphananh, cccd, is_public FROM phananh WHERE maphananh = %s", (maphananh,))
+        phananh = cur.fetchone()
+        
+        if not phananh:
+            conn.close()
+            flash('Phản ánh không tồn tại!', 'danger')
+            return redirect(url_for('phananh_list'))
+        
+        phananh_cccd = phananh[1]
+        is_public = phananh[2]
+        
+        # Kiểm tra quyền truy cập (nếu là phản ánh riêng tư)
+        if not is_public and user_role == 'NguoiDan' and cccd != phananh_cccd:
+            conn.close()
+            flash('Bạn không có quyền truy cập phản ánh này!', 'danger')
+            return redirect(url_for('phananh_list'))
+        
+        # Tìm boxchat của phản ánh này
+        cur.execute("SELECT maboxchat FROM boxchat WHERE maphananh = %s", (maphananh,))
+        boxchat = cur.fetchone()
+        
+        if boxchat:
+            # Boxchat đã tồn tại
+            maboxchat = boxchat[0]
+        else:
+            # Tạo boxchat mới
+            cur.execute("""
+                INSERT INTO boxchat (maphananh, cccd_nguoidan, cccd_canbo)
+                VALUES (%s, %s, %s)
+                RETURNING maboxchat
+            """, (maphananh, phananh_cccd, cccd if user_role in ['CanBo', 'QuanLy'] else None))
+            maboxchat = cur.fetchone()[0]
+            conn.commit()
+            print(f"DEBUG: Đã tạo boxchat mới {maboxchat} cho phản ánh {maphananh}")
+        
+        conn.close()
+        
+        # Chuyển đến trang chat
+        return redirect(url_for('chat_detail', maboxchat=maboxchat))
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"ERROR: Lỗi khi tạo/tìm boxchat: {str(e)}")
+        flash(f'Lỗi khi mở chat: {str(e)}', 'danger')
+        return redirect(url_for('phananh_detail', maphananh=maphananh))
 
 
 @app.route('/phananh/delete/<int:maphananh>', methods=['POST'])
@@ -2964,16 +3202,35 @@ def newsfeed():
     cur = conn.cursor()
     
     try:
-        # Sử dụng view_newsfeed đã tạo trong Phase 1
+        # Query phản ánh công khai với thông tin đầy đủ
         if sort_by == 'new':
-            order_clause = "ORDER BY thoigiantao DESC"
+            order_clause = "ORDER BY p.thoigiantao DESC"
         else:
             # Hot score: like_count*2 + comment_count + view_count*0.1
-            order_clause = "ORDER BY hot_score DESC, thoigiantao DESC"
+            order_clause = "ORDER BY (p.like_count*2 + p.comment_count + p.view_count*0.1) DESC, p.thoigiantao DESC"
         
         # Lấy danh sách phản ánh
         cur.execute(f"""
-            SELECT * FROM view_newsfeed
+            SELECT 
+                p.maphananh,
+                p.cccd,
+                n.name AS nguoi_tao,
+                p.tieude,
+                p.mota,
+                p.loaiphananh,
+                p.trangthaiphananh,
+                p.thoigiantao,
+                p.like_count,
+                p.comment_count,
+                p.view_count,
+                d.tinh,
+                d.xaphuong,
+                d.chitiet,
+                n.avatar_url
+            FROM phananh p
+            JOIN nguoidung n ON p.cccd = n.cccd
+            LEFT JOIN diachi d ON p.madiachi = d.madiachi
+            WHERE p.is_public = TRUE
             {order_clause}
             LIMIT %s OFFSET %s
         """, (per_page, offset))
@@ -3035,7 +3292,7 @@ def phananh_like(maphananh):
         
         # Kiểm tra đã like chưa
         cur.execute("""
-            SELECT malike FROM like_post
+            SELECT maphananh FROM like_post
             WHERE maphananh = %s AND cccd = %s
         """, (maphananh, cccd))
         
@@ -3044,18 +3301,11 @@ def phananh_like(maphananh):
             flash('Bạn đã like phản ánh này rồi!', 'warning')
             return redirect(request.referrer or url_for('newsfeed'))
         
-        # Thêm like
+        # Thêm like (trigger sẽ tự động tăng like_count)
         cur.execute("""
             INSERT INTO like_post (maphananh, cccd, thoigian)
             VALUES (%s, %s, NOW())
         """, (maphananh, cccd))
-        
-        # Tăng like_count
-        cur.execute("""
-            UPDATE phananh
-            SET like_count = like_count + 1
-            WHERE maphananh = %s
-        """, (maphananh,))
         
         conn.commit()
         conn.close()
@@ -3085,7 +3335,7 @@ def phananh_unlike(maphananh):
     try:
         # Kiểm tra đã like chưa
         cur.execute("""
-            SELECT malike FROM like_post
+            SELECT maphananh FROM like_post
             WHERE maphananh = %s AND cccd = %s
         """, (maphananh, cccd))
         
@@ -3094,18 +3344,11 @@ def phananh_unlike(maphananh):
             flash('Bạn chưa like phản ánh này!', 'warning')
             return redirect(request.referrer or url_for('newsfeed'))
         
-        # Xóa like
+        # Xóa like (trigger sẽ tự động giảm like_count)
         cur.execute("""
             DELETE FROM like_post
             WHERE maphananh = %s AND cccd = %s
         """, (maphananh, cccd))
-        
-        # Giảm like_count
-        cur.execute("""
-            UPDATE phananh
-            SET like_count = GREATEST(like_count - 1, 0)
-            WHERE maphananh = %s
-        """, (maphananh,))
         
         conn.commit()
         conn.close()
@@ -3150,8 +3393,8 @@ def comment_add(maphananh):
         # Nếu có parent_id, kiểm tra comment cha tồn tại
         if parent_id:
             cur.execute("""
-                SELECT mabinhluan FROM binhluan
-                WHERE mabinhluan = %s AND maphananh = %s
+                SELECT id FROM binhluan
+                WHERE id = %s AND maphananh = %s
             """, (parent_id, maphananh))
             if not cur.fetchone():
                 conn.close()
@@ -3161,21 +3404,24 @@ def comment_add(maphananh):
         # Thêm bình luận
         if parent_id:
             cur.execute("""
-                INSERT INTO binhluan (maphananh, cccd, noidung, thoigian, parent_id)
+                INSERT INTO binhluan (maphananh, cccd_nguoidung, noidung, thoigian, parent_id)
                 VALUES (%s, %s, %s, NOW(), %s)
             """, (maphananh, cccd, noidung, parent_id))
         else:
             cur.execute("""
-                INSERT INTO binhluan (maphananh, cccd, noidung, thoigian)
+                INSERT INTO binhluan (maphananh, cccd_nguoidung, noidung, thoigian)
                 VALUES (%s, %s, %s, NOW())
             """, (maphananh, cccd, noidung))
         
-        # Tăng comment_count
+        # Cập nhật comment_count = đếm lại số comment không bị ẩn
         cur.execute("""
             UPDATE phananh
-            SET comment_count = comment_count + 1
+            SET comment_count = (
+                SELECT COUNT(*) FROM binhluan 
+                WHERE maphananh = %s AND is_hidden = FALSE
+            )
             WHERE maphananh = %s
-        """, (maphananh,))
+        """, (maphananh, maphananh))
         
         conn.commit()
         conn.close()
@@ -3253,7 +3499,7 @@ def comment_hide(mabinhluan):
         # Kiểm tra comment tồn tại
         cur.execute("""
             SELECT maphananh FROM binhluan
-            WHERE mabinhluan = %s
+            WHERE id = %s
         """, (mabinhluan,))
         
         result = cur.fetchone()
@@ -3268,15 +3514,18 @@ def comment_hide(mabinhluan):
         cur.execute("""
             UPDATE binhluan
             SET is_hidden = TRUE
-            WHERE mabinhluan = %s
+            WHERE id = %s
         """, (mabinhluan,))
         
-        # Giảm comment_count
+        # Cập nhật comment_count = đếm lại số comment không bị ẩn
         cur.execute("""
             UPDATE phananh
-            SET comment_count = GREATEST(comment_count - 1, 0)
+            SET comment_count = (
+                SELECT COUNT(*) FROM binhluan 
+                WHERE maphananh = %s AND is_hidden = FALSE
+            )
             WHERE maphananh = %s
-        """, (maphananh,))
+        """, (maphananh, maphananh))
         
         conn.commit()
         conn.close()
@@ -3288,6 +3537,134 @@ def comment_hide(mabinhluan):
         conn.rollback()
         conn.close()
         flash(f'Lỗi khi ẩn bình luận: {str(e)}', 'danger')
+        return redirect(request.referrer or url_for('newsfeed'))
+
+
+@app.route('/comment/<int:mabinhluan>/edit', methods=['GET', 'POST'])
+@login_required
+def comment_edit(mabinhluan):
+    """
+    Chỉnh sửa bình luận của chính mình
+    """
+    user_cccd = session['user']['cccd']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Lấy thông tin comment
+        cur.execute("""
+            SELECT id, maphananh, cccd_nguoidung, noidung 
+            FROM binhluan
+            WHERE id = %s AND is_hidden = FALSE
+        """, (mabinhluan,))
+        
+        comment = cur.fetchone()
+        
+        if not comment:
+            conn.close()
+            flash('Bình luận không tồn tại!', 'danger')
+            return redirect(request.referrer or url_for('newsfeed'))
+        
+        comment_cccd = comment[2]
+        maphananh = comment[1]
+        
+        # Kiểm tra ownership
+        if user_cccd != comment_cccd:
+            conn.close()
+            flash('Bạn không có quyền chỉnh sửa bình luận này!', 'danger')
+            return redirect(url_for('phananh_detail', maphananh=maphananh))
+        
+        if request.method == 'POST':
+            noidung = request.form.get('noidung', '').strip()
+            
+            if not noidung:
+                flash('Nội dung bình luận không được để trống!', 'warning')
+                return redirect(url_for('phananh_detail', maphananh=maphananh))
+            
+            # Cập nhật bình luận
+            cur.execute("""
+                UPDATE binhluan
+                SET noidung = %s, thoigian = NOW()
+                WHERE id = %s
+            """, (noidung, mabinhluan))
+            
+            conn.commit()
+            conn.close()
+            
+            flash('Đã cập nhật bình luận!', 'success')
+            return redirect(url_for('phananh_detail', maphananh=maphananh))
+        
+        conn.close()
+        # GET request - return to detail page (edit inline in template)
+        return redirect(url_for('phananh_detail', maphananh=maphananh))
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        flash(f'Lỗi khi chỉnh sửa bình luận: {str(e)}', 'danger')
+        return redirect(request.referrer or url_for('newsfeed'))
+
+
+@app.route('/comment/<int:mabinhluan>/delete', methods=['POST'])
+@login_required
+def comment_delete(mabinhluan):
+    """
+    Xóa bình luận của chính mình
+    """
+    user_cccd = session['user']['cccd']
+    user_role = session['user']['vaitro']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Lấy thông tin comment
+        cur.execute("""
+            SELECT id, maphananh, cccd_nguoidung 
+            FROM binhluan
+            WHERE id = %s
+        """, (mabinhluan,))
+        
+        comment = cur.fetchone()
+        
+        if not comment:
+            conn.close()
+            flash('Bình luận không tồn tại!', 'danger')
+            return redirect(request.referrer or url_for('newsfeed'))
+        
+        comment_cccd = comment[2]
+        maphananh = comment[1]
+        
+        # Kiểm tra ownership (chủ comment hoặc CanBo/QuanLy)
+        if user_cccd != comment_cccd and user_role not in ['CanBo', 'QuanLy']:
+            conn.close()
+            flash('Bạn không có quyền xóa bình luận này!', 'danger')
+            return redirect(url_for('phananh_detail', maphananh=maphananh))
+        
+        # Xóa bình luận (CASCADE sẽ xóa các reply)
+        cur.execute("DELETE FROM binhluan WHERE id = %s", (mabinhluan,))
+        
+        # Cập nhật comment_count
+        cur.execute("""
+            UPDATE phananh
+            SET comment_count = (
+                SELECT COUNT(*) FROM binhluan 
+                WHERE maphananh = %s AND is_hidden = FALSE
+            )
+            WHERE maphananh = %s
+        """, (maphananh, maphananh))
+        
+        conn.commit()
+        conn.close()
+        
+        flash('Đã xóa bình luận!', 'success')
+        return redirect(url_for('phananh_detail', maphananh=maphananh))
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        flash(f'Lỗi khi xóa bình luận: {str(e)}', 'danger')
         return redirect(request.referrer or url_for('newsfeed'))
 
 
@@ -3310,41 +3687,85 @@ def chat_list():
     try:
         # Lấy danh sách boxchat mà user tham gia
         # JOIN với tin nhắn cuối cùng và đếm tin chưa đọc
-        cur.execute("""
-            WITH latest_messages AS (
-                SELECT DISTINCT ON (maboxchat)
-                    maboxchat,
-                    noidung as last_message,
-                    thoigiangui as last_time,
-                    nguoigui as last_sender
-                FROM tinnhan
-                ORDER BY maboxchat, thoigiangui DESC
-            ),
-            unread_counts AS (
+        if user_role in ['CanBo', 'QuanLy']:
+            # Cán bộ/Quản lý thấy tất cả boxchat
+            cur.execute("""
+                WITH latest_messages AS (
+                    SELECT DISTINCT ON (maboxchat)
+                        maboxchat,
+                        noidung as last_message,
+                        thoigiangui as last_time,
+                        nguoigui as last_sender
+                    FROM tinnhan
+                    ORDER BY maboxchat, thoigiangui DESC
+                ),
+                unread_counts AS (
+                    SELECT 
+                        maboxchat,
+                        COUNT(*) as unread_count
+                    FROM tinnhan
+                    WHERE dadoc = FALSE AND nguoigui != %s
+                    GROUP BY maboxchat
+                )
                 SELECT 
-                    maboxchat,
-                    COUNT(*) as unread_count
-                FROM tinnhan
-                WHERE dadoc = FALSE AND nguoigui != %s
-                GROUP BY maboxchat
-            )
-            SELECT 
-                b.maboxchat,
-                b.maphananh,
-                p.tieude as phananh_title,
-                lm.last_message,
-                lm.last_time,
-                lm.last_sender,
-                n.name as last_sender_name,
-                COALESCE(uc.unread_count, 0) as unread_count
-            FROM boxchat b
-            LEFT JOIN phananh p ON b.maphananh = p.maphananh
-            LEFT JOIN latest_messages lm ON b.maboxchat = lm.maboxchat
-            LEFT JOIN nguoidung n ON lm.last_sender = n.cccd
-            LEFT JOIN unread_counts uc ON b.maboxchat = uc.maboxchat
-            WHERE b.cccd_nguoidan = %s OR b.cccd_canbo = %s
-            ORDER BY lm.last_time DESC NULLS LAST
-        """, (cccd, cccd, cccd))
+                    b.maboxchat,
+                    b.maphananh,
+                    p.tieude as phananh_title,
+                    lm.last_message,
+                    lm.last_time,
+                    lm.last_sender,
+                    n.name as last_sender_name,
+                    COALESCE(uc.unread_count, 0) as unread_count,
+                    b.cccd_canbo,
+                    nd.name as canbo_name
+                FROM boxchat b
+                LEFT JOIN phananh p ON b.maphananh = p.maphananh
+                LEFT JOIN latest_messages lm ON b.maboxchat = lm.maboxchat
+                LEFT JOIN nguoidung n ON lm.last_sender = n.cccd
+                LEFT JOIN unread_counts uc ON b.maboxchat = uc.maboxchat
+                LEFT JOIN nguoidung nd ON b.cccd_canbo = nd.cccd
+                ORDER BY lm.last_time DESC NULLS LAST
+            """, (cccd,))
+        else:
+            # Người dân chỉ thấy boxchat của mình
+            cur.execute("""
+                WITH latest_messages AS (
+                    SELECT DISTINCT ON (maboxchat)
+                        maboxchat,
+                        noidung as last_message,
+                        thoigiangui as last_time,
+                        nguoigui as last_sender
+                    FROM tinnhan
+                    ORDER BY maboxchat, thoigiangui DESC
+                ),
+                unread_counts AS (
+                    SELECT 
+                        maboxchat,
+                        COUNT(*) as unread_count
+                    FROM tinnhan
+                    WHERE dadoc = FALSE AND nguoigui != %s
+                    GROUP BY maboxchat
+                )
+                SELECT 
+                    b.maboxchat,
+                    b.maphananh,
+                    p.tieude as phananh_title,
+                    lm.last_message,
+                    lm.last_time,
+                    lm.last_sender,
+                    n.name as last_sender_name,
+                    COALESCE(uc.unread_count, 0) as unread_count,
+                    b.cccd_canbo,
+                    nd.name as canbo_name
+                FROM boxchat b
+                LEFT JOIN phananh p ON b.maphananh = p.maphananh
+                LEFT JOIN latest_messages lm ON b.maboxchat = lm.maboxchat
+                LEFT JOIN nguoidung n ON lm.last_sender = n.cccd
+                LEFT JOIN unread_counts uc ON b.maboxchat = uc.maboxchat
+                LEFT JOIN nguoidung nd ON b.cccd_canbo = nd.cccd
+                WHERE b.cccd_nguoidan = %s OR b.cccd_canbo = %s
+                ORDER BY lm.last_time DESC NULLS LAST
+            """, (cccd, cccd, cccd))
         
         boxchat_list = cur.fetchall()
         conn.close()
@@ -3365,6 +3786,7 @@ def chat_detail(maboxchat):
     """
     user = session.get('user')
     cccd = user['cccd']
+    user_role = user['vaitro']
     
     conn = get_db_connection()
     cur = conn.cursor()
@@ -3394,11 +3816,40 @@ def chat_detail(maboxchat):
             flash('Boxchat không tồn tại!', 'danger')
             return redirect(url_for('chat_list'))
         
-        # Kiểm tra quyền: chỉ người trong boxchat mới được xem
+        # Kiểm tra quyền truy cập
         cccd_nguoidung = boxchat[2]
         cccd_canbo = boxchat[3]
         
-        if cccd not in [cccd_nguoidung, cccd_canbo]:
+        # Cán bộ/Quản lý có thể truy cập mọi boxchat
+        if user_role in ['CanBo', 'QuanLy']:
+            # Nếu chưa có cán bộ được assign, tự động assign cán bộ này vào
+            if not cccd_canbo:
+                cur.execute("""
+                    UPDATE boxchat
+                    SET cccd_canbo = %s
+                    WHERE maboxchat = %s
+                """, (cccd, maboxchat))
+                conn.commit()
+                print(f"DEBUG: Đã assign cán bộ {cccd} vào boxchat {maboxchat}")
+                # Reload boxchat data
+                cur.execute("""
+                    SELECT 
+                        b.maboxchat,
+                        b.maphananh,
+                        b.cccd_nguoidan,
+                        b.cccd_canbo,
+                        p.tieude,
+                        n1.name as nguoidung_name,
+                        n2.name as canbo_name
+                    FROM boxchat b
+                    LEFT JOIN phananh p ON b.maphananh = p.maphananh
+                    LEFT JOIN nguoidung n1 ON b.cccd_nguoidan = n1.cccd
+                    LEFT JOIN nguoidung n2 ON b.cccd_canbo = n2.cccd
+                    WHERE b.maboxchat = %s
+                """, (maboxchat,))
+                boxchat = cur.fetchone()
+        elif cccd not in [cccd_nguoidung, cccd_canbo]:
+            # Người dân chỉ được xem boxchat của mình
             conn.close()
             flash('Bạn không có quyền truy cập boxchat này!', 'danger')
             return redirect(url_for('chat_list'))
@@ -3459,7 +3910,7 @@ def chat_send_message(maboxchat):
     cur = conn.cursor()
     
     try:
-        # Kiểm tra quyền gửi tin nhắn (chỉ người trong boxchat)
+        # Kiểm tra quyền gửi tin nhắn
         cur.execute("""
             SELECT cccd_nguoidan, cccd_canbo
             FROM boxchat
@@ -3476,10 +3927,13 @@ def chat_send_message(maboxchat):
         cccd_nguoidung = boxchat[0]
         cccd_canbo = boxchat[1]
         
-        if cccd not in [cccd_nguoidung, cccd_canbo]:
-            conn.close()
-            flash('Bạn không có quyền gửi tin nhắn trong boxchat này!', 'danger')
-            return redirect(url_for('chat_list'))
+        # Cán bộ/Quản lý có thể gửi tin nhắn trong mọi boxchat
+        if user['vaitro'] not in ['CanBo', 'QuanLy']:
+            # Người dân chỉ gửi được trong boxchat của mình
+            if cccd not in [cccd_nguoidung, cccd_canbo]:
+                conn.close()
+                flash('Bạn không có quyền gửi tin nhắn trong boxchat này!', 'danger')
+                return redirect(url_for('chat_list'))
         
         # Thêm tin nhắn
         cur.execute("""
@@ -4053,7 +4507,7 @@ def reports_engagement():
             FROM nguoidung n
             LEFT JOIN phananh p ON n.cccd = p.cccd {' AND p.thoigiantao BETWEEN %s AND %s' if params else ''}
             LEFT JOIN like_post l ON n.cccd = l.cccd
-            LEFT JOIN binhluan b ON n.cccd = b.cccd
+            LEFT JOIN binhluan b ON n.cccd = b.cccd_nguoidung
             WHERE n.vaitro = 'NguoiDan'
             GROUP BY n.hovaten, n.cccd
             ORDER BY activity_score DESC

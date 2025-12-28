@@ -82,9 +82,15 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Tỷ lệ giới tính</h5>
+                    <small class="text-muted">Phân bố dân số theo giới tính (Nam/Nữ)</small>
                 </div>
                 <div class="card-body">
                     <canvas id="genderChart" style="max-height: 300px;"></canvas>
+                    <div class="text-center mt-3">
+                        <small class="text-muted fst-italic">
+                            Biểu đồ tròn thể hiện tỷ lệ phần trăm nam giới và nữ giới trong tổng dân số
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,9 +100,15 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h5 class="mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Phân bổ theo nhóm tuổi</h5>
+                    <small class="text-muted">Số lượng người trong từng độ tuổi (Mầm non, Tiểu học, THCS, THPT, Lao động, Nghỉ hưu)</small>
                 </div>
                 <div class="card-body">
                     <canvas id="ageChart" style="max-height: 300px;"></canvas>
+                    <div class="text-center mt-3">
+                        <small class="text-muted fst-italic">
+                            <strong>Chú thích nhóm tuổi:</strong> 0-5 (Mầm non), 6-10 (Tiểu học), 11-14 (THCS), 15-17 (THPT), 18-59 (Lao động), 60+ (Nghỉ hưu)
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,9 +120,15 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h5 class="mb-0"><i class="bi bi-bar-chart-fill me-2"></i>Phân bổ theo nhóm tuổi và giới tính</h5>
+                    <small class="text-muted">So sánh số lượng nam và nữ trong từng nhóm tuổi</small>
                 </div>
                 <div class="card-body">
                     <canvas id="ageGenderChart" style="max-height: 400px;"></canvas>
+                    <div class="text-center mt-3">
+                        <small class="text-muted fst-italic">
+                            Biểu đồ cột kép giúp so sánh trực quan số lượng nam (màu xanh) và nữ (màu đỏ) trong từng nhóm tuổi
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -121,6 +139,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-light">
             <h5 class="mb-0"><i class="bi bi-map-fill me-2"></i>Thống kê theo địa bàn (Top 10)</h5>
+            <small class="text-muted">Xếp hạng 10 xã/phường có dân số đông nhất và phân tích giới tính</small>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -132,7 +151,7 @@
                             <th class="text-center">Tổng</th>
                             <th class="text-center">Nam</th>
                             <th class="text-center">Nữ</th>
-                            <th>Tỷ lệ</th>
+                            <th>Tỷ lệ Nam/Nữ (%)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -173,8 +192,14 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// Debug - In ra dữ liệu
+console.log('stats_total:', {{ stats_total|tojson }});
+console.log('stats_age:', {{ stats_age|tojson }});
+console.log('stats_age_gender:', {{ stats_age_gender|tojson }});
+
 // Gender Pie Chart
 const genderCtx = document.getElementById('genderChart').getContext('2d');
+console.log('Gender data:', [{{ stats_total[1] or 0 }}, {{ stats_total[2] or 0 }}]);
 new Chart(genderCtx, {
     type: 'pie',
     data: {
@@ -205,6 +230,18 @@ new Chart(genderCtx, {
                     padding: 15
                 }
             },
+            title: {
+                display: true,
+                text: 'Tỷ lệ phần trăm Nam/Nữ',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                },
+                padding: {
+                    top: 10,
+                    bottom: 20
+                }
+            },
             tooltip: {
                 callbacks: {
                     label: function(context) {
@@ -212,7 +249,7 @@ new Chart(genderCtx, {
                         let value = context.parsed || 0;
                         let total = {{ stats_total[0] or 0 }};
                         let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                        return label + ': ' + value + ' (' + percentage + '%)';
+                        return label + ': ' + value + ' người (' + percentage + '%)';
                     }
                 }
             }
@@ -222,13 +259,18 @@ new Chart(genderCtx, {
 
 // Age Group Bar Chart
 const ageCtx = document.getElementById('ageChart').getContext('2d');
+const ageLabels = [{% for row in stats_age %}'{{ row[0] }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+const ageData = [{% for row in stats_age %}{{ row[1] }}{% if not loop.last %}, {% endif %}{% endfor %}];
+console.log('Age labels:', ageLabels);
+console.log('Age data:', ageData);
+
 new Chart(ageCtx, {
     type: 'bar',
     data: {
-        labels: [{% for row in stats_age %}'{{ row[0] }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+        labels: ageLabels,
         datasets: [{
             label: 'Số người',
-            data: [{% for row in stats_age %}{{ row[1] }}{% if not loop.last %}, {% endif %}{% endfor %}],
+            data: ageData,
             backgroundColor: 'rgba(13, 110, 253, 0.7)',
             borderColor: 'rgba(13, 110, 253, 1)',
             borderWidth: 2
@@ -242,12 +284,59 @@ new Chart(ageCtx, {
                 beginAtZero: true,
                 ticks: {
                     stepSize: 1
+                },
+                title: {
+                    display: true,
+                    text: 'Số lượng (người)',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    }
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Nhóm tuổi',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    }
                 }
             }
         },
         plugins: {
             legend: {
                 display: false
+            },
+            title: {
+                display: true,
+                text: 'Phân bố dân số theo độ tuổi',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                },
+                padding: {
+                    top: 10,
+                    bottom: 20
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let value = context.parsed.y;
+                        let label = context.label;
+                        let ageGroupNames = {
+                            '0-5': 'Mầm non (0-5 tuổi)',
+                            '6-10': 'Tiểu học (6-10 tuổi)',
+                            '11-14': 'THCS (11-14 tuổi)',
+                            '15-17': 'THPT (15-17 tuổi)',
+                            '18-59': 'Độ tuổi lao động (18-59 tuổi)',
+                            '60+': 'Nghỉ hưu (60+ tuổi)'
+                        };
+                        return ageGroupNames[label] + ': ' + value + ' người';
+                    }
+                }
             }
         }
     }
@@ -261,17 +350,24 @@ const ageGroups = ['0-5', '6-10', '11-14', '15-17', '18-59', '60+'];
 const namData = new Array(ageGroups.length).fill(0);
 const nuData = new Array(ageGroups.length).fill(0);
 
+// Process data from server
 {% for row in stats_age_gender %}
-    const idx = ageGroups.indexOf('{{ row[0] }}');
-    if (idx !== -1) {
-        const gender = '{{ row[1] }}'.toLowerCase();
-        if (gender === 'nam') {
-            namData[idx] = {{ row[2] }};
-        } else if (gender === 'nu' || gender === 'nữ') {
-            nuData[idx] = {{ row[2] }};
+    (function() {
+        const idx = ageGroups.indexOf('{{ row[0] }}');
+        if (idx !== -1) {
+            const gender = '{{ row[1] }}'.toLowerCase();
+            if (gender === 'nam') {
+                namData[idx] = {{ row[2] }};
+            } else if (gender === 'nu' || gender === 'nữ') {
+                nuData[idx] = {{ row[2] }};
+            }
         }
-    }
+    })();
 {% endfor %}
+
+console.log('Age groups:', ageGroups);
+console.log('Nam data:', namData);
+console.log('Nu data:', nuData);
 
 new Chart(ageGenderCtx, {
     type: 'bar',
@@ -302,6 +398,24 @@ new Chart(ageGenderCtx, {
                 beginAtZero: true,
                 ticks: {
                     stepSize: 1
+                },
+                title: {
+                    display: true,
+                    text: 'Số lượng (người)',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    }
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Nhóm tuổi',
+                    font: {
+                        size: 13,
+                        weight: 'bold'
+                    }
                 }
             }
         },
@@ -311,6 +425,39 @@ new Chart(ageGenderCtx, {
                 labels: {
                     font: {
                         size: 14
+                    }
+                }
+            },
+            title: {
+                display: true,
+                text: 'Phân tích cấu trúc dân số theo tuổi và giới tính',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                },
+                padding: {
+                    top: 10,
+                    bottom: 20
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        let label = context[0].label;
+                        let ageGroupNames = {
+                            '0-5': 'Mầm non (0-5 tuổi)',
+                            '6-10': 'Tiểu học (6-10 tuổi)',
+                            '11-14': 'THCS (11-14 tuổi)',
+                            '15-17': 'THPT (15-17 tuổi)',
+                            '18-59': 'Độ tuổi lao động (18-59 tuổi)',
+                            '60+': 'Nghỉ hưu (60+ tuổi)'
+                        };
+                        return ageGroupNames[label] || label;
+                    },
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        let value = context.parsed.y;
+                        return label + ': ' + value + ' người';
                     }
                 }
             }

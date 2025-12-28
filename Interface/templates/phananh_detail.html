@@ -176,13 +176,31 @@
                                             </small>
                                         </div>
                                     </div>
-                                    <p class="mb-0 ms-5">{{ comment[4] }}</p>
+                                    <p class="mb-0 ms-5" id="commentText{{ comment[0] }}">{{ comment[4] }}</p>
                                     
-                                    <!-- Reply button -->
-                                    <button class="btn btn-sm btn-link text-decoration-none ms-5" 
-                                            onclick="showReplyForm({{ comment[0] }})">
-                                        <i class="fas fa-reply"></i> Trả lời
-                                    </button>
+                                    <!-- Edit form (hidden by default) -->
+                                    <div id="editForm{{ comment[0] }}" style="display: none;" class="ms-5 mt-2">
+                                        <form method="POST" action="{{ url_for('comment_edit', mabinhluan=comment[0]) }}">
+                                            <div class="input-group">
+                                                <input type="text" name="noidung" class="form-control" 
+                                                       value="{{ comment[4] }}" required>
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-save"></i> Lưu
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-secondary" 
+                                                        onclick="hideEditForm({{ comment[0] }})">Hủy</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Action buttons -->
+                                    <div class="ms-5 mt-2">
+                                        <!-- Reply button -->
+                                        <button class="btn btn-sm btn-link text-decoration-none p-0" 
+                                                onclick="showReplyForm({{ comment[0] }})">
+                                            <i class="fas fa-reply"></i> Trả lời
+                                        </button>
+                                    </div>
 
                                     <!-- Reply form (hidden by default) -->
                                     <div id="replyForm{{ comment[0] }}" style="display: none;" class="ms-5 mt-2">
@@ -199,14 +217,49 @@
                                     </div>
                                 </div>
                                 
-                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
-                                <form method="POST" action="{{ url_for('comment_hide', mabinhluan=comment[0]) }}" 
-                                      onsubmit="return confirm('Ẩn bình luận này?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-eye-slash"></i>
+                                <!-- Dropdown menu for actions -->
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link text-muted p-0" type="button" 
+                                            data-bs-toggle="dropdown" aria-expanded="false"
+                                            style="font-size: 1.2rem; line-height: 1;">
+                                        <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                </form>
-                                {% endif %}
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        {% if comment[1] == session.user.cccd %}
+                                        <!-- Owner actions -->
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="showEditForm({{ comment[0] }}); return false;">
+                                                <i class="fas fa-edit text-primary"></i> Chỉnh sửa
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <form method="POST" action="{{ url_for('comment_delete', mabinhluan=comment[0]) }}" 
+                                                  onsubmit="return confirm('Bạn có chắc muốn xóa bình luận này?');"
+                                                  class="m-0">
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                                        <!-- Admin actions -->
+                                        {% if comment[1] != session.user.cccd %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        {% endif %}
+                                        <li>
+                                            <form method="POST" action="{{ url_for('comment_hide', mabinhluan=comment[0]) }}" 
+                                                  onsubmit="return confirm('Ẩn bình luận này?');"
+                                                  class="m-0">
+                                                <button type="submit" class="dropdown-item text-warning">
+                                                    <i class="fas fa-eye-slash"></i> Ẩn bình luận
+                                                </button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
                             </div>
                             
                             <!-- Child comments (replies) -->
@@ -274,8 +327,8 @@
             </div>
             {% endif %}
 
-            <!-- Chat Box Link -->
-            {% if boxchat_id %}
+            <!-- Chat Box Link - Only for owner or CanBo/QuanLy -->
+            {% if boxchat_id and (session.user.cccd == phananh[1] or session.user.vaitro in ['CanBo', 'QuanLy']) %}
             <div class="card shadow">
                 <div class="card-header bg-warning">
                     <h6 class="mb-0"><i class="fas fa-comments"></i> Hỗ trợ trực tiếp</h6>
@@ -330,6 +383,16 @@ function showReplyForm(commentId) {
 
 function hideReplyForm(commentId) {
     document.getElementById('replyForm' + commentId).style.display = 'none';
+}
+
+function showEditForm(commentId) {
+    document.getElementById('commentText' + commentId).style.display = 'none';
+    document.getElementById('editForm' + commentId).style.display = 'block';
+}
+
+function hideEditForm(commentId) {
+    document.getElementById('commentText' + commentId).style.display = 'block';
+    document.getElementById('editForm' + commentId).style.display = 'none';
 }
 </script>
 {% endblock %}

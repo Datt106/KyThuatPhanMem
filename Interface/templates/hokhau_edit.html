@@ -30,12 +30,12 @@
                         <div class="col-md-6 mb-3">
                             <label for="xaphuong" class="form-label">Xã/Phường <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
-                                   value="{{ hokhau[5] or '' }}" required>
+                                   value="{{ hokhau[2] or '' }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="chitiet" class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="chitiet" name="chitiet" 
-                                   value="{{ hokhau[6] or '' }}" required>
+                                   value="{{ hokhau[3] or '' }}" required>
                         </div>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                 <!-- Ghi chú -->
                 <div class="mb-4">
                     <label for="ghichu" class="form-label">Ghi chú</label>
-                    <textarea class="form-control" id="ghichu" name="ghichu" rows="3">{{ hokhau[3] or '' }}</textarea>
+                    <textarea class="form-control" id="ghichu" name="ghichu" rows="3">{{ hokhau[5] or '' }}</textarea>
                 </div>
 
                 <!-- Danh sách thành viên -->
