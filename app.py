@@ -431,10 +431,10 @@ def dashboard():
             d.chitiet,
             h.ngaycap,
             h.ghichu,
-            (SELECT COUNT(*) FROM thanhvienhokhau tv WHERE tv.mahokhau = h.mahokhau) as so_thanh_vien,
+            (SELECT COUNT(*) FROM thanhvienhokhau tv WHERE tv.mahokhau = h.mahokhau AND tv.ngayketthuc IS NULL) as so_thanh_vien,
             (SELECT n.name FROM thanhvienhokhau tv 
              JOIN nguoidung n ON tv.cccd = n.cccd 
-             WHERE tv.mahokhau = h.mahokhau AND tv.quanhechuho = 'ChuHo' LIMIT 1) as chu_ho
+             WHERE tv.mahokhau = h.mahokhau AND tv.quanhechuho = 'ChuHo' AND tv.ngayketthuc IS NULL LIMIT 1) as chu_ho
         FROM hokhau h
         LEFT JOIN diachi d ON h.madiachi = d.madiachi
         ORDER BY h.mahokhau DESC
@@ -528,10 +528,10 @@ def hokhau_list():
             d.chitiet,
             h.ngaycap,
             h.ghichu,
-            (SELECT COUNT(*) FROM thanhvienhokhau tv WHERE tv.mahokhau = h.mahokhau) as so_thanh_vien,
+            (SELECT COUNT(*) FROM thanhvienhokhau tv WHERE tv.mahokhau = h.mahokhau AND tv.ngayketthuc IS NULL) as so_thanh_vien,
             (SELECT n.name FROM thanhvienhokhau tv 
              JOIN nguoidung n ON tv.cccd = n.cccd 
-             WHERE tv.mahokhau = h.mahokhau AND tv.quanhechuho = 'ChuHo' LIMIT 1) as chu_ho
+             WHERE tv.mahokhau = h.mahokhau AND tv.quanhechuho = 'ChuHo' AND tv.ngayketthuc IS NULL LIMIT 1) as chu_ho
         FROM hokhau h
         LEFT JOIN diachi d ON h.madiachi = d.madiachi
         WHERE {where_clause}
@@ -702,7 +702,7 @@ def hokhau_detail(mahokhau):
             flash('Bạn không có quyền xem hộ khẩu này!', 'danger')
             return redirect(url_for('hokhau_list'))
     
-    # Danh sách thành viên
+    # Danh sách thành viên (chỉ lấy người còn trong hộ)
     query_thanhvien = """
         SELECT 
             n.cccd,
@@ -715,7 +715,7 @@ def hokhau_detail(mahokhau):
             tv.ngaybatdau
         FROM thanhvienhokhau tv
         JOIN nguoidung n ON tv.cccd = n.cccd
-        WHERE tv.mahokhau = %s
+        WHERE tv.mahokhau = %s AND tv.ngayketthuc IS NULL
         ORDER BY 
             CASE WHEN tv.quanhechuho = 'ChuHo' THEN 0 ELSE 1 END,
             tv.ngaybatdau
@@ -893,7 +893,28 @@ def thanhvien_chuyen_di(mahokhau, cccd):
             """
             execute_query(query, (ngaychuyen, lydochuyen, noichuyenden, ghichu, mahokhau, cccd.strip()))
             
-            flash(f'Đã cập nhật thông tin chuyển đi cho thành viên {cccd}!', 'success')
+            # Kiểm tra xem hộ còn thành viên không
+            query_count = """
+                SELECT COUNT(*) FROM thanhvienhokhau 
+                WHERE mahokhau = %s AND ngayketthuc IS NULL
+            """
+            count = execute_query(query_count, (mahokhau,), fetch_one=True)
+            
+            # Nếu hết thành viên, đánh dấu hộ là trống
+            if count and count[0] == 0:
+                query_mark_empty = """
+                    UPDATE hokhau 
+                    SET ghichu = CASE 
+                        WHEN ghichu IS NULL OR ghichu = '' THEN '[HỘ TRỐNG - Không còn thành viên]'
+                        ELSE ghichu || ' | [HỘ TRỐNG - Không còn thành viên]'
+                    END
+                    WHERE mahokhau = %s
+                """
+                execute_query(query_mark_empty, (mahokhau,))
+                flash(f'Đã cập nhật thông tin chuyển đi cho thành viên {cccd}. Hộ khẩu đã trống!', 'warning')
+            else:
+                flash(f'Đã cập nhật thông tin chuyển đi cho thành viên {cccd}!', 'success')
+            
             return redirect(url_for('hokhau_detail', mahokhau=mahokhau))
         except Exception as e:
             flash(f'Lỗi khi cập nhật: {str(e)}', 'danger')
@@ -1168,12 +1189,24 @@ def hokhau_tach_ho(mahokhau):
 def tam_vang_add():
     """Cấp giấy tạm vắng"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     if request.method == 'POST':
-        cccd = request.form.get('cccd')
+        cccd = request.form.get('cccd', '').strip()
         ngaybatdau = request.form.get('ngaybatdau')
         ngayketthuc = request.form.get('ngayketthuc')
         lydo = request.form.get('lydo')
         noiden = request.form.get('noiden')
+        
+        # Nếu là Người dân, chỉ đăng ký cho mình
+        if user_role == 'NguoiDan' and cccd != user_cccd:
+            flash('Bạn chỉ được đăng ký tạm vắng cho chính mình!', 'danger')
+            return redirect(url_for('tam_vang_add'))
+        
+        if not cccd or not ngaybatdau:
+            flash('Vui lòng điền đầy đủ thông tin bắt buộc!', 'warning')
+            return redirect(url_for('tam_vang_add'))
         
         # Lấy địa chỉ thường trú hiện tại
         query_diachi = """
@@ -1184,10 +1217,21 @@ def tam_vang_add():
             AND dcnd.thoidiemketthuc IS NULL
             LIMIT 1
         """
-        diachi_cutru = execute_query(query_diachi, (cccd.strip(),), fetch_one=True)
+        diachi_cutru = execute_query(query_diachi, (cccd,), fetch_one=True)
         
         if not diachi_cutru:
             flash('Không tìm thấy địa chỉ cư trú của người này!', 'warning')
+            return redirect(url_for('tam_vang_add'))
+        
+        # Kiểm tra đã có tạm vắng chưa
+        query_check = """
+            SELECT 1 FROM diachinguoidung 
+            WHERE cccd = %s AND loaidiachi = 'TamVang' 
+            AND (thoidiemketthuc IS NULL OR thoidiemketthuc >= CURRENT_DATE)
+        """
+        existing = execute_query(query_check, (cccd,), fetch_one=True)
+        if existing:
+            flash('Người này đang có giấy tạm vắng hiệu lực!', 'warning')
             return redirect(url_for('tam_vang_add'))
         
         madiachi_cutru = diachi_cutru[0]
@@ -1208,7 +1252,7 @@ def tam_vang_add():
             cursor.execute("""
                 INSERT INTO diachinguoidung (madiachi, cccd, loaidiachi, thoidiemxacnhan, thoidiemketthuc)
                 VALUES (%s, %s, 'TamVang', %s, %s)
-            """, (madiachi_tamvang, cccd.strip(), ngaybatdau, ngayketthuc))
+            """, (madiachi_tamvang, cccd, ngaybatdau, ngayketthuc or None))
             
             connection.commit()
             cursor.close()
@@ -1227,14 +1271,32 @@ def tam_vang_add():
     query_nguoidung = """
         SELECT cccd, name, ngaysinh, gioitinh
         FROM nguoidung
-        ORDER BY name
     """
-    nguoidung_list = execute_query(query_nguoidung, fetch_all=True)
+    params = []
+    
+    # Nếu là Người dân, chỉ xem mình
+    if user_role == 'NguoiDan':
+        query_nguoidung += " WHERE cccd = %s"
+        params.append(user_cccd)
+    else:
+        # Cán bộ/Quản lý xem người trong hộ khẩu
+        query_nguoidung += """
+            WHERE cccd IN (
+                SELECT DISTINCT tv.cccd 
+                FROM thanhvienhokhau tv
+                WHERE tv.ngayketthuc IS NULL
+            )
+        """
+    
+    query_nguoidung += " ORDER BY name"
+    nguoidung_list = execute_query(query_nguoidung, tuple(params), fetch_all=True)
     
     from datetime import datetime
     return render_template('tam_vang_add.html', 
                          nguoidung_list=nguoidung_list,
-                         now=datetime.now())
+                         now=datetime.now(),
+                         user_role=user_role,
+                         user_cccd=user_cccd)
 
 
 @app.route('/tam-tru/add', methods=['GET', 'POST'])
@@ -1242,13 +1304,31 @@ def tam_vang_add():
 def tam_tru_add():
     """Cấp giấy tạm trú"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     if request.method == 'POST':
-        cccd = request.form.get('cccd')
+        cccd = request.form.get('cccd', '').strip()
         ngaybatdau = request.form.get('ngaybatdau')
         ngayketthuc = request.form.get('ngayketthuc')
         lydo = request.form.get('lydo')
         diachi_tamtru = request.form.get('diachi_tamtru')
         xaphuong = request.form.get('xaphuong')
+        
+        if not cccd or not ngaybatdau or not diachi_tamtru or not xaphuong:
+            flash('Vui lòng điền đầy đủ thông tin bắt buộc!', 'warning')
+            return redirect(url_for('tam_tru_add'))
+        
+        # Kiểm tra đã có tạm trú chưa
+        query_check = """
+            SELECT 1 FROM diachinguoidung 
+            WHERE cccd = %s AND loaidiachi = 'TamTru' 
+            AND (thoidiemketthuc IS NULL OR thoidiemketthuc >= CURRENT_DATE)
+        """
+        existing = execute_query(query_check, (cccd,), fetch_one=True)
+        if existing:
+            flash('Người này đang có giấy tạm trú hiệu lực!', 'warning')
+            return redirect(url_for('tam_tru_add'))
         
         try:
             connection = get_db_connection()
@@ -1266,7 +1346,7 @@ def tam_tru_add():
             cursor.execute("""
                 INSERT INTO diachinguoidung (madiachi, cccd, loaidiachi, thoidiemxacnhan, thoidiemketthuc)
                 VALUES (%s, %s, 'TamTru', %s, %s)
-            """, (madiachi_tamtru, cccd.strip(), ngaybatdau, ngayketthuc))
+            """, (madiachi_tamtru, cccd, ngaybatdau, ngayketthuc or None))
             
             connection.commit()
             cursor.close()
@@ -1285,9 +1365,20 @@ def tam_tru_add():
     query_nguoidung = """
         SELECT cccd, name, ngaysinh, gioitinh
         FROM nguoidung
-        ORDER BY name
     """
-    nguoidung_list = execute_query(query_nguoidung, fetch_all=True)
+    params = []
+    
+    # Chỉ hiển thị người trong hộ khẩu hiện tại
+    query_nguoidung += """
+        WHERE cccd IN (
+            SELECT DISTINCT tv.cccd 
+            FROM thanhvienhokhau tv
+            WHERE tv.ngayketthuc IS NULL
+        )
+    """
+    
+    query_nguoidung += " ORDER BY name"
+    nguoidung_list = execute_query(query_nguoidung, tuple(params), fetch_all=True)
     
     from datetime import datetime
     return render_template('tam_tru_add.html', 
@@ -1295,14 +1386,108 @@ def tam_tru_add():
                          now=datetime.now())
 
 
+@app.route('/tam-vang-tru/<string:cccd>/<string:loai>/gia-han', methods=['GET', 'POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def tam_vang_tru_gia_han(cccd, loai):
+    """Gia hạn tạm vắng/tạm trú"""
+    
+    if loai not in ['TamVang', 'TamTru']:
+        flash('Loại không hợp lệ!', 'danger')
+        return redirect(url_for('tam_vang_tru_list'))
+    
+    if request.method == 'POST':
+        ngayketthuc_moi = request.form.get('ngayketthuc_moi')
+        ghichu = request.form.get('ghichu')
+        
+        if not ngayketthuc_moi:
+            flash('Vui lòng nhập ngày kết thúc mới!', 'warning')
+            return redirect(url_for('tam_vang_tru_gia_han', cccd=cccd, loai=loai))
+        
+        try:
+            query = """
+                UPDATE diachinguoidung 
+                SET thoidiemketthuc = %s
+                WHERE cccd = %s AND loaidiachi = %s 
+                AND (thoidiemketthuc IS NULL OR thoidiemketthuc >= CURRENT_DATE)
+            """
+            execute_query(query, (ngayketthuc_moi, cccd, loai))
+            
+            flash(f'Đã gia hạn {"tạm vắng" if loai == "TamVang" else "tạm trú"} thành công!', 'success')
+            return redirect(url_for('tam_vang_tru_list'))
+        except Exception as e:
+            flash(f'Lỗi khi gia hạn: {str(e)}', 'danger')
+    
+    # GET - Load thông tin hiện tại
+    query = """
+        SELECT 
+            n.cccd, n.name, n.ngaysinh,
+            dcnd.loaidiachi, dcnd.thoidiemxacnhan, dcnd.thoidiemketthuc,
+            dc.chitiet, dc.xaphuong
+        FROM diachinguoidung dcnd
+        JOIN nguoidung n ON dcnd.cccd = n.cccd
+        JOIN diachi dc ON dcnd.madiachi = dc.madiachi
+        WHERE dcnd.cccd = %s AND dcnd.loaidiachi = %s
+        AND (dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE)
+        LIMIT 1
+    """
+    record = execute_query(query, (cccd, loai), fetch_one=True)
+    
+    if not record:
+        flash(f'Không tìm thấy {"tạm vắng" if loai == "TamVang" else "tạm trú"} đang hiệu lực!', 'warning')
+        return redirect(url_for('tam_vang_tru_list'))
+    
+    from datetime import datetime
+    return render_template('tam_vang_tru_gia_han.html', 
+                         record=record,
+                         loai=loai,
+                         now=datetime.now())
+
+
+@app.route('/tam-vang-tru/<string:cccd>/<string:loai>/ket-thuc', methods=['POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def tam_vang_tru_ket_thuc(cccd, loai):
+    """Kết thúc sớm tạm vắng/tạm trú"""
+    
+    if loai not in ['TamVang', 'TamTru']:
+        flash('Loại không hợp lệ!', 'danger')
+        return redirect(url_for('tam_vang_tru_list'))
+    
+    ngayketthuc = request.form.get('ngayketthuc')
+    
+    if not ngayketthuc:
+        flash('Vui lòng nhập ngày kết thúc!', 'warning')
+        return redirect(url_for('tam_vang_tru_list'))
+    
+    try:
+        query = """
+            UPDATE diachinguoidung 
+            SET thoidiemketthuc = %s
+            WHERE cccd = %s AND loaidiachi = %s 
+            AND (thoidiemketthuc IS NULL OR thoidiemketthuc >= CURRENT_DATE)
+        """
+        execute_query(query, (ngayketthuc, cccd, loai))
+        
+        flash(f'Đã kết thúc {"tạm vắng" if loai == "TamVang" else "tạm trú"} thành công!', 'success')
+    except Exception as e:
+        flash(f'Lỗi khi kết thúc: {str(e)}', 'danger')
+    
+    return redirect(url_for('tam_vang_tru_list'))
+
+
 @app.route('/tam-vang-tru')
 @login_required
 def tam_vang_tru_list():
     """Danh sách tạm vắng/tạm trú"""
     
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
     # Lấy filter params
     loai = request.args.get('loai', '')  # TamVang, TamTru, hoặc tất cả
     xaphuong = request.args.get('xaphuong', '')
+    trangthai = request.args.get('trangthai', '')  # conhieuluc, hethang
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
@@ -1325,6 +1510,11 @@ def tam_vang_tru_list():
     
     params = []
     
+    # Nếu là Người dân, chỉ xem của mình
+    if user_role == 'NguoiDan':
+        query += " AND dcnd.cccd = %s"
+        params.append(user_cccd)
+    
     if loai:
         query += " AND dcnd.loaidiachi = %s"
         params.append(loai)
@@ -1333,11 +1523,45 @@ def tam_vang_tru_list():
         query += " AND dc.xaphuong ILIKE %s"
         params.append(f'%{xaphuong}%')
     
+    # Lọc trạng thái
+    if trangthai == 'conhieuluc':
+        query += " AND (dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE)"
+    elif trangthai == 'hethang':
+        query += " AND dcnd.thoidiemketthuc < CURRENT_DATE"
+    
     query += " ORDER BY dcnd.thoidiemxacnhan DESC"
     
     # Count total
     count_query = f"SELECT COUNT(*) FROM ({query}) AS subquery"
-    total = execute_query(count_query, tuple(params), fetch_one=True)[0]
+    total_result = execute_query(count_query, tuple(params), fetch_one=True)
+    total = total_result[0] if total_result else 0
+    
+    # Query statistics (tối ưu hơn dùng Jinja filter)
+    stats_query = """
+        SELECT 
+            dcnd.loaidiachi,
+            COUNT(*) as so_luong,
+            COUNT(CASE WHEN dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE THEN 1 END) as con_hieu_luc,
+            COUNT(CASE WHEN dcnd.thoidiemketthuc < CURRENT_DATE THEN 1 END) as het_han
+        FROM diachinguoidung dcnd
+        WHERE dcnd.loaidiachi IN ('TamVang', 'TamTru')
+    """
+    stats_params = []
+    if user_role == 'NguoiDan':
+        stats_query += " AND dcnd.cccd = %s"
+        stats_params.append(user_cccd)
+    stats_query += " GROUP BY dcnd.loaidiachi"
+    
+    stats_result = execute_query(stats_query, tuple(stats_params), fetch_all=True)
+    stats = {'TamVang': 0, 'TamTru': 0, 'TamVang_hieuluc': 0, 'TamTru_hieuluc': 0}
+    if stats_result:
+        for row in stats_result:
+            if row[0] == 'TamVang':
+                stats['TamVang'] = row[1]
+                stats['TamVang_hieuluc'] = row[2]
+            elif row[0] == 'TamTru':
+                stats['TamTru'] = row[1]
+                stats['TamTru_hieuluc'] = row[2]
     
     # Pagination
     offset = (page - 1) * per_page
@@ -1346,15 +1570,322 @@ def tam_vang_tru_list():
     records = execute_query(query, tuple(params), fetch_all=True)
     records = records if records else []
     
-    total_pages = (total + per_page - 1) // per_page
+    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
     
+    from datetime import datetime
     return render_template('tam_vang_tru.html',
                          records=records,
                          page=page,
                          total_pages=total_pages,
                          total=total,
                          loai=loai,
-                         xaphuong=xaphuong)
+                         xaphuong=xaphuong,
+                         trangthai=trangthai,
+                         stats=stats,
+                         now=datetime.now())
+
+
+@app.route('/cu-tru')
+@login_required
+def cu_tru_list():
+    """Danh sách cư trú với thống kê, tìm kiếm và lọc"""
+    
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
+    # Lấy tham số
+    search = request.args.get('search', '').strip()
+    xaphuong = request.args.get('xaphuong', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    # Build query
+    query = """
+        SELECT 
+            n.cccd,
+            n.name,
+            n.ngaysinh,
+            n.gioitinh,
+            dcnd.thoidiemxacnhan,
+            dcnd.thoidiemketthuc,
+            dc.chitiet,
+            dc.xaphuong,
+            dc.tinh
+        FROM diachinguoidung dcnd
+        JOIN nguoidung n ON dcnd.cccd = n.cccd
+        JOIN diachi dc ON dcnd.madiachi = dc.madiachi
+        WHERE dcnd.loaidiachi = 'CuTru'
+    """
+    
+    params = []
+    
+    # Nếu là Người dân, chỉ xem của mình
+    if user_role == 'NguoiDan':
+        query += " AND dcnd.cccd = %s"
+        params.append(user_cccd)
+    
+    if search:
+        query += " AND (n.name ILIKE %s OR n.cccd ILIKE %s)"
+        params.extend([f'%{search}%', f'%{search}%'])
+    
+    if xaphuong:
+        query += " AND dc.xaphuong = %s"
+        params.append(xaphuong)
+    
+    # Count total
+    count_query = f"SELECT COUNT(*) FROM ({query}) AS subquery"
+    total_result = execute_query(count_query, tuple(params), fetch_one=True)
+    total = total_result[0] if total_result else 0
+    
+    # Statistics - Tổng số và số còn hiệu lực (thoidiemketthuc IS NULL OR >= CURRENT_DATE)
+    stats_query = """
+        SELECT 
+            COUNT(*) as tong_cutru,
+            COUNT(CASE WHEN dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE THEN 1 END) as con_hieu_luc,
+            COUNT(CASE WHEN dcnd.thoidiemketthuc < CURRENT_DATE THEN 1 END) as het_hieu_luc
+        FROM diachinguoidung dcnd
+        JOIN nguoidung n ON dcnd.cccd = n.cccd
+        JOIN diachi dc ON dcnd.madiachi = dc.madiachi
+        WHERE dcnd.loaidiachi = 'CuTru'
+    """
+    stats_params = []
+    if user_role == 'NguoiDan':
+        stats_query += " AND dcnd.cccd = %s"
+        stats_params.append(user_cccd)
+    if search:
+        stats_query += " AND (n.name ILIKE %s OR n.cccd ILIKE %s)"
+        stats_params.extend([f'%{search}%', f'%{search}%'])
+    if xaphuong:
+        stats_query += " AND dc.xaphuong = %s"
+        stats_params.append(xaphuong)
+    
+    stats_result = execute_query(stats_query, tuple(stats_params), fetch_one=True)
+    stats = {
+        'tong_cutru': stats_result[0] if stats_result else 0,
+        'con_hieu_luc': stats_result[1] if stats_result else 0,
+        'het_hieu_luc': stats_result[2] if stats_result else 0
+    }
+    
+    # Pagination
+    query += " ORDER BY dcnd.thoidiemxacnhan DESC"
+    offset = (page - 1) * per_page
+    query += f" LIMIT {per_page} OFFSET {offset}"
+    
+    records = execute_query(query, tuple(params), fetch_all=True)
+    records = records if records else []
+    
+    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
+    
+    from datetime import datetime
+    return render_template('cu_tru.html',
+                         records=records,
+                         page=page,
+                         total_pages=total_pages,
+                         total=total,
+                         stats=stats,
+                         search=search,
+                         xaphuong=xaphuong,
+                         now=datetime.now())
+
+
+@app.route('/cu-tru/add', methods=['GET', 'POST'])
+@login_required
+def cu_tru_add():
+    """Đăng ký cư trú mới"""
+    
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
+    if request.method == 'POST':
+        cccd = request.form.get('cccd', '').strip()
+        ngaybatdau = request.form.get('ngaybatdau', '').strip()
+        tinh = request.form.get('tinh', '').strip()
+        xaphuong = request.form.get('xaphuong', '').strip()
+        diachi_chitiet = request.form.get('diachi_chitiet', '').strip()
+        ghichu = request.form.get('ghichu', '').strip()
+        
+        # Validation
+        if not cccd or not ngaybatdau or not tinh or not xaphuong or not diachi_chitiet:
+            flash('Vui lòng điền đầy đủ thông tin bắt buộc!', 'danger')
+            return redirect(url_for('cu_tru_add'))
+        
+        # Nếu là Người dân, chỉ được đăng ký cho chính mình
+        if user_role == 'NguoiDan' and cccd != user_cccd:
+            flash('Bạn chỉ được đăng ký cư trú cho chính mình!', 'danger')
+            return redirect(url_for('cu_tru_add'))
+        
+        # Kiểm tra người dùng có tồn tại không
+        check_user = execute_query("SELECT cccd FROM nguoidung WHERE cccd = %s", (cccd,), fetch_one=True)
+        if not check_user:
+            flash('Không tìm thấy người dùng với CCCD này!', 'danger')
+            return redirect(url_for('cu_tru_add'))
+        
+        # Kiểm tra xem đã có cư trú active chưa
+        check_duplicate = execute_query(
+            "SELECT 1 FROM diachinguoidung WHERE cccd = %s AND loaidiachi = 'CuTru' AND (thoidiemketthuc IS NULL OR thoidiemketthuc >= CURRENT_DATE)",
+            (cccd,),
+            fetch_one=True
+        )
+        if check_duplicate:
+            flash('Người dùng này đã có địa chỉ cư trú đang hiệu lực! Vui lòng chỉnh sửa hoặc kết thúc trước.', 'warning')
+            return redirect(url_for('cu_tru_list'))
+        
+        connection = get_db_connection()
+        if not connection:
+            flash('Lỗi kết nối database!', 'danger')
+            return redirect(url_for('cu_tru_add'))
+        
+        try:
+            cursor = connection.cursor()
+            
+            # Tạo địa chỉ mới
+            cursor.execute(
+                "INSERT INTO diachi (tinh, xaphuong, chitiet) VALUES (%s, %s, %s) RETURNING madiachi",
+                (tinh, xaphuong, diachi_chitiet)
+            )
+            madiachi = cursor.fetchone()[0]
+            
+            # Tạo bản ghi cư trú
+            cursor.execute(
+                """INSERT INTO diachinguoidung (madiachi, cccd, loaidiachi, thoidiemxacnhan, ghichu) 
+                   VALUES (%s, %s, 'CuTru', %s, %s)""",
+                (madiachi, cccd, ngaybatdau, ghichu)
+            )
+            
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+            flash('Đăng ký cư trú thành công!', 'success')
+            return redirect(url_for('cu_tru_list'))
+            
+        except Error as e:
+            connection.rollback()
+            cursor.close()
+            connection.close()
+            flash(f'Lỗi khi đăng ký cư trú: {str(e)}', 'danger')
+            return redirect(url_for('cu_tru_add'))
+    
+    # GET - Lấy danh sách người dùng
+    if user_role == 'NguoiDan':
+        # Người dân chỉ thấy chính mình
+        query_nguoidung = "SELECT cccd, name, ngaysinh FROM nguoidung WHERE cccd = %s"
+        nguoidung_list = execute_query(query_nguoidung, (user_cccd,), fetch_all=True)
+    else:
+        # Cán bộ/Quản lý xem tất cả người dùng đang active trong hộ khẩu
+        query_nguoidung = """
+            SELECT DISTINCT n.cccd, n.name, n.ngaysinh
+            FROM nguoidung n
+            WHERE n.cccd IN (
+                SELECT tv.cccd FROM thanhvienhokhau tv WHERE tv.ngayketthuc IS NULL
+            )
+            ORDER BY n.name
+        """
+        nguoidung_list = execute_query(query_nguoidung, fetch_all=True)
+    
+    nguoidung_list = nguoidung_list if nguoidung_list else []
+    
+    from datetime import datetime
+    return render_template('cu_tru_add.html', nguoidung_list=nguoidung_list, now=datetime.now())
+
+
+@app.route('/cu-tru/edit/<string:cccd>', methods=['GET', 'POST'])
+@login_required
+def cu_tru_edit(cccd):
+    """Chỉnh sửa/Thay đổi địa chỉ cư trú"""
+    
+    user_role = session['user'].get('vaitro')
+    user_cccd = session['user'].get('cccd')
+    
+    # Kiểm tra quyền
+    if user_role == 'NguoiDan' and cccd != user_cccd:
+        flash('Bạn chỉ được chỉnh sửa cư trú của chính mình!', 'danger')
+        return redirect(url_for('cu_tru_list'))
+    
+    if request.method == 'POST':
+        ngayketthuc_cu = request.form.get('ngayketthuc_cu', '').strip()
+        ngaybatdau_moi = request.form.get('ngaybatdau_moi', '').strip()
+        tinh = request.form.get('tinh', '').strip()
+        xaphuong = request.form.get('xaphuong', '').strip()
+        diachi_chitiet = request.form.get('diachi_chitiet', '').strip()
+        ghichu = request.form.get('ghichu', '').strip()
+        
+        # Validation
+        if not ngayketthuc_cu or not ngaybatdau_moi or not tinh or not xaphuong or not diachi_chitiet:
+            flash('Vui lòng điền đầy đủ thông tin bắt buộc!', 'danger')
+            return redirect(url_for('cu_tru_edit', cccd=cccd))
+        
+        connection = get_db_connection()
+        if not connection:
+            flash('Lỗi kết nối database!', 'danger')
+            return redirect(url_for('cu_tru_edit', cccd=cccd))
+        
+        try:
+            cursor = connection.cursor()
+            
+            # Kết thúc địa chỉ cũ
+            cursor.execute(
+                """UPDATE diachinguoidung 
+                   SET thoidiemketthuc = %s 
+                   WHERE cccd = %s AND loaidiachi = 'CuTru' 
+                   AND (thoidiemketthuc IS NULL OR thoidiemketthuc >= CURRENT_DATE)""",
+                (ngayketthuc_cu, cccd)
+            )
+            
+            # Tạo địa chỉ mới
+            cursor.execute(
+                "INSERT INTO diachi (tinh, xaphuong, chitiet) VALUES (%s, %s, %s) RETURNING madiachi",
+                (tinh, xaphuong, diachi_chitiet)
+            )
+            madiachi = cursor.fetchone()[0]
+            
+            # Tạo bản ghi cư trú mới
+            cursor.execute(
+                """INSERT INTO diachinguoidung (madiachi, cccd, loaidiachi, thoidiemxacnhan, ghichu) 
+                   VALUES (%s, %s, 'CuTru', %s, %s)""",
+                (madiachi, cccd, ngaybatdau_moi, ghichu)
+            )
+            
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+            flash('Thay đổi địa chỉ cư trú thành công!', 'success')
+            return redirect(url_for('cu_tru_list'))
+            
+        except Error as e:
+            connection.rollback()
+            cursor.close()
+            connection.close()
+            flash(f'Lỗi khi thay đổi cư trú: {str(e)}', 'danger')
+            return redirect(url_for('cu_tru_edit', cccd=cccd))
+    
+    # GET - Lấy thông tin cư trú hiện tại
+    query = """
+        SELECT 
+            n.cccd,
+            n.name,
+            n.ngaysinh,
+            dcnd.thoidiemxacnhan,
+            dc.chitiet,
+            dc.xaphuong,
+            dc.tinh,
+            dcnd.ghichu
+        FROM diachinguoidung dcnd
+        JOIN nguoidung n ON dcnd.cccd = n.cccd
+        JOIN diachi dc ON dcnd.madiachi = dc.madiachi
+        WHERE dcnd.cccd = %s 
+        AND dcnd.loaidiachi = 'CuTru'
+        AND (dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE)
+    """
+    record = execute_query(query, (cccd,), fetch_one=True)
+    
+    if not record:
+        flash('Không tìm thấy thông tin cư trú hiện tại!', 'danger')
+        return redirect(url_for('cu_tru_list'))
+    
+    from datetime import datetime
+    return render_template('cu_tru_edit.html', record=record, now=datetime.now())
 
 
 @role_required(['CanBo', 'QuanLy'])

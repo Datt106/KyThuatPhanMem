@@ -38,7 +38,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ url_for('tam_vang_tru_list') }}" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="loai" class="form-label">Loại</label>
                     <select class="form-select" id="loai" name="loai">
                         <option value="">Tất cả</option>
@@ -46,10 +46,18 @@
                         <option value="TamTru" {% if loai == 'TamTru' %}selected{% endif %}>Tạm trú</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="xaphuong" class="form-label">Xã/Phường</label>
                     <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
                            value="{{ xaphuong }}" placeholder="Tìm theo xã/phường...">
+                </div>
+                <div class="col-md-2">
+                    <label for="trangthai" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="trangthai" name="trangthai">
+                        <option value="">Tất cả</option>
+                        <option value="conhieuluc" {% if trangthai == 'conhieuluc' %}selected{% endif %}>Còn hiệu lực</option>
+                        <option value="hethang" {% if trangthai == 'hethang' %}selected{% endif %}>Đã hết hạn</option>
+                    </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
@@ -74,9 +82,8 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Tạm vắng</h6>
-                            <h3 class="mb-0">
-                                {{ records|selectattr('3', 'equalto', 'TamVang')|list|length }}
-                            </h3>
+                            <h3 class="mb-0">{{ stats.TamVang }}</h3>
+                            <small class="text-muted">{{ stats.TamVang_hieuluc }} đang hiệu lực</small>
                         </div>
                     </div>
                 </div>
@@ -91,9 +98,8 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Tạm trú</h6>
-                            <h3 class="mb-0">
-                                {{ records|selectattr('3', 'equalto', 'TamTru')|list|length }}
-                            </h3>
+                            <h3 class="mb-0">{{ stats.TamTru }}</h3>
+                            <small class="text-muted">{{ stats.TamTru_hieuluc }} đang hiệu lực</small>
                         </div>
                     </div>
                 </div>
@@ -109,6 +115,7 @@
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Tổng số</h6>
                             <h3 class="mb-0">{{ total }}</h3>
+                            <small class="text-muted">theo bộ lọc hiện tại</small>
                         </div>
                     </div>
                 </div>
@@ -132,6 +139,9 @@
                                 <th>Ngày kết thúc</th>
                                 <th>Địa chỉ</th>
                                 <th>Trạng thái</th>
+                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                                <th>Thao tác</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -186,6 +196,28 @@
                                         <span class="badge bg-success">Đang hiệu lực</span>
                                     {% endif %}
                                 </td>
+                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                                <td>
+                                    {% set is_active = (not rec[5]) or (rec[5] >= now.date()) %}
+                                    {% if is_active %}
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('tam_vang_tru_gia_han', cccd=rec[0], loai=rec[3]) }}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Gia hạn">
+                                            <i class="bi bi-clock-history"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger" 
+                                                onclick="confirmKetThuc('{{ rec[0] }}', '{{ rec[3] }}', '{{ rec[1] }}')"
+                                                title="Kết thúc">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -197,7 +229,7 @@
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
                         <li class="page-item {% if page == 1 %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('tam_vang_tru_list', page=page-1, loai=loai, xaphuong=xaphuong) }}">
+                            <a class="page-link" href="{{ url_for('tam_vang_tru_list', page=page-1, loai=loai, xaphuong=xaphuong, trangthai=trangthai) }}">
                                 Trước
                             </a>
                         </li>
@@ -207,7 +239,7 @@
                                 <li class="page-item active"><span class="page-link">{{ p }}</span></li>
                             {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('tam_vang_tru_list', page=p, loai=loai, xaphuong=xaphuong) }}">
+                                    <a class="page-link" href="{{ url_for('tam_vang_tru_list', page=p, loai=loai, xaphuong=xaphuong, trangthai=trangthai) }}">
                                         {{ p }}
                                     </a>
                                 </li>
@@ -217,7 +249,7 @@
                         {% endfor %}
                         
                         <li class="page-item {% if page == total_pages %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('tam_vang_tru_list', page=page+1, loai=loai, xaphuong=xaphuong) }}">
+                            <a class="page-link" href="{{ url_for('tam_vang_tru_list', page=page+1, loai=loai, xaphuong=xaphuong, trangthai=trangthai) }}">
                                 Sau
                             </a>
                         </li>
@@ -235,8 +267,69 @@
     </div>
 </div>
 
+<!-- Modal xác nhận kết thúc -->
+<div class="modal fade" id="ketThucModal" tabindex="-1" aria-labelledby="ketThucModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ketThucModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>Xác nhận kết thúc
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="ketThucForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Bạn có chắc muốn kết thúc <strong id="ketThucLoai"></strong> cho người dân <strong id="ketThucName"></strong>?
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ngayKetThuc" class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="ngayKetThuc" name="ngayketthuc" required max="{{ now.strftime('%Y-%m-%d') }}">
+                        <div class="form-text">Chọn ngày kết thúc (không được sau ngày hôm nay)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ghiChuKetThuc" class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="ghiChuKetThuc" name="ghichu" rows="3" placeholder="Lý do kết thúc (tùy chọn)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Hủy
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check-lg me-1"></i>Xác nhận kết thúc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 // Pass now to template
 const now = new Date();
+
+// Function to show confirmation modal for ending a record
+function confirmKetThuc(cccd, loai, name) {
+    // Update modal content
+    document.getElementById('ketThucLoai').textContent = loai === 'TamVang' ? 'tạm vắng' : 'tạm trú';
+    document.getElementById('ketThucName').textContent = name;
+    
+    // Set form action
+    const form = document.getElementById('ketThucForm');
+    form.action = `/tam-vang-tru/ket-thuc/${cccd}/${loai}`;
+    
+    // Set max date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('ngayKetThuc').value = today;
+    document.getElementById('ngayKetThuc').max = today;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('ketThucModal'));
+    modal.show();
+}
 </script>
 {% endblock %}

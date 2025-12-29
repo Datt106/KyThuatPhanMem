@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-clock-history me-2"></i>
+            Gia hạn {{ 'Tạm vắng' if loai == 'TamVang' else 'Tạm trú' }}
+        </h2>
+        <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Thông tin hiện tại -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info bg-opacity-10">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Thông tin hiện tại</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>CCCD:</strong> <code class="bg-light p-1 rounded">{{ record[0] }}</code>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Họ tên:</strong> {{ record[1] }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Ngày sinh:</strong> 
+                            {% if record[2] %}
+                                {{ record[2].strftime('%d/%m/%Y') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Loại:</strong>
+                            {% if record[3] == 'TamVang' %}
+                                <span class="badge bg-warning">Tạm vắng</span>
+                            {% else %}
+                                <span class="badge bg-info">Tạm trú</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Ngày bắt đầu:</strong>
+                            {% if record[4] %}
+                                {{ record[4].strftime('%d/%m/%Y') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Ngày kết thúc hiện tại:</strong>
+                            {% if record[5] %}
+                                <span class="text-danger fw-bold">{{ record[5].strftime('%d/%m/%Y') }}</span>
+                            {% else %}
+                                <span class="text-muted">Chưa xác định</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <strong>Địa chỉ:</strong>
+                            <p class="mb-0 text-muted">
+                                {{ record[6] or 'N/A' }}
+                                {% if record[7] %}, {{ record[7] }}{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form gia hạn -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary bg-opacity-10">
+                    <h5 class="mb-0 text-primary">
+                        <i class="bi bi-clock-history me-2"></i>Gia hạn thời gian
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('tam_vang_tru_gia_han', cccd=record[0], loai=loai) }}">
+                        <div class="mb-4">
+                            <label for="ngayketthuc_moi" class="form-label fw-semibold">
+                                Ngày kết thúc mới <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="ngayketthuc_moi" 
+                                   name="ngayketthuc_moi"
+                                   {% if record[5] %}
+                                   min="{{ record[5].strftime('%Y-%m-%d') }}"
+                                   {% else %}
+                                   min="{{ now.strftime('%Y-%m-%d') }}"
+                                   {% endif %}
+                                   required>
+                            <small class="text-muted">
+                                Ngày kết thúc mới phải sau ngày kết thúc hiện tại
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="ghichu" class="form-label fw-semibold">Ghi chú</label>
+                            <textarea class="form-control" 
+                                      id="ghichu" 
+                                      name="ghichu" 
+                                      rows="3"
+                                      placeholder="Lý do gia hạn (không bắt buộc)"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Xác nhận gia hạn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

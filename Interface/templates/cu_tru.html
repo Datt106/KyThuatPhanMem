@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý cư trú{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-house-check me-2"></i>Quản lý cư trú
+            </h5>
+            <a href="{{ url_for('cu_tru_add') }}" class="btn btn-light btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Đăng ký cư trú
+            </a>
+        </div>
+
+        <div class="card-body">
+            <!-- Thống kê -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Tổng số cư trú</h6>
+                                    <h3 class="mb-0">{{ stats.tong_cutru }}</h3>
+                                    <small class="text-white-50">{{ stats.con_hieu_luc }} đang hiệu lực</small>
+                                </div>
+                                <i class="bi bi-house-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Còn hiệu lực</h6>
+                                    <h3 class="mb-0">{{ stats.con_hieu_luc }}</h3>
+                                    <small class="text-white-50">Đang cư trú</small>
+                                </div>
+                                <i class="bi bi-check-circle-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Đã hết hạn</h6>
+                                    <h3 class="mb-0">{{ stats.het_hieu_luc }}</h3>
+                                    <small class="text-white-50">Lịch sử</small>
+                                </div>
+                                <i class="bi bi-archive-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ lọc -->
+            <form method="GET" action="{{ url_for('cu_tru_list') }}" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               placeholder="Tìm theo họ tên hoặc CCCD..." value="{{ search }}">
+                    </div>
+                    
+                    <div class="col-md-5">
+                        <label for="xaphuong" class="form-label">Xã/Phường</label>
+                        <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
+                               placeholder="Lọc theo xã/phường..." value="{{ xaphuong }}">
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Bảng danh sách -->
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>CCCD</th>
+                                <th>Họ tên</th>
+                                <th>Ngày sinh</th>
+                                <th>Giới tính</th>
+                                <th>Ngày đăng ký</th>
+                                <th>Địa chỉ cư trú</th>
+                                <th>Xã/Phường</th>
+                                <th>Trạng thái</th>
+                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] or session.user.cccd in [rec[0] for rec in records] %}
+                                <th>Thao tác</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in records %}
+                            <tr>
+                                <td><code class="bg-light p-1 rounded">{{ rec[0] }}</code></td>
+                                <td><strong>{{ rec[1] }}</strong></td>
+                                <td>
+                                    {% if rec[2] %}
+                                        {{ rec[2].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rec[3] == 'nam' %}
+                                        <span class="badge bg-primary">Nam</span>
+                                    {% elif rec[3] == 'nu' %}
+                                        <span class="badge bg-danger">Nữ</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ rec[3] }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rec[4] %}
+                                        {{ rec[4].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ rec[6] or 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ rec[7] or 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if rec[5] and rec[5] < now.date() %}
+                                        <span class="badge bg-secondary">Đã kết thúc</span>
+                                    {% elif not rec[5] %}
+                                        <span class="badge bg-success">Đang hiệu lực</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Đang hiệu lực</span>
+                                    {% endif %}
+                                </td>
+                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] or session.user.cccd == rec[0] %}
+                                <td>
+                                    {% set is_active = (not rec[5]) or (rec[5] >= now.date()) %}
+                                    {% if is_active %}
+                                        <a href="{{ url_for('cu_tru_edit', cccd=rec[0]) }}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Thay đổi địa chỉ">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('cu_tru_list', page=page-1, search=search, xaphuong=xaphuong) }}">
+                                Trước
+                            </a>
+                        </li>
+                        
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                                <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                            {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('cu_tru_list', page=p, search=search, xaphuong=xaphuong) }}">
+                                        {{ p }}
+                                    </a>
+                                </li>
+                            {% elif p == 4 or p == total_pages - 3 %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('cu_tru_list', page=page+1, search=search, xaphuong=xaphuong) }}">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">Không có dữ liệu</h5>
+                    <p class="text-muted">Chưa có thông tin cư trú</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

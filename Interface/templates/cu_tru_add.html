@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký cư trú{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-house-add me-2"></i>Đăng ký cư trú mới
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('cu_tru_add') }}">
+                        <!-- Thông tin người dùng -->
+                        <div class="mb-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-person-vcard me-2"></i>Thông tin người dùng
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="cccd" class="form-label">
+                                        Chọn người dùng <span class="text-danger">*</span>
+                                    </label>
+                                    {% if session.user.vaitro == 'NguoiDan' %}
+                                        <!-- Người dân chỉ thấy chính mình -->
+                                        {% if nguoidung_list %}
+                                            <input type="text" class="form-control" 
+                                                   value="{{ nguoidung_list[0][1] }} - {{ nguoidung_list[0][0] }}" 
+                                                   readonly>
+                                            <input type="hidden" name="cccd" value="{{ nguoidung_list[0][0] }}">
+                                        {% else %}
+                                            <input type="text" class="form-control" value="Không tìm thấy thông tin" readonly>
+                                        {% endif %}
+                                    {% else %}
+                                        <!-- Cán bộ/Quản lý chọn từ dropdown -->
+                                        <select class="form-select" id="cccd" name="cccd" required>
+                                            <option value="">-- Chọn người dùng --</option>
+                                            {% for nd in nguoidung_list %}
+                                                <option value="{{ nd[0] }}">
+                                                    {{ nd[1] }} - {{ nd[0] }}
+                                                    {% if nd[2] %} ({{ nd[2].strftime('%d/%m/%Y') }}){% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin cư trú -->
+                        <div class="mb-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="bi bi-geo-alt me-2"></i>Thông tin cư trú
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="ngaybatdau" class="form-label">
+                                        Ngày bắt đầu <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" class="form-control" id="ngaybatdau" name="ngaybatdau" 
+                                           value="{{ now.strftime('%Y-%m-%d') }}" 
+                                           max="{{ now.strftime('%Y-%m-%d') }}" required>
+                                    <div class="form-text">Ngày bắt đầu cư trú tại địa chỉ này</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="tinh" class="form-label">
+                                        Tỉnh/Thành phố <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="tinh" name="tinh" 
+                                           placeholder="VD: Hà Nội" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="xaphuong" class="form-label">
+                                        Xã/Phường <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
+                                           placeholder="VD: Phường Dịch Vọng" required>
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label for="diachi_chitiet" class="form-label">
+                                        Địa chỉ chi tiết <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="diachi_chitiet" name="diachi_chitiet" 
+                                              rows="2" placeholder="Số nhà, tên đường..." required></textarea>
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label for="ghichu" class="form-label">Ghi chú</label>
+                                    <textarea class="form-control" id="ghichu" name="ghichu" 
+                                              rows="2" placeholder="Ghi chú thêm (nếu có)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alert info -->
+                        <div class="alert alert-info" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Lưu ý:</strong> Mỗi người chỉ có thể có một địa chỉ cư trú đang hiệu lực. 
+                            Nếu muốn thay đổi địa chỉ, vui lòng sử dụng chức năng "Thay đổi địa chỉ cư trú".
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('cu_tru_list') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Đăng ký cư trú
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

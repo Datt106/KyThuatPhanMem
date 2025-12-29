@@ -73,9 +73,9 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if tv[3] == 'Nam' %}
+                                    {% if tv[3]|lower == 'nam' %}
                                         <span class="badge bg-info">Nam</span>
-                                    {% elif tv[3] == 'Nữ' %}
+                                    {% elif tv[3]|lower == 'nu' %}
                                         <span class="badge bg-danger">Nữ</span>
                                     {% endif %}
                                 </td>

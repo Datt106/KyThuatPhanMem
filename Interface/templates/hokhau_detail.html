@@ -160,11 +160,11 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if tv[3] == 'Nam' %}
+                                            {% if tv[3]|lower == 'nam' %}
                                                 <span class="badge bg-info bg-opacity-10 text-info">
                                                     <i class="bi bi-gender-male me-1"></i>Nam
                                                 </span>
-                                            {% elif tv[3] == 'Nữ' %}
+                                            {% elif tv[3]|lower == 'nu' %}
                                                 <span class="badge bg-danger bg-opacity-10 text-danger">
                                                     <i class="bi bi-gender-female me-1"></i>Nữ
                                                 </span>

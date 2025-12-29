@@ -62,6 +62,22 @@ CREATE TABLE IF NOT EXISTS public.hokhau
 COMMENT ON TABLE public.hokhau
     IS 'Lưu thông tin hộ khẩu, gắn với một địa chỉ cư trú.';
 
+CREATE TABLE IF NOT EXISTS public.lichsuthaydoichuho
+(
+    malichsu serial NOT NULL,
+    mahokhau integer NOT NULL,
+    cccd_cu character(12) COLLATE pg_catalog."default",
+    cccd_moi character(12) COLLATE pg_catalog."default" NOT NULL,
+    ngaythaydoi date DEFAULT CURRENT_DATE,
+    lydothaydoi character varying(100) COLLATE pg_catalog."default",
+    noidung text COLLATE pg_catalog."default",
+    nguoithuchien character(12) COLLATE pg_catalog."default",
+    CONSTRAINT lichsuthaydoichuho_pkey PRIMARY KEY (malichsu)
+);
+
+COMMENT ON TABLE public.lichsuthaydoichuho
+    IS 'Lưu lịch sử thay đổi chủ hộ';
+
 CREATE TABLE IF NOT EXISTS public.like_post
 (
     maphananh integer NOT NULL,
@@ -142,6 +158,9 @@ CREATE TABLE IF NOT EXISTS public.thanhvienhokhau
     quanhechuho character varying(50) COLLATE pg_catalog."default",
     ngaybatdau date DEFAULT CURRENT_DATE,
     ngayketthuc date,
+    lydochuyen character varying(100) COLLATE pg_catalog."default",
+    noichuyenden text COLLATE pg_catalog."default",
+    ghichu text COLLATE pg_catalog."default",
     CONSTRAINT thanhvienhokhau_pkey PRIMARY KEY (mahokhau, cccd)
 );
 
@@ -150,6 +169,15 @@ COMMENT ON TABLE public.thanhvienhokhau
 
 COMMENT ON COLUMN public.thanhvienhokhau.quanhechuho
     IS 'Quan hệ của thành viên với chủ hộ.';
+
+COMMENT ON COLUMN public.thanhvienhokhau.lydochuyen
+    IS 'Lý do kết thúc sinh sống tại hộ: Chuyển đi, Qua đời, Tách hộ, v.v.';
+
+COMMENT ON COLUMN public.thanhvienhokhau.noichuyenden
+    IS 'Địa chỉ nơi chuyển đến (nếu có)';
+
+COMMENT ON COLUMN public.thanhvienhokhau.ghichu
+    IS 'Ghi chú thêm về biến động nhân khẩu';
 
 CREATE TABLE IF NOT EXISTS public.thongbao
 (
@@ -334,6 +362,36 @@ ALTER TABLE IF EXISTS public.hokhau
     ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_hokhau_madiadi
     ON public.hokhau(madiachi);
+
+
+ALTER TABLE IF EXISTS public.lichsuthaydoichuho
+    ADD CONSTRAINT fk_lichsuthaydoichuho_chuho_cu FOREIGN KEY (cccd_cu)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.lichsuthaydoichuho
+    ADD CONSTRAINT fk_lichsuthaydoichuho_chuho_moi FOREIGN KEY (cccd_moi)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.lichsuthaydoichuho
+    ADD CONSTRAINT fk_lichsuthaydoichuho_hokhau FOREIGN KEY (mahokhau)
+    REFERENCES public.hokhau (mahokhau) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_lichsuthaydoichuho_mahokhau
+    ON public.lichsuthaydoichuho(mahokhau);
+
+
+ALTER TABLE IF EXISTS public.lichsuthaydoichuho
+    ADD CONSTRAINT fk_lichsuthaydoichuho_nguoithuchien FOREIGN KEY (nguoithuchien)
+    REFERENCES public.nguoidung (cccd) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
 
 
 ALTER TABLE IF EXISTS public.like_post
