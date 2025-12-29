@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản - Quản lý Dân cư</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .register-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 25px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container register-container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="mb-2">
+                    <i class="bi bi-person-plus-fill me-2"></i>Đăng ký tài khoản
+                </h3>
+                <p class="mb-0">Hệ thống Quản lý Dân cư Tổ dân phố</p>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message|safe }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('public_register') }}">
+                    <!-- Thông tin cá nhân -->
+                    <h5 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="bi bi-person-vcard me-2"></i>Thông tin cá nhân
+                    </h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cccd" class="form-label">
+                                Số CCCD <span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="cccd" name="cccd" 
+                                   pattern="[0-9]{12}" maxlength="12" required
+                                   placeholder="12 chữ số">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="hoten" class="form-label">
+                                Họ và tên <span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="hoten" name="hoten" required
+                                   placeholder="VD: Nguyễn Văn A">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="ngaysinh" class="form-label">
+                                Ngày sinh <span class="required">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="ngaysinh" name="ngaysinh" required
+                                   max="{{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gioitinh" class="form-label">
+                                Giới tính <span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="gioitinh" name="gioitinh" required>
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="nam">Nam</option>
+                                <option value="nu">Nữ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="sdt" class="form-label">
+                                Số điện thoại <span class="required">*</span>
+                            </label>
+                            <input type="tel" class="form-control" id="sdt" name="sdt" required
+                                   pattern="[0-9]{10,11}" placeholder="10-11 số">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   placeholder="example@email.com">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="quoctich" class="form-label">Quốc tịch</label>
+                            <input type="text" class="form-control" id="quoctich" name="quoctich" 
+                                   value="Việt Nam">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dantoc" class="form-label">Dân tộc</label>
+                            <input type="text" class="form-control" id="dantoc" name="dantoc"
+                                   placeholder="VD: Kinh">
+                        </div>
+                    </div>
+
+                    <!-- Loại đăng ký -->
+                    <h5 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="bi bi-house-check me-2"></i>Loại đăng ký
+                    </h5>
+
+                    <div class="mb-4">
+                        <label for="loaidangky" class="form-label">
+                            Chọn loại đăng ký <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="loaidangky" name="loaidangky" required>
+                            <option value="">-- Chọn loại --</option>
+                            <option value="TamTru">Tạm trú (cư trú tạm thời)</option>
+                            <option value="CuTru">Cư trú (cư trú thường xuyên)</option>
+                        </select>
+                        <div class="form-text">
+                            <strong>Tạm trú:</strong> Dành cho người tạm thời cư trú tại địa phương.<br>
+                            <strong>Cư trú:</strong> Dành cho người thường xuyên cư trú tại địa phương.
+                        </div>
+                    </div>
+
+                    <!-- Địa chỉ -->
+                    <h5 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="bi bi-geo-alt me-2"></i>Địa chỉ cư trú
+                    </h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="tinh" class="form-label">
+                                Tỉnh/Thành phố <span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="tinh" name="tinh" required
+                                   placeholder="VD: Hà Nội">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="xaphuong" class="form-label">
+                                Xã/Phường <span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="xaphuong" name="xaphuong" required
+                                   placeholder="VD: Phường Dịch Vọng">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="diachi_chitiet" class="form-label">
+                            Địa chỉ chi tiết <span class="required">*</span>
+                        </label>
+                        <textarea class="form-control" id="diachi_chitiet" name="diachi_chitiet" 
+                                  rows="2" required placeholder="Số nhà, tên đường..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="ghichu" class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="ghichu" name="ghichu" rows="2"
+                                  placeholder="Thông tin bổ sung (nếu có)"></textarea>
+                    </div>
+
+                    <!-- Thông báo quan trọng -->
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Lưu ý quan trọng:
+                        </h6>
+                        <ol class="mb-0">
+                            <li>Sau khi đăng ký, đơn của bạn sẽ được cán bộ xem xét và duyệt.</li>
+                            <li>Khi đơn được duyệt, bạn cần <strong>đến trực tiếp cơ quan</strong> để nhận mật khẩu đăng nhập lần đầu.</li>
+                            <li>Vui lòng mang theo CCCD gốc để xác minh danh tính.</li>
+                            <li>Mật khẩu sẽ được tạo ngẫu nhiên để đảm bảo bảo mật.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
+                        </a>
+                        <button type="submit" class="btn btn-primary px-5">
+                            <i class="bi bi-check-lg me-1"></i>Đăng ký
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Hướng dẫn -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="text-primary">
+                    <i class="bi bi-info-circle me-2"></i>Quy trình đăng ký:
+                </h6>
+                <div class="row text-center mt-3">
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i class="bi bi-1-circle-fill text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <small><strong>Điền form</strong><br>Cung cấp thông tin</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i class="bi bi-2-circle-fill text-info" style="font-size: 2rem;"></i>
+                        </div>
+                        <small><strong>Chờ duyệt</strong><br>Cán bộ xem xét</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i class="bi bi-3-circle-fill text-success" style="font-size: 2rem;"></i>
+                        </div>
+                        <small><strong>Nhận mật khẩu</strong><br>Đến cơ quan</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-2">
+                            <i class="bi bi-4-circle-fill text-warning" style="font-size: 2rem;"></i>
+                        </div>
+                        <small><strong>Đăng nhập</strong><br>Sử dụng hệ thống</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

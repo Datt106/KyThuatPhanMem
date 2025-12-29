@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Tạo thông báo chung{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                    <h4 class="mb-0">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        Tạo thông báo chung
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('thongbao_chung_tao') }}">
+                        <!-- Tiêu đề -->
+                        <div class="mb-4">
+                            <label for="tieude" class="form-label">
+                                <strong>Tiêu đề</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="tieude" 
+                                   name="tieude" 
+                                   placeholder="Nhập tiêu đề thông báo..."
+                                   required
+                                   maxlength="255">
+                            <small class="text-muted">Tiêu đề ngắn gọn, rõ ràng</small>
+                        </div>
+
+                        <!-- Nội dung -->
+                        <div class="mb-4">
+                            <label for="noidung" class="form-label">
+                                <strong>Nội dung</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="noidung" 
+                                      name="noidung" 
+                                      rows="10"
+                                      placeholder="Nhập nội dung chi tiết thông báo..."
+                                      required></textarea>
+                            <small class="text-muted">Nội dung chi tiết, đầy đủ thông tin</small>
+                        </div>
+
+                        <!-- Tùy chọn gửi cho tất cả -->
+                        <div class="mb-4">
+                            <div class="alert alert-info d-flex align-items-start">
+                                <i class="fas fa-info-circle me-3 mt-1"></i>
+                                <div>
+                                    <strong>Lựa chọn phạm vi thông báo:</strong>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               id="gui_cho_tat_ca" 
+                                               name="gui_cho_tat_ca">
+                                        <label class="form-check-label" for="gui_cho_tat_ca">
+                                            <strong>Gửi thông báo cá nhân đến TẤT CẢ người dân</strong>
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        <strong>Không chọn:</strong> Chỉ hiển thị trên bảng tin công khai<br>
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        <strong>Có chọn:</strong> Hiển thị trên bảng tin + Gửi thông báo riêng đến từng người dân 
+                                        (có thể theo dõi trạng thái đã đọc)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('thongbao_chung_list') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Đăng thông báo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Hướng dẫn sử dụng -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Hướng dẫn sử dụng
+                    </h6>
+                    <ul class="mb-0">
+                        <li class="mb-2">
+                            <strong>Thông báo công khai:</strong> Hiển thị trên bảng tin trang chủ, 
+                            tất cả người dùng đều xem được.
+                        </li>
+                        <li class="mb-2">
+                            <strong>Gửi cho tất cả:</strong> Ngoài bảng tin công khai, hệ thống sẽ 
+                            tạo bản sao thông báo cá nhân cho từng người dân để theo dõi trạng thái đã đọc.
+                        </li>
+                        <li>
+                            <strong>Ví dụ sử dụng:</strong>
+                            <ul class="mt-2">
+                                <li>Thông báo bảo trì hệ thống → Chỉ đăng công khai</li>
+                                <li>Thông báo quan trọng cần đọc → Đăng + Gửi cho tất cả</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    transform: translateY(-1px);
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.alert-info {
+    background-color: #e7f3ff;
+    border-color: #b3d7ff;
+}
+</style>
+{% endblock %}

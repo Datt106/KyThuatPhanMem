@@ -34,6 +34,30 @@
                                             <strong>{{ msg[5] }}</strong>
                                         </small>
                                         <p class="mb-1">{{ msg[2] }}</p>
+                                        
+                                        <!-- File đính kèm -->
+                                        {% if msg[6] %}
+                                        <div class="mt-2 {% if msg[1] == current_cccd %}border-light{% else %}border-secondary{% endif %} border-top pt-2">
+                                            <small>
+                                                <i class="fas fa-paperclip"></i>
+                                                <a href="{{ url_for('serve_file', filename=msg[6]) }}" 
+                                                   class="{% if msg[1] == current_cccd %}text-white{% else %}text-dark{% endif %}" 
+                                                   target="_blank">
+                                                    {{ msg[6].split('_', 1)[1] if '_' in msg[6] else msg[6] }}
+                                                </a>
+                                            </small>
+                                            {% set ext = msg[6].split('.')[-1].lower() %}
+                                            {% if ext in ['png', 'jpg', 'jpeg', 'gif'] %}
+                                            <div class="mt-1">
+                                                <img src="{{ url_for('serve_file', filename=msg[6]) }}" 
+                                                     class="img-thumbnail" 
+                                                     style="max-width: 200px;" 
+                                                     alt="Hình ảnh">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        
                                         <small class="text-muted">
                                             {{ msg[3].strftime('%d/%m/%Y %H:%M') if msg[3] else '' }}
                                         </small>
@@ -50,18 +74,89 @@
                     {% endif %}
                 </div>
                 <div class="card-footer">
-                    <form method="POST" action="{{ url_for('chat_send_message', maboxchat=boxchat[0]) }}" class="d-flex gap-2">
-                        <input type="text" name="noidung" class="form-control" 
-                               placeholder="Nhập tin nhắn..." required autofocus>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Gửi
-                        </button>
+                    <form method="POST" action="{{ url_for('chat_send_message', maboxchat=boxchat[0]) }}" enctype="multipart/form-data">
+                        <!-- File preview area -->
+                        <div id="chatFilePreview" class="mb-2" style="display: none;">
+                            <div class="alert alert-secondary py-2 px-3 mb-2">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file me-2"></i>
+                                        <small id="chatFileName" class="fw-bold"></small>
+                                        <small id="chatFileSize" class="text-muted ms-2"></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="clearChatFile()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 align-items-end">
+                            <input type="file" class="d-none" id="chat-file" name="file"
+                                   accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx"
+                                   onchange="previewChatFile(this)">
+                            
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('chat-file').click()" title="Đính kèm tệp">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            
+                            <input type="text" name="noidung" class="form-control" 
+                                   placeholder="Nhập tin nhắn..." required autofocus>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function previewChatFile(input) {
+    const preview = document.getElementById('chatFilePreview');
+    const fileName = document.getElementById('chatFileName');
+    const fileSize = document.getElementById('chatFileSize');
+    const file = input.files[0];
+    
+    if (file) {
+        const size = (file.size / (1024 * 1024)).toFixed(2);
+        const ext = file.name.split('.').pop().toLowerCase();
+        
+        let icon = 'fa-file';
+        let iconColor = 'text-secondary';
+        
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+            icon = 'fa-file-image';
+            iconColor = 'text-success';
+        } else if (['pdf'].includes(ext)) {
+            icon = 'fa-file-pdf';
+            iconColor = 'text-danger';
+        } else if (['doc', 'docx'].includes(ext)) {
+            icon = 'fa-file-word';
+            iconColor = 'text-primary';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+            icon = 'fa-file-excel';
+            iconColor = 'text-success';
+        }
+        
+        preview.querySelector('i.fa-file').className = `fas ${icon} ${iconColor} me-2`;
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${size} MB)`;
+        preview.style.display = 'block';
+    }
+}
+
+function clearChatFile() {
+    const input = document.getElementById('chat-file');
+    const preview = document.getElementById('chatFilePreview');
+    
+    input.value = '';
+    preview.style.display = 'none';
+}
+</script>
 
 <script>
 // Auto scroll to bottom

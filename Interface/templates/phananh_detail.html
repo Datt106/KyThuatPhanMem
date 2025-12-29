@@ -62,27 +62,33 @@
                         <p class="lead">{{ phananh[5] }}</p>
                     </div>
 
+                    <!-- File đính kèm -->
+                    {% if phananh[23] %}
+                    <div class="alert alert-secondary">
+                        <i class="fas fa-paperclip"></i> <strong>Tệp đính kèm:</strong>
+                        <a href="{{ url_for('serve_file', filename=phananh[23]) }}" 
+                           class="btn btn-sm btn-outline-primary ms-2" 
+                           target="_blank">
+                            <i class="fas fa-download"></i> 
+                            {{ phananh[23].split('_', 1)[1] if '_' in phananh[23] else phananh[23] }}
+                        </a>
+                        {% set ext = phananh[23].split('.')[-1].lower() %}
+                        {% if ext in ['png', 'jpg', 'jpeg', 'gif'] %}
+                        <div class="mt-2">
+                            <img src="{{ url_for('serve_file', filename=phananh[23]) }}" 
+                                 class="img-fluid rounded shadow-sm" 
+                                 style="max-width: 500px;" 
+                                 alt="Hình ảnh đính kèm">
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
                     <!-- Location if available -->
                     {% if phananh[20] or phananh[21] or phananh[22] %}
                     <div class="alert alert-info">
                         <i class="fas fa-map-marker-alt"></i> <strong>Vị trí:</strong> 
                         {{ [phananh[22], phananh[21], phananh[20]] | select | join(', ') }}
-                    </div>
-                    {% endif %}
-
-                    <!-- Images if available -->
-                    {% if phananh[23] %}
-                    <div class="mb-3">
-                        <h6><i class="fas fa-images"></i> Hình ảnh đính kèm:</h6>
-                        <div class="row">
-                            {% set images = phananh[23].split(',') %}
-                            {% for img in images %}
-                            <div class="col-md-4 mb-2">
-                                <img src="{{ url_for('static', filename='uploads/' ~ img.strip()) }}" 
-                                     class="img-fluid rounded shadow-sm" alt="Hình ảnh phản ánh">
-                            </div>
-                            {% endfor %}
-                        </div>
                     </div>
                     {% endif %}
 
@@ -137,14 +143,41 @@
                 </div>
                 <div class="card-body">
                     <!-- Comment Form -->
-                    <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}" class="mb-4">
+                    <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}" enctype="multipart/form-data" class="mb-4">
+                        <!-- File preview area -->
+                        <div id="commentFilePreview" class="mb-2" style="display: none;">
+                            <div class="alert alert-secondary py-2 px-3 mb-2">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file me-2"></i>
+                                        <small id="commentFileName" class="fw-bold"></small>
+                                        <small id="commentFileSize" class="text-muted ms-2"></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="clearCommentFile()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="mb-3">
                             <textarea name="noidung" class="form-control" rows="3" 
                                       placeholder="Viết bình luận của bạn..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Gửi bình luận
-                        </button>
+                        
+                        <div class="d-flex gap-2">
+                            <input type="file" class="d-none" id="comment-file" name="file"
+                                   accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx"
+                                   onchange="previewCommentFile(this)">
+                            
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('comment-file').click()" title="Đính kèm tệp">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Gửi bình luận
+                            </button>
+                        </div>
                     </form>
 
                     <hr>
@@ -178,6 +211,30 @@
                                     </div>
                                     <p class="mb-0 ms-5" id="commentText{{ comment[0] }}">{{ comment[4] }}</p>
                                     
+                                    <!-- File đính kèm trong bình luận -->
+                                    {% if comment[8] %}
+                                    <div class="ms-5 mt-2">
+                                        <div class="alert alert-light py-2">
+                                            <i class="fas fa-paperclip"></i> 
+                                            <a href="{{ url_for('serve_file', filename=comment[8]) }}" 
+                                               class="text-decoration-none" 
+                                               target="_blank">
+                                                <i class="fas fa-download"></i>
+                                                {{ comment[8].split('_', 1)[1] if '_' in comment[8] else comment[8] }}
+                                            </a>
+                                            {% set ext = comment[8].split('.')[-1].lower() %}
+                                            {% if ext in ['png', 'jpg', 'jpeg', 'gif'] %}
+                                            <div class="mt-2">
+                                                <img src="{{ url_for('serve_file', filename=comment[8]) }}" 
+                                                     class="img-thumbnail" 
+                                                     style="max-width: 300px;" 
+                                                     alt="Hình ảnh">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
                                     <!-- Edit form (hidden by default) -->
                                     <div id="editForm{{ comment[0] }}" style="display: none;" class="ms-5 mt-2">
                                         <form method="POST" action="{{ url_for('comment_edit', mabinhluan=comment[0]) }}">
@@ -204,11 +261,37 @@
 
                                     <!-- Reply form (hidden by default) -->
                                     <div id="replyForm{{ comment[0] }}" style="display: none;" class="ms-5 mt-2">
-                                        <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}">
+                                        <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}" enctype="multipart/form-data">
                                             <input type="hidden" name="parent_id" value="{{ comment[0] }}">
-                                            <div class="input-group">
+                                            
+                                            <!-- File preview area -->
+                                            <div id="replyFilePreview{{ comment[0] }}" class="mb-2" style="display: none;">
+                                                <div class="alert alert-secondary py-2 px-3 mb-2">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-file me-2"></i>
+                                                            <small id="replyFileName{{ comment[0] }}" class="fw-bold"></small>
+                                                            <small id="replyFileSize{{ comment[0] }}" class="text-muted ms-2"></small>
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="clearReplyFile({{ comment[0] }})">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex gap-2">
+                                                <input type="file" class="d-none" id="reply-file-{{ comment[0] }}" name="file"
+                                                       accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx"
+                                                       onchange="previewReplyFile(this, {{ comment[0] }})">
+                                                
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('reply-file-{{ comment[0] }}').click()" title="Đính kèm tệp">
+                                                    <i class="fas fa-paperclip"></i>
+                                                </button>
+                                                
                                                 <input type="text" name="noidung" class="form-control" 
                                                        placeholder="Nhập câu trả lời..." required>
+                                                
                                                 <button type="submit" class="btn btn-sm btn-primary">Gửi</button>
                                                 <button type="button" class="btn btn-sm btn-secondary" 
                                                         onclick="hideReplyForm({{ comment[0] }})">Hủy</button>
@@ -393,6 +476,90 @@ function showEditForm(commentId) {
 function hideEditForm(commentId) {
     document.getElementById('commentText' + commentId).style.display = 'block';
     document.getElementById('editForm' + commentId).style.display = 'none';
+}
+
+function previewCommentFile(input) {
+    const preview = document.getElementById('commentFilePreview');
+    const fileName = document.getElementById('commentFileName');
+    const fileSize = document.getElementById('commentFileSize');
+    const file = input.files[0];
+    
+    if (file) {
+        const size = (file.size / (1024 * 1024)).toFixed(2);
+        const ext = file.name.split('.').pop().toLowerCase();
+        
+        let icon = 'fa-file';
+        let iconColor = 'text-secondary';
+        
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+            icon = 'fa-file-image';
+            iconColor = 'text-success';
+        } else if (['pdf'].includes(ext)) {
+            icon = 'fa-file-pdf';
+            iconColor = 'text-danger';
+        } else if (['doc', 'docx'].includes(ext)) {
+            icon = 'fa-file-word';
+            iconColor = 'text-primary';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+            icon = 'fa-file-excel';
+            iconColor = 'text-success';
+        }
+        
+        preview.querySelector('i.fa-file').className = `fas ${icon} ${iconColor} me-2`;
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${size} MB)`;
+        preview.style.display = 'block';
+    }
+}
+
+function clearCommentFile() {
+    const input = document.getElementById('comment-file');
+    const preview = document.getElementById('commentFilePreview');
+    
+    input.value = '';
+    preview.style.display = 'none';
+}
+
+function previewReplyFile(input, commentId) {
+    const preview = document.getElementById('replyFilePreview' + commentId);
+    const fileName = document.getElementById('replyFileName' + commentId);
+    const fileSize = document.getElementById('replyFileSize' + commentId);
+    const file = input.files[0];
+    
+    if (file) {
+        const size = (file.size / (1024 * 1024)).toFixed(2);
+        const ext = file.name.split('.').pop().toLowerCase();
+        
+        let icon = 'fa-file';
+        let iconColor = 'text-secondary';
+        
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+            icon = 'fa-file-image';
+            iconColor = 'text-success';
+        } else if (['pdf'].includes(ext)) {
+            icon = 'fa-file-pdf';
+            iconColor = 'text-danger';
+        } else if (['doc', 'docx'].includes(ext)) {
+            icon = 'fa-file-word';
+            iconColor = 'text-primary';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+            icon = 'fa-file-excel';
+            iconColor = 'text-success';
+        }
+        
+        preview.querySelector('i.fa-file').className = `fas ${icon} ${iconColor} me-2`;
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${size} MB)`;
+        preview.style.display = 'block';
+    }
+}
+
+function clearReplyFile(commentId) {
+    const input = document.getElementById('reply-file-' + commentId);
+    const preview = document.getElementById('replyFilePreview' + commentId);
+    
+    input.value = '';
+    preview.style.display = 'none';
 }
 </script>
 {% endblock %}

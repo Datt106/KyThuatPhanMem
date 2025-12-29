@@ -3,7 +3,7 @@
 Backend: Flask + PostgreSQL (psycopg2)
 """
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify, send_from_directory
 import psycopg2
 from psycopg2 import Error
 from functools import wraps
@@ -11,6 +11,8 @@ import os
 import math
 from datetime import datetime
 from io import BytesIO
+from werkzeug.utils import secure_filename
+import uuid
 try:
     from openpyxl import Workbook
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -24,6 +26,18 @@ app = Flask(__name__,
             static_folder='Interface/static')
 
 app.secret_key = 'quanlydancu_secret_key_2025'
+
+# ========== CẤU HÌNH UPLOAD FILE ==========
+UPLOAD_FOLDER = 'file'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar'}
+MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
+# Tạo thư mục file nếu chưa tồn tại
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 # ========== CẤU HÌNH DATABASE ==========
 DB_CONFIG = {
@@ -136,7 +150,127 @@ def role_required(allowed_roles):
     return decorator
 
 
+# ========== HELPER FUNCTIONS ==========
+
+def tao_thongbao_canhan(cccd, noidung, loai='General', maphananh=None, mavande=None, mathongbao=None):
+    """
+    Tạo thông báo cá nhân cho người dùng
+    
+    Args:
+        cccd: CCCD người nhận thông báo
+        noidung: Nội dung thông báo
+        loai: Loại thông báo (General, PhanAnh, VanDe, Chat, System, LichSu)
+        maphananh: Mã phản ánh liên quan (nếu có)
+        mavande: Mã vấn đề liên quan (nếu có)
+        mathongbao: Mã thông báo chung liên quan (nếu có)
+    
+    Returns:
+        mathongbao_nguoidung nếu thành công, None nếu lỗi
+    """
+    conn = get_db_connection()
+    if not conn:
+        return None
+    
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO thongbao_nguoidung 
+            (cccd, noidung, loai, maphananh, mavande, mathongbao)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING mathongbao_nguoidung
+        """, (cccd, noidung, loai, maphananh, mavande, mathongbao))
+        
+        mathongbao_nguoidung = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return mathongbao_nguoidung
+    
+    except Exception as e:
+        print(f"Lỗi tạo thông báo cá nhân: {e}")
+        if conn:
+            conn.rollback()
+            conn.close()
+        return None
+
+
+def allowed_file(filename):
+    """
+    Kiểm tra file có phải định dạng cho phép không
+    """
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def upload_file(file):
+    """
+    Upload file và lưu vào database
+    
+    Args:
+        file: File object từ request.files
+    
+    Returns:
+        matepdinhkem nếu thành công, None nếu lỗi
+    """
+    if not file or file.filename == '':
+        return None
+    
+    if not allowed_file(file.filename):
+        return None
+    
+    try:
+        # Tạo tên file unique
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        
+        # Lưu file
+        file.save(filepath)
+        
+        # Lưu vào database
+        conn = get_db_connection()
+        if not conn:
+            os.remove(filepath)  # Xóa file nếu không kết nối được DB
+            return None
+        
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO tepdinhkem (duongdan)
+            VALUES (%s)
+            RETURNING matepdinhkem
+        """, (unique_filename,))  # Chỉ lưu tên file, không lưu đường dẫn đầy đủ
+        
+        matepdinhkem = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return matepdinhkem
+    
+    except Exception as e:
+        print(f"Lỗi upload file: {e}")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        if conn:
+            conn.rollback()
+            conn.close()
+        return None
+
+
 # ========== ROUTES ==========
+
+@app.route('/file/<filename>')
+@login_required
+def serve_file(filename):
+    """
+    Serve file từ thư mục upload
+    """
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except Exception as e:
+        flash(f'Không tìm thấy file: {str(e)}', 'danger')
+        return redirect(url_for('dashboard'))
 
 @app.route('/image/<path:filename>')
 def serve_image(filename):
@@ -151,6 +285,340 @@ def index():
     if 'user' in session:
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
+
+
+# ========== ĐĂNG KÝ TÀI KHOẢN CÔNG KHAI ==========
+
+@app.route('/dang-ky', methods=['GET', 'POST'])
+def public_register():
+    """Trang đăng ký công khai cho người dân (không cần đăng nhập)"""
+    
+    if request.method == 'POST':
+        # Lấy thông tin từ form
+        cccd = request.form.get('cccd', '').strip()
+        hoten = request.form.get('hoten', '').strip()
+        ngaysinh = request.form.get('ngaysinh', '').strip()
+        gioitinh = request.form.get('gioitinh', '').strip()
+        sdt = request.form.get('sdt', '').strip()
+        email = request.form.get('email', '').strip()
+        loaidangky = request.form.get('loaidangky', '').strip()
+        tinh = request.form.get('tinh', '').strip()
+        xaphuong = request.form.get('xaphuong', '').strip()
+        diachi_chitiet = request.form.get('diachi_chitiet', '').strip()
+        quoctich = request.form.get('quoctich', 'Việt Nam').strip()
+        dantoc = request.form.get('dantoc', '').strip()
+        ghichu = request.form.get('ghichu', '').strip()
+        
+        # Validation
+        if not all([cccd, hoten, ngaysinh, gioitinh, sdt, loaidangky, tinh, xaphuong, diachi_chitiet]):
+            flash('Vui lòng điền đầy đủ các thông tin bắt buộc!', 'danger')
+            return redirect(url_for('public_register'))
+        
+        # Kiểm tra CCCD đã tồn tại trong hệ thống chưa
+        check_user = execute_query("SELECT cccd FROM nguoidung WHERE cccd = %s", (cccd,), fetch_one=True)
+        if check_user:
+            flash('CCCD này đã được đăng ký trong hệ thống! Vui lòng đăng nhập hoặc liên hệ cán bộ.', 'warning')
+            return redirect(url_for('login'))
+        
+        # Kiểm tra đơn đăng ký đã tồn tại chưa
+        check_existing = execute_query(
+            "SELECT madondangky, trangthai FROM dondangky WHERE cccd = %s",
+            (cccd,),
+            fetch_one=True
+        )
+        if check_existing:
+            status = check_existing[1]
+            if status == 'ChoDuyet':
+                flash('Đơn đăng ký của bạn đang chờ duyệt. Vui lòng đợi cán bộ xử lý.', 'info')
+            elif status == 'DaDuyet':
+                flash('Đơn đăng ký của bạn đã được duyệt. Vui lòng đến cơ quan để nhận mật khẩu đăng nhập.', 'success')
+            else:
+                flash('Đơn đăng ký của bạn đã bị từ chối. Vui lòng liên hệ cán bộ để biết thêm chi tiết.', 'warning')
+            return redirect(url_for('public_register'))
+        
+        # Tạo đơn đăng ký mới
+        query = """
+            INSERT INTO dondangky (cccd, hoten, ngaysinh, gioitinh, sdt, email, 
+                                   loaidangky, tinh, xaphuong, diachi_chitiet, 
+                                   quoctich, dantoc, ghichu, trangthai)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'ChoDuyet')
+        """
+        result = execute_query(query, (cccd, hoten, ngaysinh, gioitinh, sdt, email,
+                                      loaidangky, tinh, xaphuong, diachi_chitiet,
+                                      quoctich, dantoc, ghichu))
+        
+        if result:
+            flash('Đăng ký thành công! Đơn của bạn đang chờ cán bộ duyệt. Vui lòng đợi thông báo.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Lỗi khi tạo đơn đăng ký. Vui lòng thử lại!', 'danger')
+            return redirect(url_for('public_register'))
+    
+    # GET - Hiển thị form đăng ký
+    from datetime import datetime
+    return render_template('dang_ky.html', now=datetime.now())
+
+
+@app.route('/don-dang-ky')
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def don_dang_ky_list():
+    """Danh sách đơn đăng ký chờ duyệt (chỉ cán bộ/quản lý)"""
+    
+    # Lấy tham số lọc
+    trangthai = request.args.get('trangthai', 'ChoDuyet')
+    search = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    # Build query
+    query = """
+        SELECT 
+            dd.madondangky,
+            dd.cccd,
+            dd.hoten,
+            dd.ngaysinh,
+            dd.gioitinh,
+            dd.sdt,
+            dd.loaidangky,
+            dd.tinh,
+            dd.xaphuong,
+            dd.diachi_chitiet,
+            dd.trangthai,
+            dd.ngaytao,
+            dd.ngayduyet,
+            nd.name as nguoiduyet_ten,
+            dd.matkhau_daxacnhan
+        FROM dondangky dd
+        LEFT JOIN nguoidung nd ON dd.nguoiduyet_cccd = nd.cccd
+        WHERE 1=1
+    """
+    
+    params = []
+    
+    if trangthai:
+        query += " AND dd.trangthai = %s"
+        params.append(trangthai)
+    
+    if search:
+        query += " AND (dd.cccd ILIKE %s OR dd.hoten ILIKE %s OR dd.sdt ILIKE %s)"
+        params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
+    
+    # Count total
+    count_query = f"SELECT COUNT(*) FROM ({query}) AS subquery"
+    total_result = execute_query(count_query, tuple(params), fetch_one=True)
+    total = total_result[0] if total_result else 0
+    
+    # Statistics
+    stats = {
+        'choduyet': execute_query("SELECT COUNT(*) FROM dondangky WHERE trangthai = 'ChoDuyet'", fetch_one=True)[0] or 0,
+        'daduyet': execute_query("SELECT COUNT(*) FROM dondangky WHERE trangthai = 'DaDuyet'", fetch_one=True)[0] or 0,
+        'tuchoi': execute_query("SELECT COUNT(*) FROM dondangky WHERE trangthai = 'TuChoi'", fetch_one=True)[0] or 0,
+        'chua_giao_mk': execute_query("SELECT COUNT(*) FROM dondangky WHERE trangthai = 'DaDuyet' AND matkhau_daxacnhan = FALSE", fetch_one=True)[0] or 0
+    }
+    
+    # Pagination
+    query += " ORDER BY dd.ngaytao DESC"
+    offset = (page - 1) * per_page
+    query += f" LIMIT {per_page} OFFSET {offset}"
+    
+    records = execute_query(query, tuple(params), fetch_all=True)
+    records = records if records else []
+    
+    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
+    
+    from datetime import datetime
+    return render_template('don_dang_ky_list.html',
+                         records=records,
+                         page=page,
+                         total_pages=total_pages,
+                         total=total,
+                         stats=stats,
+                         trangthai=trangthai,
+                         search=search,
+                         now=datetime.now())
+
+
+@app.route('/don-dang-ky/<int:madondangky>')
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def don_dang_ky_detail(madondangky):
+    """Xem chi tiết đơn đăng ký"""
+    
+    query = """
+        SELECT 
+            dd.*,
+            nd1.name as nguoiduyet_ten,
+            nd2.name as nguoixacnhan_ten
+        FROM dondangky dd
+        LEFT JOIN nguoidung nd1 ON dd.nguoiduyet_cccd = nd1.cccd
+        LEFT JOIN nguoidung nd2 ON dd.nguoixacnhan_cccd = nd2.cccd
+        WHERE dd.madondangky = %s
+    """
+    record = execute_query(query, (madondangky,), fetch_one=True)
+    
+    if not record:
+        flash('Không tìm thấy đơn đăng ký!', 'danger')
+        return redirect(url_for('don_dang_ky_list'))
+    
+    from datetime import datetime
+    return render_template('don_dang_ky_detail.html', record=record, now=datetime.now())
+
+
+@app.route('/don-dang-ky/<int:madondangky>/duyet', methods=['POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def don_dang_ky_duyet(madondangky):
+    """Duyệt đơn đăng ký - Tạo tài khoản và mật khẩu tạm"""
+    
+    user_cccd = session['user']['cccd']
+    
+    # Lấy thông tin đơn
+    query = "SELECT * FROM dondangky WHERE madondangky = %s AND trangthai = 'ChoDuyet'"
+    don = execute_query(query, (madondangky,), fetch_one=True)
+    
+    if not don:
+        flash('Không tìm thấy đơn hoặc đơn đã được xử lý!', 'danger')
+        return redirect(url_for('don_dang_ky_list'))
+    
+    # Tạo mật khẩu tạm: pass + random(1-9999)
+    import random
+    matkhau_tam = f"pass{random.randint(1, 9999):04d}"
+    
+    connection = get_db_connection()
+    if not connection:
+        flash('Lỗi kết nối database!', 'danger')
+        return redirect(url_for('don_dang_ky_detail', madondangky=madondangky))
+    
+    try:
+        cursor = connection.cursor()
+        
+        # 1. Tạo tài khoản trong bảng nguoidung
+        cursor.execute(
+            """INSERT INTO nguoidung (cccd, name, ngaysinh, gioitinh, sdt, dantoc, 
+                                      vaitro, user_name, matkhau)
+               VALUES (%s, %s, %s, %s, %s, %s, 'NguoiDan', %s, %s)""",
+            (don[1], don[2], don[3], don[4], don[5], don[11],  # cccd, hoten, ngaysinh, gioitinh, sdt, dantoc
+             don[1], matkhau_tam)  # username = cccd, matkhau = matkhau_tam
+        )
+        
+        # 2. Tạo địa chỉ
+        cursor.execute(
+            "INSERT INTO diachi (tinh, xaphuong, chitiet) VALUES (%s, %s, %s) RETURNING madiachi",
+            (don[8], don[9], don[10])  # tinh, xaphuong, diachi_chitiet
+        )
+        madiachi = cursor.fetchone()[0]
+        
+        # 3. Tạo liên kết địa chỉ - người dùng
+        loaidiachi = 'TamTru' if don[7] == 'TamTru' else 'CuTru'
+        cursor.execute(
+            """INSERT INTO diachinguoidung (madiachi, cccd, loaidiachi, thoidiemxacnhan)
+               VALUES (%s, %s, %s, CURRENT_DATE)""",
+            (madiachi, don[1], loaidiachi)
+        )
+        
+        # 4. Cập nhật trạng thái đơn
+        cursor.execute(
+            """UPDATE dondangky 
+               SET trangthai = 'DaDuyet', 
+                   nguoiduyet_cccd = %s, 
+                   ngayduyet = CURRENT_TIMESTAMP,
+                   matkhau_tam = %s,
+                   matkhau_daxacnhan = FALSE
+               WHERE madondangky = %s""",
+            (user_cccd, matkhau_tam, madondangky)
+        )
+        
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        # 5. Tạo thông báo cho người dân
+        tao_thongbao_canhan(
+            cccd=don[1],
+            noidung=f"Đơn đăng ký của bạn đã được duyệt. Vui lòng đến trực tiếp để nhận mật khẩu đăng nhập lần đầu.",
+            loai='System'
+        )
+        
+        flash(f'Đã duyệt đơn thành công! Mật khẩu tạm: <strong>{matkhau_tam}</strong> - Vui lòng ghi nhớ để giao cho người dân.', 'success')
+        return redirect(url_for('don_dang_ky_detail', madondangky=madondangky))
+        
+    except Error as e:
+        connection.rollback()
+        cursor.close()
+        connection.close()
+        flash(f'Lỗi khi duyệt đơn: {str(e)}', 'danger')
+        return redirect(url_for('don_dang_ky_detail', madondangky=madondangky))
+
+
+@app.route('/don-dang-ky/<int:madondangky>/tu-choi', methods=['POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def don_dang_ky_tu_choi(madondangky):
+    """Từ chối đơn đăng ký"""
+    
+    user_cccd = session['user']['cccd']
+    lydotuchoi = request.form.get('lydotuchoi', '').strip()
+    
+    if not lydotuchoi:
+        flash('Vui lòng nhập lý do từ chối!', 'danger')
+        return redirect(url_for('don_dang_ky_detail', madondangky=madondangky))
+    
+    # Lấy thông tin đơn để gửi thông báo
+    query = "SELECT cccd FROM dondangky WHERE madondangky = %s"
+    don = execute_query(query, (madondangky,), fetch_one=True)
+    
+    if not don:
+        flash('Không tìm thấy đơn!', 'danger')
+        return redirect(url_for('don_dang_ky_list'))
+    
+    query = """
+        UPDATE dondangky 
+        SET trangthai = 'TuChoi',
+            nguoiduyet_cccd = %s,
+            ngayduyet = CURRENT_TIMESTAMP,
+            lydotuchoi = %s
+        WHERE madondangky = %s AND trangthai = 'ChoDuyet'
+    """
+    result = execute_query(query, (user_cccd, lydotuchoi, madondangky))
+    
+    if result:
+        # Tạo thông báo cho người dân
+        tao_thongbao_canhan(
+            cccd=don[0],
+            noidung=f"Đơn đăng ký của bạn đã bị từ chối. Lý do: {lydotuchoi}",
+            loai='System'
+        )
+        flash('Đã từ chối đơn đăng ký!', 'info')
+    else:
+        flash('Lỗi khi từ chối đơn!', 'danger')
+    
+    return redirect(url_for('don_dang_ky_list'))
+
+
+@app.route('/don-dang-ky/<int:madondangky>/xac-nhan-giao-matkhau', methods=['POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def don_dang_ky_xacnhan_matkhau(madondangky):
+    """Xác nhận đã giao mật khẩu cho người dân"""
+    
+    user_cccd = session['user']['cccd']
+    
+    query = """
+        UPDATE dondangky 
+        SET matkhau_daxacnhan = TRUE,
+            nguoixacnhan_cccd = %s,
+            ngayxacnhan = CURRENT_TIMESTAMP
+        WHERE madondangky = %s AND trangthai = 'DaDuyet' AND matkhau_daxacnhan = FALSE
+    """
+    result = execute_query(query, (user_cccd, madondangky))
+    
+    if result:
+        flash('Đã xác nhận giao mật khẩu cho người dân!', 'success')
+    else:
+        flash('Lỗi khi xác nhận!', 'danger')
+    
+    return redirect(url_for('don_dang_ky_detail', madondangky=madondangky))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1615,6 +2083,7 @@ def cu_tru_list():
         JOIN nguoidung n ON dcnd.cccd = n.cccd
         JOIN diachi dc ON dcnd.madiachi = dc.madiachi
         WHERE dcnd.loaidiachi = 'CuTru'
+        AND (dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE)
     """
     
     params = []
@@ -1881,7 +2350,17 @@ def cu_tru_edit(cccd):
     record = execute_query(query, (cccd,), fetch_one=True)
     
     if not record:
-        flash('Không tìm thấy thông tin cư trú hiện tại!', 'danger')
+        # Kiểm tra xem có bản ghi cư trú nào không (kể cả hết hạn)
+        check_query = """
+            SELECT COUNT(*) FROM diachinguoidung 
+            WHERE cccd = %s AND loaidiachi = 'CuTru'
+        """
+        has_any_record = execute_query(check_query, (cccd,), fetch_one=True)
+        
+        if has_any_record and has_any_record[0] > 0:
+            flash('Tất cả bản ghi cư trú của người này đã hết hạn! Vui lòng đăng ký cư trú mới.', 'warning')
+        else:
+            flash('Người này chưa có thông tin cư trú! Vui lòng đăng ký cư trú trước.', 'info')
         return redirect(url_for('cu_tru_list'))
     
     from datetime import datetime
@@ -2892,6 +3371,17 @@ def phananh_add():
         xaphuong = request.form.get('xaphuong', '').strip()
         chitiet = request.form.get('chitiet', '').strip()
         
+        # Xử lý file đính kèm
+        matepdinhkem = None
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename:
+                matepdinhkem = upload_file(file)
+                if matepdinhkem:
+                    print(f"DEBUG: Đã upload file với matepdinhkem = {matepdinhkem}")
+                else:
+                    flash('File không hợp lệ hoặc quá lớn. Cho phép: png, jpg, pdf, doc, xls (max 16MB)', 'warning')
+        
         # DEBUG - In ra thông tin form
         print("="*80)
         print("DEBUG PHANANH_ADD - FORM DATA:")
@@ -2940,14 +3430,14 @@ def phananh_add():
                 INSERT INTO phananh (
                     cccd, madiachi, loaiphananh, trangthaiphananh,
                     mota, tieude, is_public, allow_comment,
-                    thoigiantao
+                    matepdinhkem, thoigiantao
                 )
-                VALUES (%s, %s, %s, 'ChuaXuLy', %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, 'ChuaXuLy', %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 RETURNING maphananh
             """
             
-            print(f"DEBUG: Đang tạo phản ánh với params: cccd={session['user']['cccd']}, madiachi={madiachi}, loaiphananh={loaiphananh}")
-            cursor.execute(query_phananh, (session['user']['cccd'], madiachi, loaiphananh, mota, tieude, is_public, allow_comment))
+            print(f"DEBUG: Đang tạo phản ánh với params: cccd={session['user']['cccd']}, madiachi={madiachi}, loaiphananh={loaiphananh}, matepdinhkem={matepdinhkem}")
+            cursor.execute(query_phananh, (session['user']['cccd'], madiachi, loaiphananh, mota, tieude, is_public, allow_comment, matepdinhkem))
             result = cursor.fetchone()
             
             if result:
@@ -3071,9 +3561,12 @@ def phananh_detail(maphananh):
                 b.noidung,
                 b.thoigian,
                 b.parent_id,
-                b.is_hidden
+                b.is_hidden,
+                t.duongdan AS file_dinh_kem,
+                b.matepdinhkem
             FROM binhluan b
             LEFT JOIN nguoidung n ON b.cccd_nguoidung = n.cccd
+            LEFT JOIN tepdinhkem t ON b.matepdinhkem = t.matepdinhkem
             WHERE b.maphananh = %s AND b.is_hidden = FALSE
             ORDER BY b.thoigian DESC
         """
@@ -3910,6 +4403,15 @@ def comment_add(maphananh):
         flash('Nội dung bình luận không được để trống!', 'warning')
         return redirect(request.referrer or url_for('newsfeed'))
     
+    # Xử lý file đính kèm
+    matepdinhkem = None
+    if 'file' in request.files:
+        file = request.files['file']
+        if file and file.filename:
+            matepdinhkem = upload_file(file)
+            if not matepdinhkem:
+                flash('File không hợp lệ hoặc quá lớn. Cho phép: png, jpg, pdf, doc, xls (max 16MB)', 'warning')
+    
     conn = get_db_connection()
     cur = conn.cursor()
     
@@ -3935,14 +4437,14 @@ def comment_add(maphananh):
         # Thêm bình luận
         if parent_id:
             cur.execute("""
-                INSERT INTO binhluan (maphananh, cccd_nguoidung, noidung, thoigian, parent_id)
-                VALUES (%s, %s, %s, NOW(), %s)
-            """, (maphananh, cccd, noidung, parent_id))
+                INSERT INTO binhluan (maphananh, cccd_nguoidung, noidung, thoigian, parent_id, matepdinhkem)
+                VALUES (%s, %s, %s, NOW(), %s, %s)
+            """, (maphananh, cccd, noidung, parent_id, matepdinhkem))
         else:
             cur.execute("""
-                INSERT INTO binhluan (maphananh, cccd_nguoidung, noidung, thoigian)
-                VALUES (%s, %s, %s, NOW())
-            """, (maphananh, cccd, noidung))
+                INSERT INTO binhluan (maphananh, cccd_nguoidung, noidung, thoigian, matepdinhkem)
+                VALUES (%s, %s, %s, NOW(), %s)
+            """, (maphananh, cccd, noidung, matepdinhkem))
         
         # Cập nhật comment_count = đếm lại số comment không bị ẩn
         cur.execute("""
@@ -4393,9 +4895,12 @@ def chat_detail(maboxchat):
                 t.noidung,
                 t.thoigiangui,
                 t.dadoc,
-                n.name as sender_name
+                n.name as sender_name,
+                td.duongdan as file_dinh_kem,
+                t.matepdinhkem
             FROM tinnhan t
             JOIN nguoidung n ON t.nguoigui = n.cccd
+            LEFT JOIN tepdinhkem td ON t.matepdinhkem = td.matepdinhkem
             WHERE t.maboxchat = %s
             ORDER BY t.thoigiangui ASC
         """, (maboxchat,))
@@ -4437,6 +4942,15 @@ def chat_send_message(maboxchat):
         flash('Nội dung tin nhắn không được để trống!', 'warning')
         return redirect(url_for('chat_detail', maboxchat=maboxchat))
     
+    # Xử lý file đính kèm
+    matepdinhkem = None
+    if 'file' in request.files:
+        file = request.files['file']
+        if file and file.filename:
+            matepdinhkem = upload_file(file)
+            if not matepdinhkem:
+                flash('File không hợp lệ hoặc quá lớn. Cho phép: png, jpg, pdf, doc, xls (max 16MB)', 'warning')
+    
     conn = get_db_connection()
     cur = conn.cursor()
     
@@ -4468,9 +4982,9 @@ def chat_send_message(maboxchat):
         
         # Thêm tin nhắn
         cur.execute("""
-            INSERT INTO tinnhan (maboxchat, nguoigui, noidung, thoigiangui, dadoc)
-            VALUES (%s, %s, %s, NOW(), FALSE)
-        """, (maboxchat, cccd, noidung))
+            INSERT INTO tinnhan (maboxchat, nguoigui, noidung, thoigiangui, dadoc, matepdinhkem)
+            VALUES (%s, %s, %s, NOW(), FALSE, %s)
+        """, (maboxchat, cccd, noidung, matepdinhkem))
         
         conn.commit()
         conn.close()
@@ -4646,6 +5160,186 @@ def notifications_mark_all_read():
         return redirect(url_for('notifications'))
 
 
+# ========== QUẢN LÝ THÔNG BÁO CHUNG ==========
+
+@app.route('/thongbao-chung')
+@login_required
+def thongbao_chung_list():
+    """
+    Danh sách thông báo chung (bảng tin công khai)
+    """
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    offset = (page - 1) * per_page
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Lấy danh sách thông báo đang hiển thị
+        cur.execute("""
+            SELECT 
+                tb.mathongbao,
+                tb.tieude,
+                tb.noidung,
+                tb.thoigiandang,
+                tb.nguoidang,
+                n.name as ten_nguoidang,
+                tb.trangthai
+            FROM thongbao tb
+            LEFT JOIN nguoidung n ON tb.nguoidang = n.cccd
+            WHERE tb.trangthai = 'HienThi'
+            ORDER BY tb.thoigiandang DESC
+            LIMIT %s OFFSET %s
+        """, (per_page, offset))
+        
+        thongbao_list = cur.fetchall()
+        
+        # Đếm tổng số
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM thongbao
+            WHERE trangthai = 'HienThi'
+        """)
+        
+        total = cur.fetchone()[0]
+        total_pages = (total + per_page - 1) // per_page
+        
+        conn.close()
+        
+        return render_template('thongbao_chung.html',
+                             thongbao_list=thongbao_list,
+                             page=page,
+                             total_pages=total_pages)
+    
+    except Exception as e:
+        conn.close()
+        flash(f'Lỗi khi tải thông báo: {str(e)}', 'danger')
+        return redirect(url_for('dashboard'))
+
+
+@app.route('/thongbao-chung/tao', methods=['GET', 'POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def thongbao_chung_tao():
+    """
+    Tạo thông báo chung (chỉ cán bộ/quản lý)
+    """
+    if request.method == 'GET':
+        return render_template('thongbao_chung_tao.html')
+    
+    user = session.get('user')
+    cccd = user['cccd']
+    tieude = request.form.get('tieude', '').strip()
+    noidung = request.form.get('noidung', '').strip()
+    gui_cho_tat_ca = request.form.get('gui_cho_tat_ca') == 'on'
+    
+    if not tieude or not noidung:
+        flash('Vui lòng nhập đầy đủ tiêu đề và nội dung!', 'warning')
+        return redirect(url_for('thongbao_chung_tao'))
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # 1. Tạo thông báo chung
+        cur.execute("""
+            INSERT INTO thongbao (tieude, noidung, nguoidang, trangthai)
+            VALUES (%s, %s, %s, 'HienThi')
+            RETURNING mathongbao
+        """, (tieude, noidung, cccd))
+        
+        mathongbao = cur.fetchone()[0]
+        
+        # 2. Nếu chọn gửi cho tất cả → tạo thông báo cá nhân
+        if gui_cho_tat_ca:
+            cur.execute("SELECT cccd FROM nguoidung WHERE vaitro = 'NguoiDan'")
+            nguoidan_list = cur.fetchall()
+            
+            for (cccd_nguoidan,) in nguoidan_list:
+                cur.execute("""
+                    INSERT INTO thongbao_nguoidung 
+                    (cccd, mathongbao, noidung, loai)
+                    VALUES (%s, %s, %s, 'General')
+                """, (cccd_nguoidan, mathongbao, f"{tieude}: {noidung}"))
+        
+        conn.commit()
+        conn.close()
+        
+        if gui_cho_tat_ca:
+            flash(f'Đã tạo thông báo và gửi cho tất cả người dân!', 'success')
+        else:
+            flash('Đã tạo thông báo chung!', 'success')
+        
+        return redirect(url_for('thongbao_chung_list'))
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        flash(f'Lỗi khi tạo thông báo: {str(e)}', 'danger')
+        return redirect(url_for('thongbao_chung_tao'))
+
+
+@app.route('/thongbao-chung/<int:mathongbao>/an', methods=['POST'])
+@login_required
+@role_required(['QuanLy'])
+def thongbao_chung_an(mathongbao):
+    """
+    Ẩn thông báo chung (chỉ quản lý)
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("""
+            UPDATE thongbao
+            SET trangthai = 'An'
+            WHERE mathongbao = %s
+        """, (mathongbao,))
+        
+        conn.commit()
+        conn.close()
+        
+        flash('Đã ẩn thông báo!', 'success')
+        return redirect(url_for('thongbao_chung_list'))
+    
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        flash(f'Lỗi: {str(e)}', 'danger')
+        return redirect(url_for('thongbao_chung_list'))
+
+
+@app.route('/api/unread-count')
+@login_required
+def api_unread_count():
+    """
+    API lấy số lượng thông báo chưa đọc (dùng cho badge)
+    """
+    user = session.get('user')
+    cccd = user['cccd']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM thongbao_nguoidung
+            WHERE cccd = %s AND trangthai_doc = FALSE
+        """, (cccd,))
+        
+        count = cur.fetchone()[0]
+        conn.close()
+        
+        return jsonify({'success': True, 'unread_count': count})
+    
+    except Exception as e:
+        if conn:
+            conn.close()
+        return jsonify({'success': False, 'message': str(e)})
+
+
 # ========== PHASE 6: REPORTS & STATISTICS ==========
 
 @app.route('/reports/overview')
@@ -4735,13 +5429,13 @@ def reports_overview():
         # 5. Top 5 cán bộ xử lý nhiều vấn đề nhất
         cur.execute(f"""
             SELECT 
-                n.hovaten,
+                n.name,
                 n.cccd,
                 COUNT(v.mavande) as solved_count
             FROM vande v
             JOIN nguoidung n ON v.cccd_canbo_xuly = n.cccd
             {where_clause_vande}
-            GROUP BY n.hovaten, n.cccd
+            GROUP BY n.name, n.cccd
             ORDER BY solved_count DESC
             LIMIT 5
         """, params)
@@ -5013,7 +5707,7 @@ def reports_engagement():
                 p.like_count,
                 p.comment_count,
                 p.view_count,
-                n.hovaten,
+                n.name,
                 (p.like_count * 2 + p.comment_count + p.view_count * 0.1) as hot_score
             FROM phananh p
             JOIN nguoidung n ON p.cccd = n.cccd
@@ -5027,7 +5721,7 @@ def reports_engagement():
         # 3. Top 10 người dùng tích cực nhất (nhiều phản ánh + like + comment)
         cur.execute(f"""
             SELECT 
-                n.hovaten,
+                n.name,
                 n.cccd,
                 COUNT(DISTINCT p.maphananh) as post_count,
                 COUNT(DISTINCT l.malike) as like_count,
@@ -5040,7 +5734,7 @@ def reports_engagement():
             LEFT JOIN like_post l ON n.cccd = l.cccd
             LEFT JOIN binhluan b ON n.cccd = b.cccd_nguoidung
             WHERE n.vaitro = 'NguoiDan'
-            GROUP BY n.hovaten, n.cccd
+            GROUP BY n.name, n.cccd
             ORDER BY activity_score DESC
             LIMIT 10
         """, params if params else [])
@@ -5133,7 +5827,7 @@ def reports_export():
                 SELECT 
                     p.maphananh,
                     p.tieude,
-                    n.hovaten,
+                    n.name,
                     p.trangthaiphananh,
                     CASE WHEN p.is_public THEN 'Có' ELSE 'Không' END,
                     p.like_count,
@@ -5173,7 +5867,7 @@ def reports_export():
                     v.tenvande,
                     v.phanloai,
                     v.trangthai,
-                    n.hovaten,
+                    n.name,
                     v.ketqua,
                     v.ngaytao,
                     v.ngaycapnhat

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý đơn đăng ký{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-file-earmark-text me-2"></i>Quản lý đơn đăng ký tài khoản
+            </h5>
+            <span class="badge bg-light text-dark">
+                <i class="bi bi-clock-history me-1"></i>{{ stats.choduyet }} đơn chờ duyệt
+            </span>
+        </div>
+
+        <div class="card-body">
+            <!-- Thống kê -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Chờ duyệt</h6>
+                                    <h3 class="mb-0">{{ stats.choduyet }}</h3>
+                                    <small class="text-white-50">Đơn mới</small>
+                                </div>
+                                <i class="bi bi-hourglass-split" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Đã duyệt</h6>
+                                    <h3 class="mb-0">{{ stats.daduyet }}</h3>
+                                    <small class="text-white-50">Tài khoản đã tạo</small>
+                                </div>
+                                <i class="bi bi-check-circle-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Từ chối</h6>
+                                    <h3 class="mb-0">{{ stats.tuchoi }}</h3>
+                                    <small class="text-white-50">Không hợp lệ</small>
+                                </div>
+                                <i class="bi bi-x-circle-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Chưa giao MK</h6>
+                                    <h3 class="mb-0">{{ stats.chua_giao_mk }}</h3>
+                                    <small class="text-white-50">Đợi người dân lấy</small>
+                                </div>
+                                <i class="bi bi-key-fill" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ lọc -->
+            <form method="GET" action="{{ url_for('don_dang_ky_list') }}" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="trangthai" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="trangthai" name="trangthai">
+                            <option value="ChoDuyet" {% if trangthai == 'ChoDuyet' %}selected{% endif %}>Chờ duyệt</option>
+                            <option value="DaDuyet" {% if trangthai == 'DaDuyet' %}selected{% endif %}>Đã duyệt</option>
+                            <option value="TuChoi" {% if trangthai == 'TuChoi' %}selected{% endif %}>Từ chối</option>
+                            <option value="" {% if not trangthai %}selected{% endif %}>Tất cả</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               placeholder="CCCD, họ tên, số điện thoại..." value="{{ search }}">
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Bảng danh sách -->
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>CCCD</th>
+                                <th>Họ tên</th>
+                                <th>SĐT</th>
+                                <th>Loại đăng ký</th>
+                                <th>Địa chỉ</th>
+                                <th>Ngày đăng ký</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in records %}
+                            <tr>
+                                <td><code class="bg-light p-1 rounded">#{{ rec[0] }}</code></td>
+                                <td><code>{{ rec[1] }}</code></td>
+                                <td><strong>{{ rec[2] }}</strong></td>
+                                <td>{{ rec[5] }}</td>
+                                <td>
+                                    {% if rec[6] == 'TamTru' %}
+                                        <span class="badge bg-info">Tạm trú</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">Cư trú</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ rec[9][:50] }}{% if rec[9]|length > 50 %}...{% endif %}, {{ rec[8] }}</small>
+                                </td>
+                                <td>
+                                    {% if rec[11] %}
+                                        {{ rec[11].strftime('%d/%m/%Y %H:%M') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rec[10] == 'ChoDuyet' %}
+                                        <span class="badge bg-warning">Chờ duyệt</span>
+                                    {% elif rec[10] == 'DaDuyet' %}
+                                        {% if rec[14] %}
+                                            <span class="badge bg-success">Đã giao MK</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Chờ giao MK</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-danger">Từ chối</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('don_dang_ky_detail', madondangky=rec[0]) }}" 
+                                       class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if total_pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('don_dang_ky_list', page=page-1, trangthai=trangthai, search=search) }}">
+                                Trước
+                            </a>
+                        </li>
+                        
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                                <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                            {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('don_dang_ky_list', page=p, trangthai=trangthai, search=search) }}">
+                                        {{ p }}
+                                    </a>
+                                </li>
+                            {% elif p == 4 or p == total_pages - 3 %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('don_dang_ky_list', page=page+1, trangthai=trangthai, search=search) }}">
+                                Sau
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">Không có đơn đăng ký</h5>
+                    <p class="text-muted">Chưa có đơn đăng ký nào</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

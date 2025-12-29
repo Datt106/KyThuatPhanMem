@@ -19,7 +19,7 @@
                     <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Tạo Phản ánh & Kiến nghị</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('phananh_add') }}">
+                    <form method="POST" action="{{ url_for('phananh_add') }}" enctype="multipart/form-data">>
                         <!-- Tiêu đề -->
                         <div class="mb-3">
                             <label for="tieude" class="form-label">
@@ -65,6 +65,38 @@
                                       placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..."
                                       required></textarea>
                             <small class="form-text text-muted">Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
+                        </div>
+
+                        <!-- File đính kèm -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-paperclip"></i> Tệp đính kèm (Tùy chọn)
+                            </label>
+                            <div class="card border-2 border-dashed" style="border-color: #dee2e6;">
+                                <div class="card-body text-center py-4">
+                                    <input type="file" 
+                                           class="d-none" 
+                                           id="file" 
+                                           name="file"
+                                           accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                                           onchange="previewFile(this, 'filePreview')">
+                                    
+                                    <div id="filePreview">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <h6 class="mb-2">Kéo thả hoặc nhấp vào đây để tải lên</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('file').click()">
+                                            <i class="fas fa-folder-open"></i> Chọn tệp
+                                        </button>
+                                        <p class="text-muted small mt-2 mb-0">
+                                            Hình ảnh, PDF, Word, Excel, ZIP - Tối đa 16MB
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                <i class="fas fa-info-circle"></i> 
+                                Cho phép: Hình ảnh (png, jpg), PDF, Word, Excel, Zip (Tối đa 16MB)
+                            </small>
                         </div>
 
                         <!-- Địa chỉ -->
@@ -173,6 +205,125 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewFile(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+    
+    if (file) {
+        const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+        const fileName = file.name;
+        const fileExt = fileName.split('.').pop().toLowerCase();
+        
+        // Icon theo loại file
+        let icon = 'fa-file';
+        let iconColor = 'text-secondary';
+        
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(fileExt)) {
+            icon = 'fa-file-image';
+            iconColor = 'text-success';
+        } else if (['pdf'].includes(fileExt)) {
+            icon = 'fa-file-pdf';
+            iconColor = 'text-danger';
+        } else if (['doc', 'docx'].includes(fileExt)) {
+            icon = 'fa-file-word';
+            iconColor = 'text-primary';
+        } else if (['xls', 'xlsx'].includes(fileExt)) {
+            icon = 'fa-file-excel';
+            iconColor = 'text-success';
+        } else if (['zip', 'rar'].includes(fileExt)) {
+            icon = 'fa-file-archive';
+            iconColor = 'text-warning';
+        }
+        
+        preview.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                <div class="d-flex align-items-center">
+                    <i class="fas ${icon} fa-2x ${iconColor} me-3"></i>
+                    <div>
+                        <div class="fw-bold text-truncate" style="max-width: 300px;">${fileName}</div>
+                        <small class="text-muted">${fileSize} MB</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile('file', '${previewId}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        // Preview hình ảnh
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(fileExt)) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML += `
+                    <div class="mt-2">
+                        <img src="${e.target.result}" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+}
+
+function clearFile(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    
+    input.value = '';
+    preview.innerHTML = `
+        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+        <h6 class="mb-2">Kéo thả hoặc nhấp vào đây để tải lên</h6>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('${inputId}').click()">
+            <i class="fas fa-folder-open"></i> Chọn tệp
+        </button>
+        <p class="text-muted small mt-2 mb-0">
+            Hình ảnh, PDF, Word, Excel, ZIP - Tối đa 16MB
+        </p>
+    `;
+}
+
+// Drag and drop
+const dropZone = document.querySelector('.border-dashed');
+
+if (dropZone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-primary', 'bg-light');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-primary', 'bg-light');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const input = document.getElementById('file');
+        input.files = files;
+        previewFile(input, 'filePreview');
+    }
+}
+</script>
 
 <script>
 // Toggle privacy info
