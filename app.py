@@ -300,7 +300,6 @@ def public_register():
         ngaysinh = request.form.get('ngaysinh', '').strip()
         gioitinh = request.form.get('gioitinh', '').strip()
         sdt = request.form.get('sdt', '').strip()
-        email = request.form.get('email', '').strip()
         loaidangky = request.form.get('loaidangky', '').strip()
         tinh = request.form.get('tinh', '').strip()
         xaphuong = request.form.get('xaphuong', '').strip()
@@ -338,12 +337,12 @@ def public_register():
         
         # Tạo đơn đăng ký mới
         query = """
-            INSERT INTO dondangky (cccd, hoten, ngaysinh, gioitinh, sdt, email, 
+            INSERT INTO dondangky (cccd, hoten, ngaysinh, gioitinh, sdt, 
                                    loaidangky, tinh, xaphuong, diachi_chitiet, 
                                    quoctich, dantoc, ghichu, trangthai)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'ChoDuyet')
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'ChoDuyet')
         """
-        result = execute_query(query, (cccd, hoten, ngaysinh, gioitinh, sdt, email,
+        result = execute_query(query, (cccd, hoten, ngaysinh, gioitinh, sdt,
                                       loaidangky, tinh, xaphuong, diachi_chitiet,
                                       quoctich, dantoc, ghichu))
         
@@ -357,6 +356,65 @@ def public_register():
     # GET - Hiển thị form đăng ký
     from datetime import datetime
     return render_template('dang_ky.html', now=datetime.now())
+
+
+@app.route('/tra-cuu-don', methods=['GET', 'POST'])
+def tra_cuu_don():
+    """Tra cứu trạng thái đơn đăng ký bằng CCCD"""
+    
+    don_info = None
+    
+    if request.method == 'POST':
+        cccd = request.form.get('cccd', '').strip()
+        
+        if not cccd:
+            flash('Vui lòng nhập số CCCD!', 'danger')
+            return redirect(url_for('tra_cuu_don'))
+        
+        # Kiểm tra trong bảng nguoidung trước
+        check_user = execute_query(
+            "SELECT cccd, name FROM nguoidung WHERE cccd = %s", 
+            (cccd,), 
+            fetch_one=True
+        )
+        
+        if check_user:
+            flash('CCCD này đã được kích hoạt trong hệ thống! Bạn có thể đăng nhập.', 'success')
+            return render_template('tra_cuu_don.html', don_info=None, is_activated=True)
+        
+        # Tra cứu đơn đăng ký
+        query = """
+            SELECT 
+                dd.madondangky,
+                dd.cccd,
+                dd.hoten,
+                dd.ngaysinh,
+                dd.gioitinh,
+                dd.sdt,
+                dd.loaidangky,
+                dd.tinh,
+                dd.xaphuong,
+                dd.diachi_chitiet,
+                dd.trangthai,
+                dd.ngaytao,
+                dd.ngayduyet,
+                dd.matkhau_daxacnhan,
+                dd.lydotuchoi,
+                nd.name as nguoiduyet_ten
+            FROM dondangky dd
+            LEFT JOIN nguoidung nd ON dd.nguoiduyet_cccd = nd.cccd
+            WHERE dd.cccd = %s
+            ORDER BY dd.ngaytao DESC
+            LIMIT 1
+        """
+        
+        don_info = execute_query(query, (cccd,), fetch_one=True)
+        
+        if not don_info:
+            flash('Không tìm thấy đơn đăng ký với số CCCD này!', 'warning')
+    
+    from datetime import datetime
+    return render_template('tra_cuu_don.html', don_info=don_info, is_activated=False, now=datetime.now())
 
 
 @app.route('/don-dang-ky')

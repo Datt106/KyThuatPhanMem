@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu đơn đăng ký - Quản lý Dân cư</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 40px 0;
+        }
+        .lookup-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 25px;
+        }
+        .status-badge {
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 50px;
+            padding-bottom: 30px;
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-icon {
+            position: absolute;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+        .timeline-item:last-child .timeline-line {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container lookup-container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="mb-2">
+                    <i class="bi bi-search me-2"></i>Tra cứu đơn đăng ký
+                </h3>
+                <p class="mb-0">Kiểm tra trạng thái đơn đăng ký của bạn</p>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message|safe }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Form tra cứu -->
+                <form method="POST" action="{{ url_for('tra_cuu_don') }}">
+                    <div class="mb-4">
+                        <label for="cccd" class="form-label fw-bold">
+                            <i class="bi bi-card-text me-2"></i>Nhập số CCCD của bạn
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="cccd" name="cccd" 
+                               pattern="[0-9]{12}" maxlength="12" required
+                               placeholder="12 chữ số">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-search me-2"></i>Tra cứu
+                        </button>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Kết quả tra cứu -->
+                {% if is_activated %}
+                <div class="mt-4 alert alert-success">
+                    <h5 class="alert-heading">
+                        <i class="bi bi-check-circle-fill me-2"></i>Tài khoản đã được kích hoạt!
+                    </h5>
+                    <p class="mb-3">CCCD của bạn đã được đăng ký và kích hoạt trong hệ thống.</p>
+                    <hr>
+                    <a href="{{ url_for('login') }}" class="btn btn-success">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đi đến trang đăng nhập
+                    </a>
+                </div>
+                {% elif don_info %}
+                <div class="mt-4">
+                    <hr class="my-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="bi bi-file-text me-2"></i>Thông tin đơn đăng ký
+                    </h5>
+
+                    <!-- Thông tin cơ bản -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Mã đơn:</div>
+                                <div class="col-md-8">#{{ don_info[0] }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Họ tên:</div>
+                                <div class="col-md-8">{{ don_info[2] }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">CCCD:</div>
+                                <div class="col-md-8">{{ don_info[1] }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Loại đăng ký:</div>
+                                <div class="col-md-8">
+                                    {% if don_info[6] == 'TamTru' %}
+                                        <span class="badge bg-info">Tạm trú</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Cư trú</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 fw-bold">Ngày gửi đơn:</div>
+                                <div class="col-md-8">{{ don_info[11].strftime('%d/%m/%Y %H:%M') if don_info[11] else '' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trạng thái -->
+                    <div class="text-center mb-4">
+                        <h6 class="mb-3">Trạng thái hiện tại:</h6>
+                        {% if don_info[10] == 'ChoDuyet' %}
+                            <span class="badge bg-warning status-badge">
+                                <i class="bi bi-hourglass-split me-2"></i>Chờ duyệt
+                            </span>
+                        {% elif don_info[10] == 'DaDuyet' %}
+                            <span class="badge bg-success status-badge">
+                                <i class="bi bi-check-circle me-2"></i>Đã duyệt
+                            </span>
+                        {% elif don_info[10] == 'TuChoi' %}
+                            <span class="badge bg-danger status-badge">
+                                <i class="bi bi-x-circle me-2"></i>Từ chối
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Timeline quy trình -->
+                    <div class="timeline">
+                        <!-- Bước 1: Gửi đơn -->
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-success text-white">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            <div class="timeline-line"></div>
+                            <div>
+                                <h6 class="mb-1">Đã gửi đơn</h6>
+                                <small class="text-muted">{{ don_info[11].strftime('%d/%m/%Y %H:%M') if don_info[11] else '' }}</small>
+                                <p class="mb-0 small mt-1">Đơn đăng ký đã được tiếp nhận vào hệ thống</p>
+                            </div>
+                        </div>
+
+                        <!-- Bước 2: Duyệt đơn -->
+                        {% if don_info[10] == 'ChoDuyet' %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-warning text-white">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                            <div class="timeline-line"></div>
+                            <div>
+                                <h6 class="mb-1">Đang chờ duyệt</h6>
+                                <p class="mb-0 small text-muted">Cán bộ đang xem xét đơn của bạn</p>
+                            </div>
+                        </div>
+                        {% elif don_info[10] == 'DaDuyet' %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-success text-white">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            <div class="timeline-line"></div>
+                            <div>
+                                <h6 class="mb-1">Đã duyệt</h6>
+                                <small class="text-muted">{{ don_info[12].strftime('%d/%m/%Y %H:%M') if don_info[12] else '' }}</small>
+                                {% if don_info[15] %}
+                                <p class="mb-0 small mt-1">Người duyệt: {{ don_info[15] }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% elif don_info[10] == 'TuChoi' %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-danger text-white">
+                                <i class="bi bi-x"></i>
+                            </div>
+                            <div class="timeline-line"></div>
+                            <div>
+                                <h6 class="mb-1">Đã từ chối</h6>
+                                <small class="text-muted">{{ don_info[12].strftime('%d/%m/%Y %H:%M') if don_info[12] else '' }}</small>
+                                {% if don_info[14] %}
+                                <div class="alert alert-danger small mt-2 mb-0">
+                                    <strong>Lý do:</strong> {{ don_info[14] }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Bước 3: Nhận mật khẩu (chỉ hiện khi đã duyệt) -->
+                        {% if don_info[10] == 'DaDuyet' %}
+                        <div class="timeline-item">
+                            {% if don_info[13] %}
+                            <div class="timeline-icon bg-success text-white">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            {% else %}
+                            <div class="timeline-icon bg-secondary text-white">
+                                <i class="bi bi-circle"></i>
+                            </div>
+                            {% endif %}
+                            <div class="timeline-line"></div>
+                            <div>
+                                {% if don_info[13] %}
+                                <h6 class="mb-1">Đã nhận mật khẩu</h6>
+                                <p class="mb-0 small text-success">Bạn có thể đăng nhập vào hệ thống</p>
+                                {% else %}
+                                <h6 class="mb-1">Chờ nhận mật khẩu</h6>
+                                <div class="alert alert-info small mt-2 mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Vui lòng đến cơ quan với CCCD gốc để nhận mật khẩu đăng nhập
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Bước 4: Hoàn tất -->
+                        <div class="timeline-item">
+                            {% if don_info[13] %}
+                            <div class="timeline-icon bg-primary text-white">
+                                <i class="bi bi-check-all"></i>
+                            </div>
+                            {% else %}
+                            <div class="timeline-icon bg-secondary text-white">
+                                <i class="bi bi-circle"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">Hoàn tất</h6>
+                                {% if don_info[13] %}
+                                <p class="mb-0 small text-success">Tài khoản đã sẵn sàng sử dụng</p>
+                                {% else %}
+                                <p class="mb-0 small text-muted">Đăng nhập và sử dụng hệ thống</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actions -->
+                    {% if don_info[10] == 'DaDuyet' and don_info[13] %}
+                    <div class="d-grid mt-4">
+                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập ngay
+                        </a>
+                    </div>
+                    {% elif don_info[10] == 'TuChoi' %}
+                    <div class="d-grid mt-4">
+                        <a href="{{ url_for('public_register') }}" class="btn btn-warning btn-lg">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Đăng ký lại
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Thông tin hỗ trợ -->
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <h6 class="text-primary mb-3">
+                    <i class="bi bi-question-circle me-2"></i>Cần hỗ trợ?
+                </h6>
+                <p class="small text-muted mb-0">
+                    Vui lòng liên hệ cán bộ quản lý địa phương để được hỗ trợ thêm về đơn đăng ký của bạn
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

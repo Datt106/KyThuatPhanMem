@@ -114,23 +114,16 @@
                                    pattern="[0-9]{10,11}" placeholder="10-11 số">
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                   placeholder="example@email.com">
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
                             <label for="quoctich" class="form-label">Quốc tịch</label>
                             <input type="text" class="form-control" id="quoctich" name="quoctich" 
                                    value="Việt Nam">
                         </div>
-                        <div class="col-md-6">
-                            <label for="dantoc" class="form-label">Dân tộc</label>
-                            <input type="text" class="form-control" id="dantoc" name="dantoc"
-                                   placeholder="VD: Kinh">
-                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="dantoc" class="form-label">Dân tộc</label>
+                        <input type="text" class="form-control" id="dantoc" name="dantoc"
+                               placeholder="VD: Kinh">
                     </div>
 
                     <!-- Loại đăng ký -->
@@ -164,7 +157,7 @@
                                 Tỉnh/Thành phố <span class="required">*</span>
                             </label>
                             <input type="text" class="form-control" id="tinh" name="tinh" required
-                                   placeholder="VD: Hà Nội">
+                                   value="Hà Nội" placeholder="VD: Hà Nội">
                         </div>
                         <div class="col-md-6">
                             <label for="xaphuong" class="form-label">
@@ -204,9 +197,14 @@
 
                     <!-- Buttons -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
-                        </a>
+                        <div>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
+                            </a>
+                            <a href="{{ url_for('tra_cuu_don') }}" class="btn btn-outline-info ms-2">
+                                <i class="bi bi-search me-1"></i>Tra cứu đơn
+                            </a>
+                        </div>
                         <button type="submit" class="btn btn-primary px-5">
                             <i class="bi bi-check-lg me-1"></i>Đăng ký
                         </button>
