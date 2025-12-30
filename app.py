@@ -13,6 +13,10 @@ from datetime import datetime
 from io import BytesIO
 from werkzeug.utils import secure_filename
 import uuid
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from flask import Response
+import io
 try:
     from openpyxl import Workbook
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -41,9 +45,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # ========== CẤU HÌNH DATABASE ==========
 DB_CONFIG = {
-    'database': 'QuanLyPhanAnh',
+    'database': 'KTPM',
     'user': 'postgres',
-    'password': '271205',
+    'password': 'admin',
     'host': 'localhost',
     'port': '5432'
 }
@@ -1825,6 +1829,28 @@ def tam_vang_add():
                          user_cccd=user_cccd)
 
 
+@app.route('/tam-vang-tru/pdf/<cccd>/<loai>')
+@login_required
+def tam_vang_tru_pdf(cccd, loai):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 800, f"GIẤY {loai.upper()}")
+    c.drawString(100, 770, f"CCCD: {cccd}")
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+
+    return Response(
+        buffer,
+        mimetype="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={loai}_{cccd}.pdf"
+        }
+    )
 @app.route('/tam-tru/add', methods=['GET', 'POST'])
 @login_required
 def tam_tru_add():
@@ -2728,8 +2754,8 @@ def thongke_tamvangtru():
             dn.loaidiachi,
             dc.xaphuong,
             COUNT(*) as soluong,
-            COUNT(CASE WHEN dn.ngayketthuc >= CURRENT_DATE THEN 1 END) as dang_hieuluc,
-            COUNT(CASE WHEN dn.ngayketthuc < CURRENT_DATE THEN 1 END) as da_hethan
+            COUNT(CASE WHEN dn.thoidiemketthuc >= CURRENT_DATE THEN 1 END) as dang_hieuluc,
+            COUNT(CASE WHEN dn.thoidiemketthuc < CURRENT_DATE THEN 1 END) as da_hethan
         FROM diachinguoidung dn
         INNER JOIN diachi dc ON dn.madiachi = dc.madiachi
         WHERE dn.loaidiachi IN ('TamVang', 'TamTru')
@@ -2840,15 +2866,14 @@ def export_tamvangtru():
     query_detail = """
         SELECT 
             n.cccd,
-            n.hoten,
+            n.name,
             n.ngaysinh,
             n.gioitinh,
             dn.loaidiachi,
             dc.xaphuong,
             dc.chitiet,
-            dn.ngaybatdau,
-            dn.ngayketthuc,
-            dn.lydo
+            dn.thoidiemxacnhan,
+            dn.thoidiemketthuc
         FROM diachinguoidung dn
         INNER JOIN diachi dc ON dn.madiachi = dc.madiachi
         INNER JOIN nguoidung n ON dn.cccd = n.cccd
@@ -2858,10 +2883,10 @@ def export_tamvangtru():
     params = []
     
     if thang and nam:
-        query_detail += " AND EXTRACT(MONTH FROM dn.ngaybatdau) = %s AND EXTRACT(YEAR FROM dn.ngaybatdau) = %s"
+        query_detail += " AND EXTRACT(MONTH FROM dn.thoidiemxacnhan) = %s AND EXTRACT(YEAR FROM dn.thoidiemxacnhan) = %s"
         params.extend([int(thang), int(nam)])
     elif nam:
-        query_detail += " AND EXTRACT(YEAR FROM dn.ngaybatdau) = %s"
+        query_detail += " AND EXTRACT(YEAR FROM dn.thoidiemxacnhan) = %s"
         params.append(int(nam))
     
     if loai:
@@ -2872,7 +2897,7 @@ def export_tamvangtru():
         query_detail += " AND LOWER(dc.xaphuong) LIKE LOWER(%s)"
         params.append(f'%{xaphuong}%')
     
-    query_detail += " ORDER BY dn.loaidiachi, dn.ngaybatdau DESC"
+    query_detail += " ORDER BY dn.loaidiachi, dn.thoidiemxacnhan DESC"
     
     details = execute_query(query_detail, tuple(params) if params else None, fetch_all=True)
     
@@ -2913,7 +2938,7 @@ def export_tamvangtru():
     
     # Headers
     headers = ['STT', 'CCCD', 'Họ tên', 'Ngày sinh', 'Giới tính', 'Loại', 'Xã/Phường', 
-               'Địa chỉ', 'Ngày bắt đầu', 'Ngày kết thúc', 'Lý do']
+               'Địa chỉ', 'Ngày bắt đầu', 'Ngày kết thúc']
     
     for col, header in enumerate(headers, start=1):
         cell = ws.cell(row=4, column=col)
@@ -2936,7 +2961,7 @@ def export_tamvangtru():
         ws.cell(row=ws_row, column=8, value=row[6]).border = border
         ws.cell(row=ws_row, column=9, value=row[7].strftime('%d/%m/%Y') if row[7] else '').border = border
         ws.cell(row=ws_row, column=10, value=row[8].strftime('%d/%m/%Y') if row[8] else '').border = border
-        ws.cell(row=ws_row, column=11, value=row[9]).border = border
+        # ws.cell(row=ws_row, column=11, value=row[9]).border = border
     
     # Column widths
     ws.column_dimensions['A'].width = 5
@@ -2949,7 +2974,7 @@ def export_tamvangtru():
     ws.column_dimensions['H'].width = 30
     ws.column_dimensions['I'].width = 13
     ws.column_dimensions['J'].width = 13
-    ws.column_dimensions['K'].width = 25
+    # ws.column_dimensions['K'].width = 25
     
     # Save to BytesIO
     output = BytesIO()

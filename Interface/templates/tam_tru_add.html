@@ -35,26 +35,26 @@
                 <!-- Chọn người -->
                 <div class="mb-4">
                     <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-person-fill me-2"></i>Thông tin người tạm trú
+                        <i class="bi bi-person-fill me-2"></i>Thông tin người tạm vắng
                     </h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="cccd" class="form-label">
-                                Chọn người dân <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select" id="cccd" name="cccd" required>
-                                <option value="">-- Chọn người dân --</option>
-                                {% for nd in nguoidung_list %}
-                                <option value="{{ nd[0]|trim }}">
-                                    {{ nd[1] }} - {{ nd[0]|trim }}
-                                    {% if nd[2] %} ({{ nd[2].strftime('%d/%m/%Y') }}){% endif %}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted">Người đến từ nơi khác tạm trú tại địa phương</small>
-                        </div>
-                    </div>
+                <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="cccd" class="form-label">
+                    CCCD người đăng ký <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                   class="form-control"
+                   id="cccd"
+                   name="cccd"
+                   placeholder="Nhập số CCCD (12 số)"
+                   maxlength="12"
+                   required>
+                <div class="form-text">
+                    Nhập đúng 12 số CCCD
                 </div>
+            </div>
+        </div>
+    </div>
 
                 <!-- Địa chỉ tạm trú -->
                 <div class="mb-4">

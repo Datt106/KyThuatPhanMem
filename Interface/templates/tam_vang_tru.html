@@ -212,6 +212,12 @@
                                                 title="Kết thúc">
                                             <i class="bi bi-x-circle"></i>
                                         </button>
+                                        <a href="{{ url_for('tam_vang_tru_pdf', cccd=rec[0], loai=rec[3]) }}"
+                                                class="btn btn-outline-secondary"
+                                                title="Tải file PDF">
+                                                <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+                                                </a>
+    
                                     </div>
                                     {% else %}
                                     <span class="text-muted">—</span>
