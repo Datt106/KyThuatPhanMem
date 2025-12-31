@@ -64,16 +64,25 @@
             <!-- Bộ lọc -->
             <form method="GET" action="{{ url_for('cu_tru_list') }}" class="mb-4">
                 <div class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="search" class="form-label">Tìm kiếm</label>
                         <input type="text" class="form-control" id="search" name="search" 
                                placeholder="Tìm theo họ tên hoặc CCCD..." value="{{ search }}">
                     </div>
                     
-                    <div class="col-md-5">
+                    <div class="col-md-3">
                         <label for="xaphuong" class="form-label">Xã/Phường</label>
                         <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
                                placeholder="Lọc theo xã/phường..." value="{{ xaphuong }}">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="hieuluc" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="hieuluc" name="hieuluc">
+                            <option value="">Tất cả</option>
+                            <option value="con" {% if hieuluc == 'con' %}selected{% endif %}>Còn hiệu lực</option>
+                            <option value="het" {% if hieuluc == 'het' %}selected{% endif %}>Hết hạn</option>
+                        </select>
                     </div>
                     
                     <div class="col-md-2 d-flex align-items-end">

@@ -1,0 +1,1 @@
+ALTER TABLE vande DROP CONSTRAINT vande_pkey CASCADE;

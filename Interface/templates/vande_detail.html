@@ -63,10 +63,10 @@
             <!-- Danh sách phản ánh thuộc vấn đề -->
             <div class="card shadow">
                 <div class="card-header bg-secondary text-white">
-                    <h5><i class="fas fa-list"></i> Danh sách phản ánh ({{ phananh_list|length }})</h5>
+                    <h5><i class="fas fa-list"></i> Danh sách phản ánh ({{ ds_phananh|length }})</h5>
                 </div>
                 <div class="card-body">
-                    {% if phananh_list %}
+                    {% if ds_phananh %}
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
@@ -80,7 +80,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for pa in phananh_list %}
+                                    {% for pa in ds_phananh %}
                                     <tr>
                                         <td>{{ pa[0] }}</td>
                                         <td>{{ pa[1] }}</td>

@@ -45,11 +45,12 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # ========== CẤU HÌNH DATABASE ==========
 DB_CONFIG = {
-    'database': 'KTPM',
+    'database': 'qlpa',
     'user': 'postgres',
-    'password': 'admin',
+    'password': 'tiendat0604',
     'host': 'localhost',
     'port': '5432'
+
 }
 
 
@@ -97,7 +98,8 @@ def execute_query(query, params=None, fetch_one=False, fetch_all=False):
             result = cursor.fetchall()
         else:
             connection.commit()
-            result = cursor.rowcount
+            # Trả về rowcount (số bản ghi bị ảnh hưởng)
+            result = cursor.rowcount if cursor.rowcount >= 0 else 1
         
         cursor.close()
         connection.close()
@@ -1021,10 +1023,14 @@ def hokhau_list():
         params.append(user_cccd)
     
     if search:
-        where_conditions.append("(CAST(h.mahokhau AS TEXT) LIKE %s OR d.chitiet ILIKE %s OR d.xaphuong ILIKE %s)")
-        search_pattern = f"%{search}%"
+        # Xóa tiền tố "HK" nếu user nhập "HK1" -> tìm kiếm "1" trong DB
+        search_for_id = search.replace('HK', '').replace('hk', '')
+        # Tìm kiếm theo: mã hộ khẩu, địa chỉ chi tiết, xã/phường
+        where_conditions.append("(h.mahokhau::TEXT LIKE %s OR d.chitiet ILIKE %s OR d.xaphuong ILIKE %s)")
+        search_pattern = f"%{search_for_id}%"
         params.extend([search_pattern, search_pattern, search_pattern])
     
+    # xaphuong là tùy chọn, không bắt buộc
     if xaphuong:
         where_conditions.append("d.xaphuong ILIKE %s")
         params.append(f"%{xaphuong}%")
@@ -2148,6 +2154,7 @@ def cu_tru_list():
     # Lấy tham số
     search = request.args.get('search', '').strip()
     xaphuong = request.args.get('xaphuong', '').strip()
+    hieuluc = request.args.get('hieuluc', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
@@ -2167,10 +2174,18 @@ def cu_tru_list():
         JOIN nguoidung n ON dcnd.cccd = n.cccd
         JOIN diachi dc ON dcnd.madiachi = dc.madiachi
         WHERE dcnd.loaidiachi = 'CuTru'
-        AND (dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE)
     """
     
     params = []
+    
+    # Filter by status - hieuluc (hiệu lực)
+    if hieuluc == 'con':
+        query += " AND (dcnd.thoidiemketthuc IS NULL OR dcnd.thoidiemketthuc >= CURRENT_DATE)"
+    elif hieuluc == 'het':
+        query += " AND dcnd.thoidiemketthuc < CURRENT_DATE"
+    else:
+        # Default: show all
+        pass
     
     # Nếu là Người dân, chỉ xem của mình
     if user_role == 'NguoiDan':
@@ -2238,6 +2253,7 @@ def cu_tru_list():
                          stats=stats,
                          search=search,
                          xaphuong=xaphuong,
+                         hieuluc=hieuluc,
                          now=datetime.now())
 
 
@@ -2835,6 +2851,7 @@ def thongke_tamvangtru():
     
     # Đảm bảo details không phải None để tránh lỗi len(None)
     details = details or []
+    from datetime import date
     return render_template('thongke_tamvangtru.html',
                          stats=stats,
                          details=details,
@@ -2844,6 +2861,7 @@ def thongke_tamvangtru():
                          nam=nam,
                          loai=loai,
                          xaphuong=xaphuong,
+                         today=date.today(),
                          openpyxl_available=OPENPYXL_AVAILABLE)
 
 
@@ -3153,25 +3171,46 @@ def nguoidung_add():
         # Insert vào database
         insert_query = """
             INSERT INTO nguoidung (
-                cccd, name, user_name, matkhau, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep,
-                bidanh, noilamviec, noisinh, nguyenquan, ngaycapcccd, noicapcccd, 
-                ngaydangkythuongtru, diachitruoc
+                cccd, name, user_name, matkhau, sdt, ngaysinh, gioitinh, dantoc, vaitro, nghenghiep, noilamviec
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        result = execute_query(insert_query, (
-            cccd, name, user_name, matkhau, 
-            sdt or None, ngaysinh or None, gioitinh or None, dantoc or None, 
-            vaitro or 'NguoiDan', nghenghiep or None,
-            bidanh or None, noilamviec or None, noisinh or None, nguyenquan or None,
-            ngaycapcccd or None, noicapcccd or None, ngaydangkythuongtru or None, diachitruoc or None
-        ))
-        
-        if result:
-            flash(f'Đã thêm nhân khẩu {name} thành công!', 'success')
-            return redirect(url_for('nguoidung_list'))
-        else:
-            flash('Có lỗi xảy ra khi thêm nhân khẩu!', 'danger')
+        try:
+            # Log params để debug
+            params_list = (
+                cccd, name, user_name, matkhau,
+                sdt or None, ngaysinh or None, gioitinh or None, dantoc or None,
+                vaitro if vaitro in ['NguoiDan', 'CanBo', 'QuanLy'] else 'NguoiDan', nghenghiep or None, noilamviec or None
+            )
+            print(f"DEBUG - Insert params: {params_list}")
+
+            result = execute_query(insert_query, params_list)
+            print(f"DEBUG - Execute result: {result}, type: {type(result)}")
+
+            if result is None or result == 0:
+                print(f"DEBUG - Result is None or 0: {result}")
+                # Try to get more info from DB
+                connection = get_db_connection()
+                if connection:
+                    try:
+                        cursor = connection.cursor()
+                        cursor.execute('ROLLBACK')
+                        print("DEBUG - DB rollback done.")
+                    except Exception as e2:
+                        print(f"DEBUG - Rollback error: {e2}")
+                    finally:
+                        connection.close()
+                flash(f'Có lỗi xảy ra khi thêm nhân khẩu! (result={result})', 'danger')
+            else:
+                flash(f'Đã thêm nhân khẩu {name} thành công!', 'success')
+                return redirect(url_for('nguoidung_list'))
+        except Exception as e:
+            flash(f'Lỗi: {str(e)}', 'danger')
+            import traceback
+            print("=== TRACEBACK ===")
+            print(traceback.format_exc())
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error: {str(e)}")
     
     return render_template('nguoidung_add.html')
 
@@ -3953,6 +3992,19 @@ def vande_add():
     if request.method == 'POST':
         tenvande = request.form.get('tenvande', '').strip()
         phanloai = request.form.get('phanloai', 'Khac')
+        # Chuyển giá trị tiếng Việt sang mã hợp lệ
+        phanloai_map = {
+            'Hạ tầng': 'HaTang',
+            'Môi trường': 'MoiTruong',
+            'An ninh': 'AnNinh',
+            'Giao thông': 'GiaoThong',
+            'Y tế': 'YTe',
+            'Giáo dục': 'GiaoDuc',
+            'Văn hóa': 'VanHoa',
+            'Dân sinh': 'Khac',
+            'Khác': 'Khac'
+        }
+        phanloai = phanloai_map.get(phanloai, 'Khac')
         
         # Lấy danh sách maphananh[] từ form
         list_maphananh = request.form.getlist('maphananh[]')
@@ -3981,6 +4033,7 @@ def vande_add():
             return redirect(url_for('vande_add'))
         
         # Tạo vấn đề mới
+        cccd_canbo_xuly = session['user']['cccd']
         query_vande = """
             INSERT INTO vande (tenvande, phanloai, trangthai, cccd_canbo_xuly)
             VALUES (%s, %s, 'Moi', %s)
@@ -3988,7 +4041,7 @@ def vande_add():
         """
         result = execute_query(
             query_vande,
-            (tenvande, phanloai, session['user']['cccd']),
+            (tenvande, phanloai, cccd_canbo_xuly),
             fetch_one=True
         )
         

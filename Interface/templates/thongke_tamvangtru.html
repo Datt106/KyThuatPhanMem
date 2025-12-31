@@ -195,7 +195,7 @@
                                 </td>
                                 <td>
                                     {% if row[8] %}
-                                        {% if row[8] >= now().date() %}
+                                        {% if row[8] >= today %}
                                             <span class="badge bg-success">Hiệu lực</span>
                                         {% else %}
                                             <span class="badge bg-secondary">Hết hạn</span>

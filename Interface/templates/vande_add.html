@@ -1,107 +1,130 @@
-{% extends "base.html" %}
-
-{% block title %}Tạo vấn đề mới{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Tạo vấn đề mới{% endblock %} {% block
+content %}
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white">
-                    <h4><i class="fas fa-plus-circle"></i> Tạo vấn đề mới</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('vande_add') }}">
-                        <div class="mb-3">
-                            <label class="form-label">Tên vấn đề <span class="text-danger">*</span></label>
-                            <input type="text" name="tenvande" class="form-control" required
-                                   placeholder="VD: Ổ gà đường Nguyễn Trãi cần sửa chữa">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Phân loại <span class="text-danger">*</span></label>
-                            <select name="phanloai" class="form-select" required>
-                                <option value="">-- Chọn phân loại --</option>
-                                <option value="Hạ tầng">Hạ tầng</option>
-                                <option value="An ninh">An ninh</option>
-                                <option value="Môi trường">Môi trường</option>
-                                <option value="Y tế">Y tế</option>
-                                <option value="Giáo dục">Giáo dục</option>
-                                <option value="Giao thông">Giao thông</option>
-                                <option value="Dân sinh">Dân sinh</option>
-                                <option value="Khác">Khác</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Mô tả</label>
-                            <textarea name="mota" class="form-control" rows="3" 
-                                      placeholder="Mô tả chi tiết về vấn đề..."></textarea>
-                        </div>
-
-                        <hr>
-
-                        <h5 class="mb-3"><i class="fas fa-layer-group"></i> Gộp các phản ánh</h5>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Chọn phản ánh để gộp vào vấn đề này</label>
-                            <small class="text-muted d-block mb-2">
-                                Chọn các phản ánh có cùng chủ đề để gộp thành một vấn đề chung
-                            </small>
-                            
-                            <!-- Search phản ánh -->
-                            <div class="input-group mb-2">
-                                <input type="text" id="searchPhananh" class="form-control" 
-                                       placeholder="Tìm kiếm phản ánh...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="searchPhananh()">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-
-                            <!-- List phản ánh -->
-                            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
-                                <div id="phananhList">
-                                    <p class="text-muted">Nhập từ khóa để tìm kiếm phản ánh...</p>
-                                </div>
-                            </div>
-
-                            <small class="text-muted">
-                                Bạn có thể gộp thêm phản ánh sau khi tạo vấn đề
-                            </small>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('vande_list') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Quay lại
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check"></i> Tạo vấn đề
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <h4><i class="fas fa-plus-circle"></i> Tạo vấn đề mới</h4>
         </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('vande_add') }}">
+            <div class="mb-3">
+              <label class="form-label"
+                >Tên vấn đề <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                name="tenvande"
+                class="form-control"
+                required
+                placeholder="VD: Ổ gà đường Nguyễn Trãi cần sửa chữa"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"
+                >Phân loại <span class="text-danger">*</span></label
+              >
+              <select name="phanloai" class="form-select" required>
+                <option value="">-- Chọn phân loại --</option>
+                <option value="Hạ tầng">Hạ tầng</option>
+                <option value="An ninh">An ninh</option>
+                <option value="Môi trường">Môi trường</option>
+                <option value="Y tế">Y tế</option>
+                <option value="Giáo dục">Giáo dục</option>
+                <option value="Giao thông">Giao thông</option>
+                <option value="Dân sinh">Dân sinh</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Mô tả</label>
+              <textarea
+                name="mota"
+                class="form-control"
+                rows="3"
+                placeholder="Mô tả chi tiết về vấn đề..."
+              ></textarea>
+            </div>
+
+            <hr />
+
+            <h5 class="mb-3">
+              <i class="fas fa-layer-group"></i> Gộp các phản ánh
+            </h5>
+
+            <div class="mb-3">
+              <label class="form-label"
+                >Chọn phản ánh để gộp vào vấn đề này</label
+              >
+              <small class="text-muted d-block mb-2">
+                Chọn các phản ánh có cùng chủ đề để gộp thành một vấn đề chung
+              </small>
+
+              <!-- List phản ánh chưa gộp -->
+              <div
+                class="border rounded p-3"
+                style="max-height: 400px; overflow-y: auto"
+              >
+                {% if ds_phananh_chua_gop %}
+                <div class="list-group">
+                  {% for pa in ds_phananh_chua_gop %}
+                  <div class="list-group-item">
+                    <div class="d-flex align-items-start">
+                      <div class="form-check flex-grow-1">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          name="maphananh[]"
+                          value="{{ pa[0] }}"
+                          id="pa_{{ pa[0] }}"
+                        />
+                        <label class="form-check-label" for="pa_{{ pa[0] }}">
+                          <strong>#{{ pa[0] }} - {{ pa[1] }}</strong>
+                          <br />
+                          <small class="text-muted">
+                            Loại:
+                            <span class="badge bg-light text-dark"
+                              >{{ pa[2] }}</span
+                            >
+                            Người gửi: {{ pa[3] }} Ngày: {{
+                            pa[4].strftime('%d/%m/%Y') if pa[4] else 'N/A' }}
+                          </small>
+                        </label>
+                      </div>
+                      <span class="badge bg-info ms-2"
+                        >{{ pa[6] }} lượt thích</span
+                      >
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">
+                  Không có phản ánh nào chưa được gộp vào vấn đề
+                </p>
+                {% endif %}
+              </div>
+
+              <small class="text-muted">
+                Chọn ít nhất 1 phản ánh để tạo vấn đề
+              </small>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{{ url_for('vande_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> Tạo vấn đề
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
-
-<script>
-function searchPhananh() {
-    const keyword = document.getElementById('searchPhananh').value;
-    if (!keyword) {
-        alert('Vui lòng nhập từ khóa tìm kiếm');
-        return;
-    }
-
-    fetch(`{{ url_for('phananh_list') }}?search=${keyword}`)
-        .then(response => response.text())
-        .then(html => {
-            // Parse HTML to get phananh items (simplified)
-            // In production, use proper API endpoint
-            document.getElementById('phananhList').innerHTML = 
-                '<p class="text-info">Tính năng tìm kiếm đang phát triển. Vui lòng nhập trực tiếp Mã PA.</p>' +
-                '<input type="text" name="list_maphananh" class="form-control" placeholder="VD: 1,2,3">';
-        });
-}
-</script>
 {% endblock %}
