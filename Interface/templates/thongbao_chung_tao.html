@@ -14,7 +14,7 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
-                    <form method="POST" action="{{ url_for('thongbao_chung_tao') }}">
+                    <form method="POST" action="{{ url_for('thongbao_chung_tao') }}" enctype="multipart/form-data">
                         <!-- Tiêu đề -->
                         <div class="mb-4">
                             <label for="tieude" class="form-label">
@@ -44,6 +44,18 @@
                                       placeholder="Nhập nội dung chi tiết thông báo..."
                                       required></textarea>
                             <small class="text-muted">Nội dung chi tiết, đầy đủ thông tin</small>
+                        </div>
+
+                        <!-- Đính kèm tệp -->
+                        <div class="mb-4">
+                            <label for="file" class="form-label">
+                                <strong>Đính kèm tệp</strong>
+                            </label>
+                            <input class="form-control" type="file" id="file" name="file">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Hỗ trợ: hình ảnh, pdf, doc, docx, xls, xlsx, zip. Tối đa 16MB.
+                            </small>
                         </div>
 
                         <!-- Tùy chọn gửi cho tất cả -->

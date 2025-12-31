@@ -1,117 +1,137 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-airplane-engines me-2"></i>Cấp giấy tạm vắng</h2>
-        <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Danh sách
-        </a>
-    </div>
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            {% if session.user.vaitro == 'NguoiDan' %}
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Trang chủ</a></li>
+            {% else %}
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('tam_vang_tru_list') }}" class="text-decoration-none">QL Tạm vắng/Tạm trú</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if session.user.vaitro == 'NguoiDan' %}Đăng ký tạm vắng{% else %}Cấp giấy tạm vắng{% endif %}
+            </li>
+        </ol>
+    </nav>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow border-0">
+                <div class="card-header bg-gradient bg-primary text-white py-3">
+                    <h5 class="mb-0 card-title fw-bold">
+                        <i class="bi bi-airplane-engines me-2"></i>
+                        {% if session.user.vaitro == 'NguoiDan' %}
+                            Đăng ký tạm vắng
+                        {% else %}
+                            Cấp giấy tạm vắng
+                        {% endif %}
+                    </h5>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+                
+                <div class="card-body p-4">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-info-circle me-2"></i>{{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-warning bg-opacity-10">
-            <h5 class="mb-0 text-warning"><i class="bi bi-file-earmark-text me-2"></i>Thông tin tạm vắng</h5>
-        </div>
-        <div class="card-body">
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>Giấy tạm vắng:</strong> Dành cho người dân tạm thời rời khỏi nơi cư trú thường xuyên 
-                để đi công tác, du lịch, hoặc ở tạm tại nơi khác trong một khoảng thời gian nhất định.
-            </div>
-
-            <form method="POST" action="{{ url_for('tam_vang_add') }}">
-                <!-- Chọn người -->
-                <div class="mb-4">
-                    <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-person-fill me-2"></i>Thông tin người tạm vắng
-                    </h6>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="cccd" class="form-label">
-                        CCCD người đăng ký <span class="text-danger">*</span>
-                        </label>
-                    <input type="text"
-                        class="form-control"
-                        id="cccd"
-                        name="cccd"
-                        placeholder="Nhập số CCCD (12 số)"
-                        maxlength="12"
-                   required>
-                <div class="form-text">
-                    Nhập đúng 12 số CCCD
-                </div>
-            </div>
-        </div>
-    </div>
-                <!-- Thời gian -->
-                <div class="mb-4">
-                    <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-calendar-range me-2"></i>Thời gian tạm vắng
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="ngaybatdau" class="form-label">
-                                Ngày bắt đầu <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" class="form-control" id="ngaybatdau" name="ngaybatdau" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="ngayketthuc" class="form-label">
-                                Ngày kết thúc (dự kiến)
-                            </label>
-                            <input type="date" class="form-control" id="ngayketthuc" name="ngayketthuc">
-                            <small class="text-muted">Để trống nếu chưa xác định</small>
+                    <div class="alert alert-light border-start border-4 border-info shadow-sm mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
+                            <div>
+                                <strong>Lưu ý:</strong> Khai báo tạm vắng dành cho công dân đi khỏi nơi cư trú hợp pháp để lao động, học tập hoặc vì mục đích khác trong thời gian nhất định.
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Lý do và nơi đến -->
-                <div class="mb-4">
-                    <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-journal-text me-2"></i>Thông tin bổ sung
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="lydo" class="form-label">Lý do tạm vắng</label>
-                            <select class="form-select" id="lydo" name="lydo">
-                                <option value="Công tác">Công tác</option>
-                                <option value="Du lịch">Du lịch</option>
-                                <option value="Thăm thân">Thăm thân</option>
-                                <option value="Học tập">Học tập</option>
-                                <option value="Chữa bệnh">Chữa bệnh</option>
-                                <option value="Khác">Khác</option>
-                            </select>
+                    <form method="POST" action="{{ url_for('tam_vang_add') }}" class="needs-validation" novalidate>
+                        
+                        <!-- Thông tin người đăng ký -->
+                        <div class="mb-4">
+                            <h6 class="text-uppercase text-secondary fw-bold border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-badge me-2"></i>Thông tin người đăng ký
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="cccd" class="form-label fw-bold">CCCD <span class="text-danger">*</span></label>
+                                {% if session.user.vaitro == 'NguoiDan' %}
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                        <input type="text" class="form-control bg-light" id="cccd" name="cccd" value="{{ session.user.cccd }}" readonly>
+                                    </div>
+                                    <div class="form-text text-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Đăng ký cho tài khoản hiện tại
+                                    </div>
+                                {% else %}
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control" id="cccd" name="cccd" required placeholder="Nhập số CCCD (12 số)" maxlength="12">
+                                    </div>
+                                    <div class="form-text">Nhập chính xác số CCCD của công dân cần cấp giấy</div>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="noiden" class="form-label">Nơi đến</label>
-                            <input type="text" class="form-control" id="noiden" name="noiden" 
-                                   placeholder="Địa chỉ nơi tạm vắng đến...">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle me-2"></i>Hủy
-                    </a>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="bi bi-check-circle me-2"></i>Cấp giấy tạm vắng
-                    </button>
+                        <!-- Chi tiết tạm vắng -->
+                        <div class="mb-4">
+                            <h6 class="text-uppercase text-secondary fw-bold border-bottom pb-2 mb-3">
+                                <i class="bi bi-calendar-event me-2"></i>Chi tiết tạm vắng
+                            </h6>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="ngaybatdau" class="form-label fw-bold">Ngày bắt đầu <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="ngaybatdau" name="ngaybatdau" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="ngayketthuc" class="form-label fw-bold">Ngày kết thúc (Dự kiến)</label>
+                                    <input type="date" class="form-control" id="ngayketthuc" name="ngayketthuc">
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="lydo" class="form-label fw-bold">Lý do <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="lydo" name="lydo" required>
+                                        <option value="" selected disabled>-- Chọn lý do --</option>
+                                        <option value="Công tác">Công tác</option>
+                                        <option value="Du lịch">Du lịch</option>
+                                        <option value="Thăm thân">Thăm thân</option>
+                                        <option value="Học tập">Học tập</option>
+                                        <option value="Chữa bệnh">Chữa bệnh</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="noiden" class="form-label fw-bold">Nơi đến <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="noiden" name="noiden" required placeholder="Nhập địa chỉ nơi đến...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-5">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-light border px-4">
+                                <i class="bi bi-x-lg me-2"></i>Hủy bỏ
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold">
+                                <i class="bi bi-send-fill me-2"></i>
+                                {% if session.user.vaitro == 'NguoiDan' %}
+                                    Gửi đăng ký
+                                {% else %}
+                                    Cấp giấy xác nhận
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

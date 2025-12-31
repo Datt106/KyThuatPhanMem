@@ -40,7 +40,11 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                            {% if session.user.vaitro == 'NguoiDan' %}
+                            <i class="bi bi-house-door-fill me-1"></i> Trang chủ
+                            {% else %}
                             <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            {% endif %}
                         </a>
                     </li>
                     
@@ -85,6 +89,17 @@
                                 </a>
                             </li>
                             {% endif %}
+                            
+                            {% if session.user.vaitro == 'NguoiDan' %}
+                            <li>
+                                <a class="dropdown-item {% if request.endpoint == 'tam_vang_add' %}active{% endif %}" 
+                                   href="{{ url_for('tam_vang_add') }}">
+                                    <i class="bi bi-airplane-engines me-2"></i>Đăng ký tạm vắng
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% if session.user.vaitro != 'NguoiDan' %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item {% if request.endpoint == 'thongbao_chung_list' %}active{% endif %}" 
@@ -92,10 +107,12 @@
                                     <i class="bi bi-megaphone me-2"></i>Bảng tin
                                 </a>
                             </li>
+                            {% endif %}
                         </ul>
                     </li>
                     
-                    <!-- Thống kê dropdown -->
+                    <!-- Thống kê dropdown (Chỉ CanBo/QuanLy) -->
+                    {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if request.endpoint in ['thongke_danso', 'thongke_tamvangtru'] %}active{% endif %}" 
                            href="#" id="thongkeDropdown" role="button" data-bs-toggle="dropdown">
@@ -116,6 +133,7 @@
                             </li>
                         </ul>
                     </li>
+                    {% endif %}
                     
                     <!-- Phản ánh & Kiến nghị dropdown -->
                     <li class="nav-item dropdown">

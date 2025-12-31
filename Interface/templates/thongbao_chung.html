@@ -44,6 +44,31 @@
                 <div class="card-body">
                     <div class="mb-3" style="white-space: pre-wrap;">{{ tb[2] }}</div>
                     
+                    {% if tb[7] %}
+                        <div class="mb-3 mt-3">
+                            {% set ext = tb[7].split('.')[-1].lower() %}
+                            {% if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                <div class="text-center mb-2">
+                                    <img src="{{ url_for('uploaded_file', filename=tb[7]) }}" 
+                                         class="img-fluid rounded shadow-sm border" 
+                                         style="max-height: 400px; width: auto;" 
+                                         alt="Hình ảnh đính kèm">
+                                </div>
+                            {% endif %}
+                            
+                            <div class="mt-2">
+                                <a href="{{ url_for('uploaded_file', filename=tb[7]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-paperclip me-2"></i>
+                                    {% if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                        Xem ảnh gốc / Tải xuống
+                                    {% else %}
+                                        Tải xuống tệp đính kèm (`{{ ext }}`)
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
                     <hr>
                     
                     <div class="d-flex justify-content-between align-items-center text-muted small">

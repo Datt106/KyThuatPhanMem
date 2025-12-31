@@ -98,26 +98,33 @@ def execute_query(query, params=None, fetch_one=False, fetch_all=False):
     try:
         cursor = connection.cursor()
         cursor.execute(query, params)
-        
         if fetch_one:
             result = cursor.fetchone()
         elif fetch_all:
             result = cursor.fetchall()
-        else:
+        else: # INSERT/UPDATE/DELETE
             connection.commit()
-            # Trả về rowcount (số bản ghi bị ảnh hưởng)
-            result = cursor.rowcount if cursor.rowcount >= 0 else 1
-        
+            result = True
+            
         cursor.close()
         connection.close()
         return result
-    
+        
     except Error as e:
-        print(f"Lỗi thực thi query: {e}")
+        print(f"Lỗi truy vấn: {e}")
         if connection:
-            connection.rollback()
             connection.close()
         return None
+
+# ========== FILE HELPER FUNCTIONS ==========
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 
 # ========== DECORATOR KIỂM TRA ĐĂNG NHẬP ==========
@@ -917,7 +924,61 @@ def settings():
 def dashboard():
     """Trang Dashboard - Thống kê và danh sách hộ khẩu với phân trang"""
     
-    # ========== CẤU HÌNH PHÂN TRANG ==========
+    # [NEW] Xử lý riêng cho vai trò NguoiDan: Hiển thị trang chủ với Thông báo chung
+    if session.get('user', {}).get('vaitro') == 'NguoiDan':
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
+        offset = (page - 1) * per_page
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        try:
+            # Lấy danh sách thông báo đang hiển thị
+            cur.execute("""
+                SELECT 
+                    tb.mathongbao,
+                    tb.tieude,
+                    tb.noidung,
+                    tb.thoigiandang,
+                    tb.nguoidang,
+                    n.name as ten_nguoidang,
+                    tb.trangthai,
+                    tdk.duongdan
+                FROM thongbao tb
+                LEFT JOIN nguoidung n ON tb.nguoidang = n.cccd
+                LEFT JOIN tepdinhkem tdk ON tb.matepdinhkem = tdk.matepdinhkem
+                WHERE tb.trangthai = 'HienThi'
+                ORDER BY tb.thoigiandang DESC
+                LIMIT %s OFFSET %s
+            """, (per_page, offset))
+            
+            thongbao_list = cur.fetchall()
+            
+            # Đếm tổng số
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM thongbao
+                WHERE trangthai = 'HienThi'
+            """)
+            
+            total = cur.fetchone()[0]
+            total_pages = (total + per_page - 1) // per_page
+            
+            conn.close()
+            
+            return render_template('thongbao_chung.html',
+                                 thongbao_list=thongbao_list,
+                                 page=page,
+                                 total_pages=total_pages)
+        
+        except Exception as e:
+            if conn:
+                conn.close()
+            flash(f'Lỗi khi tải trang chủ: {str(e)}', 'danger')
+            return render_template('thongbao_chung.html', thongbao_list=[], page=1, total_pages=1)
+
+    # ========== CẤU HÌNH PHÂN TRANG (Dành cho Cán bộ / Quản lý) ==========
     per_page = 20  # Số bản ghi mỗi trang
     
     # Lấy số trang từ URL, mặc định là 1
@@ -2889,6 +2950,7 @@ def thongke_danso():
 
 @app.route('/thong-ke/tam-vang-tru')
 @login_required
+@role_required(['CanBo', 'QuanLy'])
 def thongke_tamvangtru():
     """Báo cáo thống kê tạm vắng/tạm trú"""
     
@@ -2942,7 +3004,7 @@ def thongke_tamvangtru():
     query_detail = """
         SELECT 
             n.cccd,
-            n.hoten,
+            n.name,
             n.ngaysinh,
             n.gioitinh,
             dn.loaidiachi,
@@ -5551,6 +5613,7 @@ def thongbao_chung_list():
     
     try:
         # Lấy danh sách thông báo đang hiển thị
+        # Lấy danh sách thông báo đang hiển thị
         cur.execute("""
             SELECT 
                 tb.mathongbao,
@@ -5559,9 +5622,11 @@ def thongbao_chung_list():
                 tb.thoigiandang,
                 tb.nguoidang,
                 n.name as ten_nguoidang,
-                tb.trangthai
+                tb.trangthai,
+                tdk.duongdan
             FROM thongbao tb
             LEFT JOIN nguoidung n ON tb.nguoidang = n.cccd
+            LEFT JOIN tepdinhkem tdk ON tb.matepdinhkem = tdk.matepdinhkem
             WHERE tb.trangthai = 'HienThi'
             ORDER BY tb.thoigiandang DESC
             LIMIT %s OFFSET %s
@@ -5616,12 +5681,31 @@ def thongbao_chung_tao():
     cur = conn.cursor()
     
     try:
+        # Xử lý file đính kèm
+        matepdinhkem = None
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # Thêm timestamp hoặc uuid vào tên file để tránh trùng
+                unique_filename = f"{uuid.uuid4().hex[:8]}_{filename}"
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                file.save(file_path)
+                
+                # Lưu vào bảng tepdinhkem
+                cur.execute("""
+                    INSERT INTO tepdinhkem (duongdan)
+                    VALUES (%s)
+                    RETURNING matepdinhkem
+                """, (unique_filename,))
+                matepdinhkem = cur.fetchone()[0]
+        
         # 1. Tạo thông báo chung
         cur.execute("""
-            INSERT INTO thongbao (tieude, noidung, nguoidang, trangthai)
-            VALUES (%s, %s, %s, 'HienThi')
+            INSERT INTO thongbao (tieude, noidung, nguoidang, trangthai, matepdinhkem)
+            VALUES (%s, %s, %s, 'HienThi', %s)
             RETURNING mathongbao
-        """, (tieude, noidung, cccd))
+        """, (tieude, noidung, cccd, matepdinhkem))
         
         mathongbao = cur.fetchone()[0]
         
@@ -5991,7 +6075,7 @@ def reports_vande():
         # 3. Thống kê theo cán bộ xử lý
         cur.execute(f"""
             SELECT 
-                n.hovaten,
+                n.name,
                 n.cccd,
                 COUNT(v.mavande) as total_handled,
                 COUNT(CASE WHEN v.trangthai = 'Đã giải quyết' THEN 1 END) as resolved,
@@ -6000,7 +6084,7 @@ def reports_vande():
             FROM vande v
             JOIN nguoidung n ON v.cccd_canbo_xuly = n.cccd
             {where_clause}
-            GROUP BY n.hovaten, n.cccd
+            GROUP BY n.name, n.cccd
             ORDER BY total_handled DESC
         """, params)
         
