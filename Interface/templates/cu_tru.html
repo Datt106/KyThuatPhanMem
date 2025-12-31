@@ -171,6 +171,12 @@
                                            title="Thay đổi địa chỉ">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
+                                    {% elif rec[5] and rec[5] < now.date() and session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                                        <a href="{{ url_for('cu_tru_gia_han', cccd=rec[0], thoidiemketthuc=rec[5].strftime('%Y-%m-%d')) }}" 
+                                           class="btn btn-sm btn-success" 
+                                           title="Gia hạn cư trú">
+                                            <i class="bi bi-arrow-repeat"></i> Gia hạn
+                                        </a>
                                     {% else %}
                                         <span class="text-muted">—</span>
                                     {% endif %}

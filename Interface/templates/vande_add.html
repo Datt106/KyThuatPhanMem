@@ -89,8 +89,8 @@ content %}
                             <span class="badge bg-light text-dark"
                               >{{ pa[2] }}</span
                             >
-                            Người gửi: {{ pa[3] }} Ngày: {{
-                            pa[4].strftime('%d/%m/%Y') if pa[4] else 'N/A' }}
+                            | Người gửi: {{ pa[3] or 'N/A' }}
+                            | Ngày: {{ pa[4][:10] if pa[4] else 'N/A' }}
                           </small>
                         </label>
                       </div>

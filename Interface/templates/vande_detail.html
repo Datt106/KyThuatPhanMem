@@ -46,8 +46,26 @@
                             <p><strong>Cán bộ xử lý:</strong> {{ vande[7] or 'Chưa gán' }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Ngày tạo:</strong> {{ vande[5].strftime('%d/%m/%Y %H:%M') if vande[5] else '' }}</p>
-                            <p><strong>Ngày cập nhật:</strong> {{ vande[6].strftime('%d/%m/%Y %H:%M') if vande[6] else 'Chưa cập nhật' }}</p>
+                            <p><strong>Ngày tạo:</strong>
+                                {% if vande[5] %}
+                                    {% if vande[5].__class__.__name__ == 'datetime' %}
+                                        {{ vande[5].strftime('%d/%m/%Y %H:%M') }}
+                                    {% else %}
+                                        {{ vande[5][:16] }}
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                            <p><strong>Ngày cập nhật:</strong>
+                                {% if vande[6] %}
+                                    {% if vande[6].__class__.__name__ == 'datetime' %}
+                                        {{ vande[6].strftime('%d/%m/%Y %H:%M') }}
+                                    {% else %}
+                                        {{ vande[6][:16] }}
+                                    {% endif %}
+                                {% else %}
+                                    Chưa cập nhật
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
 
@@ -90,7 +108,15 @@
                                                 {{ pa[3] }}
                                             </span>
                                         </td>
-                                        <td>{{ pa[4].strftime('%d/%m/%Y') if pa[4] else '' }}</td>
+                                        <td>
+                                            {% if pa[4] %}
+                                                {% if pa[4].__class__.__name__ == 'datetime' %}
+                                                    {{ pa[4].strftime('%d/%m/%Y') }}
+                                                {% else %}
+                                                    {{ pa[4][:10] }}
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             <a href="{{ url_for('phananh_detail', maphananh=pa[0]) }}" 
                                                class="btn btn-sm btn-info">

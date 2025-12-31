@@ -53,9 +53,9 @@ pdfmetrics.registerFont(
 
 # ========== CẤU HÌNH DATABASE ==========
 DB_CONFIG = {
-    'database': 'KTPM',
+    'database': 'QuanLyPhanAnh',
     'user': 'postgres',
-    'password': 'admin',
+    'password': '271205',
     'host': 'localhost',
     'port': '5432'
 
@@ -2107,6 +2107,7 @@ def tam_vang_tru_ket_thuc(cccd, loai):
 
 @app.route('/tam-vang-tru')
 @login_required
+@role_required(['CanBo', 'QuanLy'])
 def tam_vang_tru_list():
     """Danh sách tạm vắng/tạm trú"""
     
@@ -2216,6 +2217,7 @@ def tam_vang_tru_list():
 
 @app.route('/cu-tru')
 @login_required
+@role_required(['CanBo', 'QuanLy'])
 def cu_tru_list():
     """Danh sách cư trú với thống kê, tìm kiếm và lọc"""
     
@@ -2429,6 +2431,43 @@ def cu_tru_add():
     return render_template('cu_tru_add.html', nguoidung_list=nguoidung_list, now=datetime.now())
 
 
+# ========== GIA HẠN CƯ TRÚ ========== 
+@app.route('/cu-tru/gia-han/<string:cccd>/<string:thoidiemketthuc>', methods=['GET', 'POST'])
+@login_required
+@role_required(['CanBo', 'QuanLy'])
+def cu_tru_gia_han(cccd, thoidiemketthuc):
+    """Gia hạn cư trú đã hết hạn cho người dùng"""
+    # Lấy bản ghi cư trú hết hạn cụ thể
+    query = '''
+        SELECT dcnd.madiachi, dcnd.cccd, dcnd.loaidiachi, dcnd.thoidiemxacnhan, dcnd.thoidiemketthuc,
+               dc.chitiet, dc.xaphuong, dc.tinh
+        FROM diachinguoidung dcnd
+        JOIN diachi dc ON dcnd.madiachi = dc.madiachi
+        WHERE dcnd.cccd = %s AND dcnd.loaidiachi = 'CuTru' AND dcnd.thoidiemketthuc = %s
+    '''
+    record = execute_query(query, (cccd, thoidiemketthuc), fetch_one=True)
+    if not record:
+        flash('Không tìm thấy bản ghi cư trú cần gia hạn!', 'danger')
+        return redirect(url_for('cu_tru_list'))
+    if request.method == 'POST':
+        new_end = request.form.get('new_thoidiemketthuc', '').strip()
+        if not new_end:
+            flash('Vui lòng nhập ngày kết thúc mới!', 'danger')
+            return redirect(request.url)
+        # Cập nhật ngày kết thúc mới
+        update = execute_query(
+            'UPDATE diachinguoidung SET thoidiemketthuc = %s WHERE cccd = %s AND loaidiachi = %s AND thoidiemketthuc = %s',
+            (new_end, cccd, 'CuTru', thoidiemketthuc)
+        )
+        if update:
+            flash('Gia hạn cư trú thành công!', 'success')
+            return redirect(url_for('cu_tru_list'))
+        else:
+            flash('Lỗi khi gia hạn cư trú!', 'danger')
+            return redirect(request.url)
+    from datetime import datetime
+    return render_template('cu_tru_gia_han.html', record=record, now=datetime.now())
+
 @app.route('/cu-tru/edit/<string:cccd>', methods=['GET', 'POST'])
 @login_required
 def cu_tru_edit(cccd):
@@ -2521,18 +2560,42 @@ def cu_tru_edit(cccd):
     record = execute_query(query, (cccd,), fetch_one=True)
     
     if not record:
-        # Kiểm tra xem có bản ghi cư trú nào không (kể cả hết hạn)
-        check_query = """
-            SELECT COUNT(*) FROM diachinguoidung 
-            WHERE cccd = %s AND loaidiachi = 'CuTru'
-        """
-        has_any_record = execute_query(check_query, (cccd,), fetch_one=True)
-        
-        if has_any_record and has_any_record[0] > 0:
-            flash('Tất cả bản ghi cư trú của người này đã hết hạn! Vui lòng đăng ký cư trú mới.', 'warning')
+        # Nếu là cán bộ/QL thì lấy bản ghi cư trú gần nhất (kể cả hết hạn)
+        if user_role in ['CanBo', 'QuanLy']:
+            query_latest = """
+                SELECT 
+                    n.cccd,
+                    n.name,
+                    n.ngaysinh,
+                    dcnd.thoidiemxacnhan,
+                    dc.chitiet,
+                    dc.xaphuong,
+                    dc.tinh
+                FROM diachinguoidung dcnd
+                JOIN nguoidung n ON dcnd.cccd = n.cccd
+                JOIN diachi dc ON dcnd.madiachi = dc.madiachi
+                WHERE dcnd.cccd = %s 
+                AND dcnd.loaidiachi = 'CuTru'
+                ORDER BY COALESCE(dcnd.thoidiemketthuc, '9999-12-31') DESC
+                LIMIT 1
+            """
+            record = execute_query(query_latest, (cccd,), fetch_one=True)
+            if not record:
+                flash('Người này chưa có thông tin cư trú! Vui lòng đăng ký cư trú trước.', 'info')
+                return redirect(url_for('cu_tru_list'))
+            flash('Lưu ý: Tất cả bản ghi cư trú đã hết hạn. Bạn đang thay đổi từ địa chỉ cũ nhất.', 'warning')
         else:
-            flash('Người này chưa có thông tin cư trú! Vui lòng đăng ký cư trú trước.', 'info')
-        return redirect(url_for('cu_tru_list'))
+            # Người dân vẫn giữ logic cũ
+            check_query = """
+                SELECT COUNT(*) FROM diachinguoidung 
+                WHERE cccd = %s AND loaidiachi = 'CuTru'
+            """
+            has_any_record = execute_query(check_query, (cccd,), fetch_one=True)
+            if has_any_record and has_any_record[0] > 0:
+                flash('Tất cả bản ghi cư trú của người này đã hết hạn! Vui lòng đăng ký cư trú mới.', 'warning')
+            else:
+                flash('Người này chưa có thông tin cư trú! Vui lòng đăng ký cư trú trước.', 'info')
+            return redirect(url_for('cu_tru_list'))
     
     from datetime import datetime
     return render_template('cu_tru_edit.html', record=record, now=datetime.now())
@@ -3968,9 +4031,8 @@ def phananh_delete(maphananh):
 
 @app.route('/vande')
 @login_required
-@role_required(['CanBo', 'QuanLy'])
 def vande_list():
-    """Danh sách vấn đề - Chỉ Cán bộ/Quản lý"""
+    """Danh sách vấn đề - Tất cả người dùng có thể xem"""
     
     # Lấy tham số filter
     trangthai = request.args.get('trangthai', '').strip()
@@ -4041,17 +4103,107 @@ def vande_list():
     """
     
     params_list = params + [per_page, offset]
-    ds_vande = execute_query(query_list, tuple(params_list), fetch_all=True)
-    ds_vande = ds_vande if ds_vande else []
+    vande_list = execute_query(query_list, tuple(params_list), fetch_all=True)
+    vande_list = vande_list if vande_list else []
     
     return render_template('vande_list.html',
-                         ds_vande=ds_vande,
+                         vande_list=vande_list,
                          page=page,
                          per_page=per_page,
                          total_pages=total_pages,
                          trangthai=trangthai,
                          phanloai=phanloai,
                          search=search)
+
+
+# ========== VẤN ĐỀ PUBLIC CHO NGƯỜI DÂN ==========
+@app.route('/vande-public')
+@login_required
+def vande_public_list():
+    """Danh sách vấn đề cho người dân (chỉ xem, không thao tác)"""
+    trangthai = request.args.get('trangthai', '').strip()
+    phanloai = request.args.get('phanloai', '').strip()
+    search = request.args.get('search', '').strip()
+    per_page = 20
+    try:
+        page = int(request.args.get('page', 1))
+        if page < 1:
+            page = 1
+    except (ValueError, TypeError):
+        page = 1
+    offset = (page - 1) * per_page
+    where_conditions = []
+    params = []
+    if trangthai:
+        where_conditions.append("v.trangthai = %s")
+        params.append(trangthai)
+    if phanloai:
+        where_conditions.append("v.phanloai = %s")
+        params.append(phanloai)
+    if search:
+        where_conditions.append("v.tenvande ILIKE %s")
+        params.append(f'%{search}%')
+    where_clause = " AND ".join(where_conditions) if where_conditions else "1=1"
+    query_list = f"""
+        SELECT 
+            v.mavande,
+            v.tenvande,
+            v.phanloai,
+            v.trangthai,
+            v.ngaytao,
+            v.ngaycapnhat,
+            n.name AS ten_canbo
+        FROM vande v
+        LEFT JOIN nguoidung n ON v.cccd_canbo_xuly = n.cccd
+        WHERE {where_clause}
+        ORDER BY v.ngaytao DESC
+        LIMIT %s OFFSET %s
+    """
+    params_list = params + [per_page, offset]
+    vande_list = execute_query(query_list, tuple(params_list), fetch_all=True)
+    vande_list = vande_list if vande_list else []
+    return render_template('vande_public_list.html', vande_list=vande_list, page=page, per_page=per_page, trangthai=trangthai, phanloai=phanloai, search=search)
+
+@app.route('/vande-public/<int:mavande>')
+@login_required
+def vande_public_detail(mavande):
+    """Chi tiết vấn đề cho người dân (chỉ xem)"""
+    query_vande = """
+        SELECT 
+            v.mavande,
+            v.tenvande,
+            v.phanloai,
+            v.trangthai,
+            v.ketqua,
+            v.ngaytao,
+            v.ngaycapnhat,
+            v.cccd_canbo_xuly,
+            n.name AS ten_canbo,
+            n.sdt AS sdt_canbo
+        FROM vande v
+        LEFT JOIN nguoidung n ON v.cccd_canbo_xuly = n.cccd
+        WHERE v.mavande = %s
+    """
+    vande = execute_query(query_vande, (mavande,), fetch_one=True)
+    if not vande:
+        flash('Không tìm thấy vấn đề!', 'danger')
+        return redirect(url_for('vande_public_list'))
+    query_phananh = """
+        SELECT 
+            p.maphananh,
+            p.cccd,
+            n.name AS nguoi_tao,
+            p.tieude,
+            p.loaiphananh,
+            p.thoigiantao
+        FROM phananh p
+        LEFT JOIN nguoidung n ON p.cccd = n.cccd
+        WHERE p.mavande = %s
+        ORDER BY p.thoigiantao DESC
+    """
+    ds_phananh = execute_query(query_phananh, (mavande,), fetch_all=True)
+    ds_phananh = ds_phananh if ds_phananh else []
+    return render_template('vande_public_detail.html', vande=vande, ds_phananh=ds_phananh)
 
 
 @app.route('/vande/add', methods=['GET', 'POST'])
@@ -4105,33 +4257,48 @@ def vande_add():
         
         # Tạo vấn đề mới
         cccd_canbo_xuly = session['user']['cccd']
-        query_vande = """
-            INSERT INTO vande (tenvande, phanloai, trangthai, cccd_canbo_xuly)
-            VALUES (%s, %s, 'Moi', %s)
-            RETURNING mavande
-        """
-        result = execute_query(
-            query_vande,
-            (tenvande, phanloai, cccd_canbo_xuly),
-            fetch_one=True
-        )
         
-        if result:
-            mavande = result[0]
+        connection = get_db_connection()
+        if not connection:
+            flash('Lỗi kết nối database!', 'danger')
+            return redirect(url_for('vande_add'))
+        
+        try:
+            cursor = connection.cursor()
+            
+            # Insert vào bảng vande
+            cursor.execute("""
+                INSERT INTO vande (tenvande, phanloai, trangthai, cccd_canbo_xuly)
+                VALUES (%s, %s, 'Moi', %s)
+                RETURNING mavande
+            """, (tenvande, phanloai, cccd_canbo_xuly))
+            
+            mavande = cursor.fetchone()[0]
             
             # Gộp các phản ánh vào vấn đề
+            placeholders = ','.join(['%s'] * len(list_maphananh))
             query_update = f"""
                 UPDATE phananh 
                 SET mavande = %s 
                 WHERE maphananh IN ({placeholders})
             """
-            params_update = [mavande] + list_maphananh
-            execute_query(query_update, tuple(params_update))
+            params_update = [mavande] + list(map(int, list_maphananh))
+            cursor.execute(query_update, tuple(params_update))
+            
+            connection.commit()
+            cursor.close()
+            connection.close()
             
             flash(f'Đã tạo vấn đề "{tenvande}" và gộp {len(list_maphananh)} phản ánh thành công!', 'success')
             return redirect(url_for('vande_detail', mavande=mavande))
-        else:
-            flash('Có lỗi xảy ra khi tạo vấn đề!', 'danger')
+            
+        except Exception as e:
+            if connection:
+                connection.rollback()
+                connection.close()
+            print(f'Lỗi tạo vấn đề: {e}')
+            flash(f'Có lỗi xảy ra khi tạo vấn đề: {str(e)}', 'danger')
+            return redirect(url_for('vande_add'))
     
     # GET: Lấy danh sách phản ánh chưa gộp
     query_phananh = """

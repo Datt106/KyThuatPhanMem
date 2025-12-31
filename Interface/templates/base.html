@@ -57,6 +57,7 @@
                                     <i class="bi bi-people me-2"></i>Nhân khẩu
                                 </a>
                             </li>
+                            {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
                             <li>
                                 <a class="dropdown-item {% if request.endpoint == 'hokhau_list' %}active{% endif %}" 
                                    href="{{ url_for('hokhau_list') }}">
@@ -83,6 +84,7 @@
                                     <i class="bi bi-file-earmark-text me-2"></i>Đơn đăng ký
                                 </a>
                             </li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item {% if request.endpoint == 'thongbao_chung_list' %}active{% endif %}" 
@@ -94,7 +96,6 @@
                     </li>
                     
                     <!-- Thống kê dropdown -->
-                     {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if request.endpoint in ['thongke_danso', 'thongke_tamvangtru'] %}active{% endif %}" 
                            href="#" id="thongkeDropdown" role="button" data-bs-toggle="dropdown">
@@ -115,7 +116,7 @@
                             </li>
                         </ul>
                     </li>
-                    {% endif %}
+                    
                     <!-- Phản ánh & Kiến nghị dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if request.endpoint in ['phananh_list', 'newsfeed', 'vande_list', 'reports_overview'] %}active{% endif %}" 
@@ -135,6 +136,14 @@
                                     <i class="bi bi-chat-left-text me-2"></i>Phản ánh của tôi
                                 </a>
                             </li>
+                               {% if session.user.vaitro == 'NguoiDan' %}
+                               <li>
+                                   <a class="dropdown-item {% if request.endpoint == 'vande_public_list' %}active{% endif %}"
+                                      href="{{ url_for('vande_public_list') }}">
+                                       <i class="bi bi-list-task me-2"></i>Vấn đề cộng đồng
+                                   </a>
+                               </li>
+                               {% endif %}
                             {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
                             <li><hr class="dropdown-divider"></li>
                             <li>

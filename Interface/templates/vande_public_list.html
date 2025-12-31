@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Danh sách vấn đề{% endblock %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-primary mb-0"><i class="bi bi-list-task me-2"></i>Các vấn đề cộng đồng</h2>
+            <p class="text-muted mt-2 mb-0">Theo dõi tiến độ xử lý các vấn đề được phản ánh bởi người dân.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <!-- Optional: Search or Filter could go here in future -->
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="alert alert-light border-0 shadow-sm mb-4 d-flex align-items-center" role="alert">
+        <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
+        <div>
+            Trang này hiển thị danh sách các vấn đề chung. Người dân có thể xem chi tiết để nắm bắt tình hình giải quyết.
+        </div>
+    </div>
+
+    {% if vande_list %}
+        <div class="row">
+        {% for v in vande_list %}
+            <!-- v[0]: mavande, v[1]: tenvande, v[2]: phanloai, v[3]: trangthai, v[4]: ngaytao, v[5]: ngaycapnhat, v[6]: canbo_ten -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ url_for('vande_public_detail', mavande=v[0]) }}" class="text-decoration-none text-dark">
+                    <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                {% if v[3] == 'Moi' %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Mới</span>
+                                {% elif v[3] == 'DangXuLy' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">Đang xử lý</span>
+                                {% elif v[3] == 'DaGiaiQuyet' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">Đã giải quyết</span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill">{{ v[3] }}</span>
+                                {% endif %}
+                                <small class="text-muted" title="Ngày tạo">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    {{ v[4].strftime('%d/%m/%Y') if v[4] else '' }}
+                                </small>
+                            </div>
+                            
+                            <h5 class="card-title fw-bold text-truncate-2 mb-3" style="min-height: 3rem;">{{ v[1] }}</h5>
+                            
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-light text-dark border me-2">
+                                    <i class="bi bi-tag-fill me-1 text-muted"></i>{{ v[2] }}
+                                </span>
+                            </div>
+                            
+                            <div class="d-flex align-items-center text-muted small mt-3 pt-3 border-top">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle p-1 me-2 d-flex justify-content-center align-items-center" style="width: 24px; height: 24px;">
+                                        <i class="bi bi-person-fill text-muted" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <span>{{ v[6] or 'Chưa phân công' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <img src="{{ url_for('static', filename='images/empty-state.svg') }}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/7486/7486777.png'" alt="No data" style="width: 150px; opacity: 0.5;" class="mb-3">
+            <h5 class="text-muted">Chưa có vấn đề nào được ghi nhận</h5>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
