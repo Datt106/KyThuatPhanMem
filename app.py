@@ -13,8 +13,11 @@ from datetime import datetime
 from io import BytesIO
 from werkzeug.utils import secure_filename
 import uuid
-from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
 from flask import Response
 import io
 try:
@@ -42,17 +45,21 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 # Tạo thư mục file nếu chưa tồn tại
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+# ==================LOAD FONT=====================
+pdfmetrics.registerFont(
+    TTFont("NotoSans", "asset/fonts/NotoSans.ttf")
+)
+
 
 # ========== CẤU HÌNH DATABASE ==========
 DB_CONFIG = {
-    'database': 'qlpa',
+    'database': 'KTPM',
     'user': 'postgres',
-    'password': 'tiendat0604',
+    'password': 'admin',
     'host': 'localhost',
     'port': '5432'
 
 }
-
 
 # ========== HÀM KẾT NỐI DATABASE ==========
 def get_db_connection():
@@ -765,7 +772,7 @@ def profile():
     query_hokhau = """
         SELECT 
             h.mahokhau,
-            tv.quanhechuo,
+            tv.quanhechuho,
             h.ngaycap,
             d.tinh as hk_tinh,
             d.xaphuong as hk_xaphuong,
@@ -1838,23 +1845,87 @@ def tam_vang_add():
 @app.route('/tam-vang-tru/pdf/<cccd>/<loai>')
 @login_required
 def tam_vang_tru_pdf(cccd, loai):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT n.name, n.ngaysinh, n.sdt, n.dantoc, n.gioitinh
+        FROM nguoidung n
+        WHERE n.cccd = %s
+    """, (cccd,))
+    row = cursor.fetchone()
+
+    if not row:
+        return "Không tìm thấy công dân", 404
+
+    name, ngaysinh, sdt, dantoc, gioitinh = row
+
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
 
-    c.setFont("Helvetica", 12)
-    c.drawString(100, 800, f"GIẤY {loai.upper()}")
-    c.drawString(100, 770, f"CCCD: {cccd}")
+    # ===== HEADER =====
+    c.setFont("NotoSans", 12)
+    c.drawCentredString(width / 2, height - 2*cm, "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM")
+    c.drawCentredString(width / 2, height - 2.8*cm, "Độc lập - Tự do - Hạnh phúc")
+    c.line(5*cm, height - 3.1*cm, width - 5*cm, height - 3.1*cm)
 
+    # ===== TITLE =====
+    c.setFont("NotoSans", 16)
+    c.drawCentredString(width / 2, height - 4.5*cm, f"GIẤY {loai.upper()}")
+
+    # ===== CONTENT =====
+    c.setFont("NotoSans", 12)
+    y = height - 6*cm
+    line_gap = 18
+
+    c.drawString(3*cm, y, f"Họ và tên: {name}")
+    y -= line_gap
+
+    c.drawString(3*cm, y, f"Ngày sinh: {ngaysinh.strftime('%d/%m/%Y') if ngaysinh else ''}")
+    y -= line_gap
+
+    c.drawString(3*cm, y, f"Giới tính: {gioitinh}")
+    y -= line_gap
+
+    c.drawString(3*cm, y, f"Dân tộc: {dantoc}")
+    y -= line_gap
+
+    c.drawString(3*cm, y, f"Số CCCD: {cccd}")
+    y -= line_gap
+
+    c.drawString(3*cm, y, f"Số điện thoại: {sdt}")
+    y -= line_gap * 2
+
+    c.drawString(3*cm, y, f"Lý do {loai.lower()}: .........................................................")
+    y -= line_gap
+
+    c.drawString(3*cm, y, f"Thời gian: Từ ngày ....../....../...... đến ngày ....../....../......")
+    y -= line_gap * 2
+
+    c.drawString(3*cm, y, "Công dân cam kết những thông tin trên là đúng sự thật.")
+    y -= line_gap * 2
+
+    # ===== SIGNATURE =====
+    c.drawString(width - 8*cm, y, "Ngày ..... tháng ..... năm .....")
+    y -= line_gap * 2
+
+    c.drawString(3*cm, y, "XÁC NHẬN CỦA CƠ QUAN")
+    c.drawString(width - 7*cm, y, "NGƯỜI KHAI")
+    y -= line_gap * 3
+
+    c.drawString(width - 7*cm, y, name)
+
+    # ===== FINISH =====
     c.showPage()
     c.save()
-
     buffer.seek(0)
 
     return Response(
         buffer,
         mimetype="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename={loai}_{cccd}.pdf"
+            "Content-Disposition": f"attachment; filename=giay_{loai}_{cccd}.pdf"
         }
     )
 @app.route('/tam-tru/add', methods=['GET', 'POST'])

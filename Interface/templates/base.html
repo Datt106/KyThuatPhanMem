@@ -94,6 +94,7 @@
                     </li>
                     
                     <!-- Thống kê dropdown -->
+                     {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if request.endpoint in ['thongke_danso', 'thongke_tamvangtru'] %}active{% endif %}" 
                            href="#" id="thongkeDropdown" role="button" data-bs-toggle="dropdown">
@@ -114,7 +115,7 @@
                             </li>
                         </ul>
                     </li>
-                    
+                    {% endif %}
                     <!-- Phản ánh & Kiến nghị dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if request.endpoint in ['phananh_list', 'newsfeed', 'vande_list', 'reports_overview'] %}active{% endif %}" 
