@@ -1,155 +1,283 @@
 {% extends "base.html" %}
 
-{% block title %}Quản lý Vấn đề{% endblock %}
+{% block title %}Quản lý Vấn đề - Cổng Thông tin{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-tasks"></i> Quản lý Vấn đề</h2>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4 animate-fade-in-up">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-briefcase me-2"></i>Quản lý Vấn đề
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Vấn đề</li>
+                        </ol>
+                    </nav>
+                </div>
                 {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
-                <a href="{{ url_for('vande_add') }}" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Tạo vấn đề mới
+                <a href="{{ url_for('vande_add') }}" class="btn btn-primary shadow-sm hover-lift fw-bold">
+                    <i class="bi bi-plus-lg me-1"></i>Tạo vấn đề mới
                 </a>
                 {% endif %}
             </div>
+        </div>
+    </div>
 
-            <!-- Filter & Search -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('vande_list') }}">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label>Trạng thái</label>
-                                <select name="trangthai" class="form-select">
-                                    <option value="">-- Tất cả --</option>
-                                    <option value="Mới" {% if trangthai == 'Mới' %}selected{% endif %}>Mới</option>
-                                    <option value="Đang xử lý" {% if trangthai == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
-                                    <option value="Đã giải quyết" {% if trangthai == 'Đã giải quyết' %}selected{% endif %}>Đã giải quyết</option>
-                                    <option value="Đóng" {% if trangthai == 'Đóng' %}selected{% endif %}>Đóng</option>
-                                </select>
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted fw-bold text-uppercase small ls-1">Tổng số vấn đề</small>
+                            <h3 class="mb-0 fw-bold text-primary">{{ vande_list|length }}</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-briefcase fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                             <small class="text-muted fw-bold text-uppercase small ls-1">Mới ghi nhận</small>
+                            <h3 class="mb-0 fw-bold text-danger">
+                                {{ vande_list|selectattr(3, 'equalto', 'Mới')|list|length if vande_list else 0 }}
+                            </h3>
+                        </div>
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-exclamation-circle fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                             <small class="text-muted fw-bold text-uppercase small ls-1">Đang xử lý</small>
+                            <h3 class="mb-0 fw-bold text-warning">
+                                {{ vande_list|selectattr(3, 'equalto', 'Đang xử lý')|list|length if vande_list else 0 }}
+                            </h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                             <small class="text-muted fw-bold text-uppercase small ls-1">Đã giải quyết</small>
+                            <h3 class="mb-0 fw-bold text-success">
+                                {{ vande_list|selectattr(3, 'equalto', 'Đã giải quyết')|list|length if vande_list else 0 }}
+                            </h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-check-circle fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search -->
+    <div class="row mb-4 animate-fade-in-up" style="animation-delay: 0.2s;">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm glass-card">
+                <div class="card-body py-3">
+                    <form method="GET" action="{{ url_for('vande_list') }}" class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-muted">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control hover-shadow border-start-0 ps-0" 
+                                       placeholder="Tìm kiếm vấn đề..." value="{{ search }}">
                             </div>
-                            <div class="col-md-3">
-                                <label>Phân loại</label>
-                                <select name="phanloai" class="form-select">
-                                    <option value="">-- Tất cả --</option>
-                                    <option value="Hạ tầng" {% if phanloai == 'Hạ tầng' %}selected{% endif %}>Hạ tầng</option>
-                                    <option value="An ninh" {% if phanloai == 'An ninh' %}selected{% endif %}>An ninh</option>
-                                    <option value="Môi trường" {% if phanloai == 'Môi trường' %}selected{% endif %}>Môi trường</option>
-                                    <option value="Y tế" {% if phanloai == 'Y tế' %}selected{% endif %}>Y tế</option>
-                                    <option value="Giáo dục" {% if phanloai == 'Giáo dục' %}selected{% endif %}>Giáo dục</option>
-                                    <option value="Giao thông" {% if phanloai == 'Giao thông' %}selected{% endif %}>Giao thông</option>
-                                    <option value="Dân sinh" {% if phanloai == 'Dân sinh' %}selected{% endif %}>Dân sinh</option>
-                                    <option value="Khác" {% if phanloai == 'Khác' %}selected{% endif %}>Khác</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label>Tìm kiếm</label>
-                                <input type="text" name="search" class="form-control" 
-                                       placeholder="Tên vấn đề..." value="{{ search }}">
-                            </div>
-                            <div class="col-md-2">
-                                <label>&nbsp;</label>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search"></i> Tìm
-                                </button>
-                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="trangthai" class="form-select hover-shadow cursor-pointer">
+                                <option value="">-- Tất cả trạng thái --</option>
+                                <option value="Mới" {% if trangthai == 'Mới' %}selected{% endif %}>Mới</option>
+                                <option value="Đang xử lý" {% if trangthai == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
+                                <option value="Đã giải quyết" {% if trangthai == 'Đã giải quyết' %}selected{% endif %}>Đã giải quyết</option>
+                                <option value="Đóng" {% if trangthai == 'Đóng' %}selected{% endif %}>Đóng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="phanloai" class="form-select hover-shadow cursor-pointer">
+                                <option value="">-- Tất cả phân loại --</option>
+                                <option value="Hạ tầng" {% if phanloai == 'Hạ tầng' %}selected{% endif %}>Hạ tầng</option>
+                                <option value="An ninh" {% if phanloai == 'An ninh' %}selected{% endif %}>An ninh</option>
+                                <option value="Môi trường" {% if phanloai == 'Môi trường' %}selected{% endif %}>Môi trường</option>
+                                <option value="Y tế" {% if phanloai == 'Y tế' %}selected{% endif %}>Y tế</option>
+                                <option value="Giáo dục" {% if phanloai == 'Giáo dục' %}selected{% endif %}>Giáo dục</option>
+                                <option value="Giao thông" {% if phanloai == 'Giao thông' %}selected{% endif %}>Giao thông</option>
+                                <option value="Dân sinh" {% if phanloai == 'Dân sinh' %}selected{% endif %}>Dân sinh</option>
+                                <option value="Khác" {% if phanloai == 'Khác' %}selected{% endif %}>Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm hover-lift fw-medium">
+                                <i class="bi bi-funnel me-1"></i>Lọc
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Vấn đề list -->
+    <!-- Vấn đề list -->
+    <div class="row animate-fade-in-up" style="animation-delay: 0.3s;">
+        <div class="col-12">
             {% if vande_list %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Mã VĐ</th>
-                                <th>Tên vấn đề</th>
-                                <th>Phân loại</th>
-                                <th>Trạng thái</th>
-                                <th>Số PA</th>
-                                <th>Tổng Like</th>
-                                <th>Tổng Comment</th>
-                                <th>Cán bộ xử lý</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for vd in vande_list %}
-                            <tr>
-                                <td>{{ vd[0] }}</td>
-                                <td>
-                                    <a href="{{ url_for('vande_detail', mavande=vd[0]) }}">
-                                        {{ vd[1] }}
-                                    </a>
-                                </td>
-                                <td><span class="badge bg-info">{{ vd[2] }}</span></td>
-                                <td>
-                                    <span class="badge bg-{{ 'success' if vd[3] == 'Đã giải quyết' else 'warning' if vd[3] == 'Đang xử lý' else 'secondary' }}">
-                                        {{ vd[3] }}
-                                    </span>
-                                </td>
-                                <td><span class="badge bg-primary">{{ vd[7] or 0 }}</span></td>
-                                <td>{{ vd[9] or 0 }}</td>
-                                <td>{{ vd[10] or 0 }}</td>
-                                <td>{{ vd[6] or 'Chưa gán' }}</td>
-                                <td>
-                                    {% if vd[4] %}
-                                        {% if vd[4].__class__.__name__ == 'datetime' %}
-                                            {{ vd[4].strftime('%d/%m/%Y') }}
+            <div class="card border-0 shadow-lg glass-card overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                     <h5 class="fw-bold text-primary mb-0"><i class="bi bi-list-task me-2"></i>Danh sách Vấn đề</h5>
+                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ vande_list|length }} bản ghi</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 table-borderless table-glass">
+                            <thead class="bg-light text-secondary small text-uppercase">
+                                <tr>
+                                    <th class="ps-4 py-3 fw-bold">Vấn đề</th>
+                                    <th class="py-3 fw-bold">Phân loại</th>
+                                    <th class="py-3 fw-bold">Trạng thái</th>
+                                    <th class="py-3 fw-bold text-center">Tương tác</th>
+                                    <th class="py-3 fw-bold">Cán bộ xử lý</th>
+                                    <th class="py-3 fw-bold">Ngày tạo</th>
+                                    <th class="text-center pe-4 py-3 fw-bold" style="width: 100px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vd in vande_list %}
+                                <tr class="border-bottom border-light hover-shadow transition-all">
+                                    <td class="ps-4">
+                                        <div class="d-flex flex-column">
+                                            <a href="{{ url_for('vande_detail', mavande=vd[0]) }}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                                {{ vd[1] }}
+                                            </a>
+                                            <small class="text-muted">#{{ vd[0] }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border fw-normal">
+                                            <i class="bi bi-tag me-1 text-secondary"></i>{{ vd[2] }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if vd[3] == 'Mới' %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3">Mới</span>
+                                        {% elif vd[3] == 'Đang xử lý' %}
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">Đang xử lý</span>
+                                        {% elif vd[3] == 'Đã giải quyết' %}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">Đã giải quyết</span>
                                         {% else %}
-                                            {{ vd[4][:10] }}
+                                            <span class="badge bg-secondary rounded-pill px-3">{{ vd[3] }}</span>
                                         {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('vande_detail', mavande=vd[0]) }}" 
-                                       class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex gap-3 text-muted small">
+                                            <span title="Phản ánh con"><i class="bi bi-folder2-open me-1"></i>{{ vd[7] or 0 }}</span>
+                                            <span title="Lượt thích"><i class="bi bi-hand-thumbs-up me-1"></i>{{ vd[9] or 0 }}</span>
+                                            <span title="Bình luận"><i class="bi bi-chat-dots me-1"></i>{{ vd[10] or 0 }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if vd[6] %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.75rem;">
+                                                    {{ vd[6][0] }}
+                                                </div>
+                                                <span class="small fw-medium">{{ vd[6] }}</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted small fst-italic">-- Chưa gán --</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if vd[4] %}
+                                                <i class="bi bi-calendar3 me-1"></i>{{ vd[4].strftime('%d/%m/%Y') if vd[4].strftime else vd[4][:10] }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <a href="{{ url_for('vande_detail', mavande=vd[0]) }}" class="btn btn-sm btn-white border shadow-sm rounded-circle hover-lift" title="Xem chi tiết" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-chevron-right text-primary"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Pagination -->
                 {% if total_pages > 1 %}
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if page > 1 %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ url_for('vande_list', trangthai=trangthai, phanloai=phanloai, search=search, page=page-1) }}">Trước</a>
-                        </li>
-                        {% endif %}
-
-                        {% for p in range(1, total_pages + 1) %}
-                            {% if p == page %}
-                            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
-                            {% elif p >= page - 2 and p <= page + 2 %}
+                <div class="card-footer bg-white border-top py-3">
+                    <nav aria-label="Page navigation" class="d-flex justify-content-center">
+                        <ul class="pagination pagination-sm mb-0">
+                            {% if page > 1 %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('vande_list', trangthai=trangthai, phanloai=phanloai, search=search, page=p) }}">{{ p }}</a>
+                                <a class="page-link border-0 rounded-circle me-1" href="{{ url_for('vande_list', trangthai=trangthai, phanloai=phanloai, search=search, page=page-1) }}"><i class="bi bi-chevron-left"></i></a>
                             </li>
                             {% endif %}
-                        {% endfor %}
 
-                        {% if page < total_pages %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ url_for('vande_list', trangthai=trangthai, phanloai=phanloai, search=search, page=page+1) }}">Sau</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-            {% else %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Không tìm thấy vấn đề nào.
+                            {% for p in range(1, total_pages + 1) %}
+                                {% if p == page %}
+                                <li class="page-item active"><span class="page-link border-0 rounded-circle shadow-sm fw-bold me-1">{{ p }}</span></li>
+                                {% elif p >= page - 2 and p <= page + 2 %}
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-circle me-1 fw-bold" href="{{ url_for('vande_list', trangthai=trangthai, phanloai=phanloai, search=search, page=p) }}">{{ p }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page < total_pages %}
+                            <li class="page-item">
+                                <a class="page-link border-0 rounded-circle ms-1" href="{{ url_for('vande_list', trangthai=trangthai, phanloai=phanloai, search=search, page=page+1) }}"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
                 </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="py-5 text-center fade-in-up">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">
+                    <i class="bi bi-clipboard-x text-muted opacity-50" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="text-secondary fw-bold">Chưa có vấn đề nào</h5>
+                <p class="text-muted mb-4 col-md-6 mx-auto">Chưa có vấn đề nào được ghi nhận hoặc không tìm thấy kết quả phù hợp với bộ lọc của bạn.</p>
+                {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                <a href="{{ url_for('vande_add') }}" class="btn btn-primary shadow-sm hover-lift fw-medium px-4">
+                    <i class="bi bi-plus-circle me-2"></i>Tạo vấn đề mới
+                </a>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
     </div>

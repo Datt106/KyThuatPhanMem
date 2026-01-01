@@ -1,54 +1,77 @@
 {% extends "base.html" %}
 
+{% block title %}Thống kê Tạm vắng/Tạm trú - Quản lý Dân cư{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-file-earmark-bar-graph me-2"></i>Báo cáo tạm vắng/tạm trú</h2>
-        {% if openpyxl_available %}
-        <a href="{{ url_for('export_tamvangtru', thang=thang, nam=nam, loai=loai, xaphuong=xaphuong) }}" 
-           class="btn btn-success">
-            <i class="bi bi-file-earmark-excel me-2"></i>Xuất Excel
-        </a>
-        {% endif %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-file-earmark-bar-graph me-2"></i>Báo cáo Tạm vắng/Tạm trú
+            </h2>
+             <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Báo cáo Tạm vắng/Tạm trú</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-6 text-md-end">
+             {% if openpyxl_available %}
+            <a href="{{ url_for('export_tamvangtru', thang=thang, nam=nam, loai=loai, xaphuong=xaphuong) }}" 
+               class="btn btn-success btn-lg shadow-sm">
+                <i class="bi bi-file-earmark-excel me-2"></i>Xuất Excel
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Filter form -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
+    <div class="card border-0 shadow-sm mb-4 card-glass">
+        <div class="card-body py-3">
             <form method="GET" action="{{ url_for('thongke_tamvangtru') }}" class="row g-3">
                 <div class="col-md-2">
-                    <label for="thang" class="form-label">Tháng</label>
-                    <select class="form-select" id="thang" name="thang">
-                        <option value="">Tất cả</option>
-                        {% for m in range(1, 13) %}
-                        <option value="{{ m }}" {% if thang == m|string %}selected{% endif %}>{{ m }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="form-floating">
+                        <select class="form-select bg-white border-0 shadow-none" id="thang" name="thang">
+                            <option value="">Tất cả</option>
+                            {% for m in range(1, 13) %}
+                            <option value="{{ m }}" {% if thang == m|string %}selected{% endif %}>Tháng {{ m }}</option>
+                            {% endfor %}
+                        </select>
+                         <label for="thang">Tháng</label>
+                    </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="nam" class="form-label">Năm</label>
-                    <select class="form-select" id="nam" name="nam">
-                        <option value="">Tất cả</option>
-                        {% for y in range(2020, 2031) %}
-                        <option value="{{ y }}" {% if nam == y|string %}selected{% endif %}>{{ y }}</option>
-                        {% endfor %}
-                    </select>
+                     <div class="form-floating">
+                        <select class="form-select bg-white border-0 shadow-none" id="nam" name="nam">
+                            <option value="">Tất cả</option>
+                            {% for y in range(2020, 2031) %}
+                            <option value="{{ y }}" {% if nam == y|string %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="nam">Năm</label>
+                    </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="loai" class="form-label">Loại</label>
-                    <select class="form-select" id="loai" name="loai">
-                        <option value="">Tất cả</option>
-                        <option value="TamVang" {% if loai == 'TamVang' %}selected{% endif %}>Tạm vắng</option>
-                        <option value="TamTru" {% if loai == 'TamTru' %}selected{% endif %}>Tạm trú</option>
-                    </select>
+                    <div class="form-floating">
+                        <select class="form-select bg-white border-0 shadow-none" id="loai" name="loai">
+                            <option value="">Tất cả</option>
+                            <option value="TamVang" {% if loai == 'TamVang' %}selected{% endif %}>Tạm vắng</option>
+                            <option value="TamTru" {% if loai == 'TamTru' %}selected{% endif %}>Tạm trú</option>
+                        </select>
+                        <label for="loai">Loại</label>
+                    </div>
                 </div>
                 <div class="col-md-4">
-                    <label for="xaphuong" class="form-label">Xã/Phường</label>
-                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
-                           value="{{ xaphuong }}" placeholder="Nhập để lọc">
+                     <div class="form-floating">
+                        <input type="text" class="form-control bg-white border-0 shadow-none" id="xaphuong" name="xaphuong" 
+                               value="{{ xaphuong }}" placeholder="Nhập để lọc">
+                        <label for="xaphuong">Xã/Phường</label>
+                    </div>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center fw-bold shadow-sm py-3">
                         <i class="bi bi-search me-2"></i>Lọc
                     </button>
                 </div>
@@ -57,54 +80,63 @@
     </div>
 
     <!-- Statistics cards -->
-    <div class="row mb-4">
+    <div class="row mb-4 g-3">
         <div class="col-md-4">
-            <div class="card shadow-sm text-center border-warning">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="bi bi-box-arrow-right text-warning" style="font-size: 2.5rem;"></i>
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative z-1">
+                    <div class="text-center w-100">
+                         <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-warning bg-opacity-10 text-warning mb-3 shadow-sm">
+                            <i class="bi bi-box-arrow-right fs-2"></i>
+                        </div>
+                        <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-1">Tạm vắng</h6>
+                        <h2 class="text-warning fw-bold mb-0 display-4">{{ tong_tamvang }}</h2>
                     </div>
-                    <h5 class="card-title text-muted">Tạm vắng</h5>
-                    <h2 class="mb-0 text-warning">{{ tong_tamvang }}</h2>
                 </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-warning opacity-50"></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm text-center border-info">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="bi bi-box-arrow-in-left text-info" style="font-size: 2.5rem;"></i>
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative z-1">
+                    <div class="text-center w-100">
+                        <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-info bg-opacity-10 text-info mb-3 shadow-sm">
+                            <i class="bi bi-box-arrow-in-left fs-2"></i>
+                        </div>
+                        <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-1">Tạm trú</h6>
+                        <h2 class="text-info fw-bold mb-0 display-4">{{ tong_tamtru }}</h2>
                     </div>
-                    <h5 class="card-title text-muted">Tạm trú</h5>
-                    <h2 class="mb-0 text-info">{{ tong_tamtru }}</h2>
                 </div>
+                 <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-info opacity-50"></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm text-center border-primary">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="bi bi-people-fill text-primary" style="font-size: 2.5rem;"></i>
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative z-1">
+                    <div class="text-center w-100">
+                         <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3 shadow-sm">
+                            <i class="bi bi-people-fill fs-2"></i>
+                        </div>
+                        <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-1">Tổng cộng</h6>
+                        <h2 class="text-primary fw-bold mb-0 display-4">{{ tong_tamvang + tong_tamtru }}</h2>
                     </div>
-                    <h5 class="card-title text-muted">Tổng cộng</h5>
-                    <h2 class="mb-0 text-primary">{{ tong_tamvang + tong_tamtru }}</h2>
                 </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-primary opacity-50"></div>
             </div>
         </div>
     </div>
 
     <!-- Statistics by district -->
     {% if stats %}
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Thống kê theo địa bàn</h5>
+    <div class="card border-0 shadow-sm mb-4 card-glass animate-fade-in-up">
+        <div class="card-header bg-white bg-opacity-50 border-bottom py-3">
+             <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-graph-up me-2 text-primary"></i>Thống kê theo địa bàn</h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Loại</th>
+                <table class="table align-middle mb-0 table-glass table-hover">
+                    <thead class="bg-light bg-opacity-50">
+                        <tr class="text-muted text-uppercase small ls-1">
+                            <th class="ps-4">Loại</th>
                             <th>Xã/Phường</th>
                             <th class="text-center">Tổng số</th>
                             <th class="text-center">Đang hiệu lực</th>
@@ -114,17 +146,17 @@
                     <tbody>
                         {% for row in stats %}
                         <tr>
-                            <td>
+                            <td class="ps-4">
                                 {% if row[0] == 'TamVang' %}
-                                    <span class="badge bg-warning">Tạm vắng</span>
+                                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">Tạm vắng</span>
                                 {% else %}
-                                    <span class="badge bg-info">Tạm trú</span>
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">Tạm trú</span>
                                 {% endif %}
                             </td>
-                            <td><strong>{{ row[1] or 'N/A' }}</strong></td>
-                            <td class="text-center"><span class="badge bg-primary">{{ row[2] }}</span></td>
-                            <td class="text-center"><span class="badge bg-success">{{ row[3] }}</span></td>
-                            <td class="text-center"><span class="badge bg-secondary">{{ row[4] }}</span></td>
+                            <td><strong class="text-dark">{{ row[1] or 'N/A' }}</strong></td>
+                            <td class="text-center"><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">{{ row[2] }}</span></td>
+                            <td class="text-center"><span class="badge bg-success bg-opacity-10 text-success rounded-pill">{{ row[3] }}</span></td>
+                            <td class="text-center"><span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">{{ row[4] }}</span></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -135,17 +167,17 @@
     {% endif %}
 
     <!-- Detail records -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Chi tiết ({{ details|length }} bản ghi)</h5>
+    <div class="card border-0 shadow-sm card-glass animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="card-header bg-white bg-opacity-50 border-bottom py-3 d-flex justify-content-between align-items-center">
+             <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-table me-2 text-primary"></i>Chi tiết ({{ details|length }} bản ghi)</h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             {% if details %}
                 <div class="table-responsive">
-                    <table class="table table-sm table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>STT</th>
+                    <table class="table align-middle mb-0 table-glass table-hover">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr class="text-muted text-uppercase small ls-1">
+                                <th class="ps-4">STT</th>
                                 <th>CCCD</th>
                                 <th>Họ tên</th>
                                 <th>Ngày sinh</th>
@@ -160,48 +192,48 @@
                         <tbody>
                             {% for row in details %}
                             <tr>
-                                <td>{{ loop.index }}</td>
-                                <td><code class="bg-light p-1 rounded">{{ row[0] }}</code></td>
-                                <td><strong>{{ row[1] }}</strong></td>
+                                <td class="ps-4 text-muted">{{ loop.index }}</td>
+                                <td><code class="bg-light text-dark px-2 py-1 rounded shadow-sm border border-light">{{ row[0] }}</code></td>
+                                <td><span class="fw-bold text-dark">{{ row[1] }}</span></td>
                                 <td>
                                     {% if row[2] %}
                                         {{ row[2].strftime('%d/%m/%Y') }}
                                     {% else %}
-                                        N/A
+                                        <span class="text-muted fst-italic">N/A</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if row[4] == 'TamVang' %}
-                                        <span class="badge bg-warning">Tạm vắng</span>
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill">Tạm vắng</span>
                                     {% else %}
-                                        <span class="badge bg-info">Tạm trú</span>
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info rounded-pill">Tạm trú</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ row[5] or 'N/A' }}</td>
-                                <td><small>{{ row[6] or 'N/A' }}</small></td>
+                                <td><small class="text-muted">{{ row[6] or 'N/A' }}</small></td>
                                 <td>
                                     {% if row[7] %}
                                         {{ row[7].strftime('%d/%m/%Y') }}
                                     {% else %}
-                                        N/A
+                                        <span class="text-muted fst-italic">N/A</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if row[8] %}
                                         {{ row[8].strftime('%d/%m/%Y') }}
                                     {% else %}
-                                        N/A
+                                        <span class="text-muted fst-italic">N/A</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if row[8] %}
                                         {% if row[8] >= today %}
-                                            <span class="badge bg-success">Hiệu lực</span>
+                                             <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill">Hiệu lực</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">Hết hạn</span>
+                                             <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill">Hết hạn</span>
                                         {% endif %}
                                     {% else %}
-                                        <span class="badge bg-light text-dark">N/A</span>
+                                         <span class="badge bg-light text-dark border rounded-pill">N/A</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -210,20 +242,24 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                    <h5 class="text-muted mt-3">Không có dữ liệu</h5>
-                    <p class="text-muted">Vui lòng thay đổi tiêu chí lọc</p>
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                         <i class="bi bi-inbox text-muted opacity-50" style="font-size: 4rem;"></i>
+                    </div>
+                    <h5 class="text-muted fw-bold">Không có dữ liệu</h5>
+                    <p class="text-muted mb-0">Vui lòng thay đổi tiêu chí lọc để xem kết quả</p>
                 </div>
             {% endif %}
         </div>
     </div>
 
     {% if not openpyxl_available %}
-    <div class="alert alert-warning mt-4">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        <strong>Lưu ý:</strong> Để sử dụng tính năng xuất Excel, vui lòng cài đặt thư viện openpyxl: 
-        <code>pip install openpyxl</code>
+    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning mt-4 d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+        <div>
+            <strong>Lưu ý:</strong> Để sử dụng tính năng xuất Excel, vui lòng cài đặt thư viện openpyxl: 
+            <code class="bg-white px-2 py-1 rounded ms-2">pip install openpyxl</code>
+        </div>
     </div>
     {% endif %}
 </div>

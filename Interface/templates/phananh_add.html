@@ -3,43 +3,34 @@
 {% block title %}Tạo Phản ánh mới{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+<div class="container py-5">
+    <div class="row justify-content-center animate-fade-in-up">
+        <div class="col-lg-8">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('phananh_list') }}">Phản ánh</a></li>
                     <li class="breadcrumb-item active">Tạo mới</li>
                 </ol>
             </nav>
 
-            <div class="card shadow-lg">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Tạo Phản ánh & Kiến nghị</h4>
+            <div class="card border-0 shadow-lg glass-card overflow-hidden">
+                <div class="card-header bg-white border-bottom py-4">
+                    <h4 class="fw-bold text-primary mb-0 d-flex align-items-center">
+                        <i class="bi bi-plus-circle-fill me-2 fs-3"></i> Tạo Phản ánh & Kiến nghị
+                    </h4>
                 </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('phananh_add') }}" enctype="multipart/form-data">>
+                <div class="card-body p-4 p-lg-5">
+                    <form method="POST" action="{{ url_for('phananh_add') }}" enctype="multipart/form-data">
                         <!-- Tiêu đề -->
-                        <div class="mb-3">
-                            <label for="tieude" class="form-label">
-                                <i class="fas fa-heading"></i> Tiêu đề <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="tieude" 
-                                   name="tieude" 
-                                   placeholder="Nhập tiêu đề ngắn gọn cho phản ánh"
-                                   required 
-                                   maxlength="200">
-                            <small class="form-text text-muted">Tối đa 200 ký tự</small>
+                        <div class="form-floating mb-4">
+                            <input type="text" class="form-control" id="tieude" name="tieude" placeholder="Nhập tiêu đề" required maxlength="200">
+                            <label for="tieude" class="text-secondary fw-bold">Tiêu đề phản ánh <span class="text-danger">*</span></label>
+                            <small class="form-text text-muted ms-2"><i class="bi bi-info-circle me-1"></i>Tối đa 200 ký tự</small>
                         </div>
 
                         <!-- Loại phản ánh -->
-                        <div class="mb-3">
-                            <label for="loaiphananh" class="form-label">
-                                <i class="fas fa-tag"></i> Loại phản ánh
-                            </label>
+                        <div class="form-floating mb-4">
                             <select class="form-select" id="loaiphananh" name="loaiphananh">
                                 <option value="">-- Chọn loại phản ánh --</option>
                                 <option value="Hạ tầng">🏗️ Hạ tầng (Đường xá, cầu, thoát nước)</option>
@@ -51,153 +42,105 @@
                                 <option value="Điện nước">💡 Điện - Nước</option>
                                 <option value="Khác">📋 Khác</option>
                             </select>
+                            <label for="loaiphananh" class="text-secondary fw-bold">Loại phản ánh</label>
                         </div>
 
                         <!-- Mô tả -->
-                        <div class="mb-3">
-                            <label for="mota" class="form-label">
-                                <i class="fas fa-align-left"></i> Mô tả chi tiết <span class="text-danger">*</span>
+                        <div class="mb-4">
+                            <label for="mota" class="form-label text-secondary fw-bold small text-uppercase ls-1 mb-2">
+                                Mô tả chi tiết <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control" 
-                                      id="mota" 
-                                      name="mota" 
-                                      rows="6" 
-                                      placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..."
-                                      required></textarea>
-                            <small class="form-text text-muted">Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
+                            <textarea class="form-control" id="mota" name="mota" rows="6" placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..." required style="resize: none;"></textarea>
+                            <small class="form-text text-muted ms-2 mt-1"><i class="bi bi-card-text me-1"></i>Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
                         </div>
 
                         <!-- File đính kèm -->
-                        <div class="mb-3">
-                            <label class="form-label">
-                                <i class="fas fa-paperclip"></i> Tệp đính kèm (Tùy chọn)
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-bold small text-uppercase ls-1 mb-2">
+                                Tệp đính kèm (Tùy chọn)
                             </label>
-                            <div class="card border-2 border-dashed" style="border-color: #dee2e6;">
-                                <div class="card-body text-center py-4">
-                                    <input type="file" 
-                                           class="d-none" 
-                                           id="file" 
-                                           name="file"
-                                           accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
-                                           onchange="previewFile(this, 'filePreview')">
-                                    
-                                    <div id="filePreview">
-                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                        <h6 class="mb-2">Kéo thả hoặc nhấp vào đây để tải lên</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('file').click()">
-                                            <i class="fas fa-folder-open"></i> Chọn tệp
-                                        </button>
-                                        <p class="text-muted small mt-2 mb-0">
-                                            Hình ảnh, PDF, Word, Excel, ZIP - Tối đa 16MB
-                                        </p>
+                            <div class="card border-2 border-dashed bg-light hover-shadow transition-all" style="border-style: dashed !important; border-color: #dee2e6;">
+                                <div class="card-body text-center py-5 position-relative">
+                                    <input type="file" class="d-none" id="file" name="file" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" onchange="previewFile(this, 'filePreview')">
+                                    <div id="filePreview" class="cursor-pointer" onclick="document.getElementById('file').click()">
+                                        <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                            <i class="bi bi-cloud-arrow-up text-primary fs-2"></i>
+                                        </div>
+                                        <h6 class="fw-bold mb-1">Kéo thả hoặc nhấp vào đây để tải lên</h6>
+                                        <p class="text-muted small mb-0">Hình ảnh, PDF, Word, Excel, ZIP - Tối đa 16MB</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                                <i class="fas fa-info-circle"></i> 
-                                Cho phép: Hình ảnh (png, jpg), PDF, Word, Excel, Zip (Tối đa 16MB)
-                            </small>
                         </div>
 
                         <!-- Địa chỉ -->
-                        <div class="card mb-3 bg-light">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Vị trí (Tùy chọn)</h6>
-                                {% if hokhau_diachi %}
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="btn-auto-fill">
-                                    <i class="fas fa-magic"></i> Tự động điền địa chỉ hộ khẩu
+                        <div class="card mb-4 border-0 shadow-sm bg-light">
+                            <div class="card-header bg-transparent border-bottom py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold text-secondary mb-0 small text-uppercase ls-1"><i class="bi bi-geo-alt-fill me-2"></i>Vị trí (Tùy chọn)</h6>
+                                <button type="button" class="btn btn-sm btn-white text-primary border shadow-sm fw-bold hover-lift" id="btn-auto-fill">
+                                    <i class="bi bi-magic me-1"></i>Tự động điền
                                 </button>
-                                {% endif %}
                             </div>
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="tinh" class="form-label">Tỉnh/Thành phố</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="tinh" 
-                                               name="tinh" 
-                                               value="Hà Nội"
-                                               placeholder="VD: Hà Nội, TP.HCM">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control bg-white" id="tinh" name="tinh" value="Hà Nội" placeholder="Tỉnh/Thành phố">
+                                            <label for="tinh">Tỉnh/Thành phố</label>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="xaphuong" class="form-label">Quận/Huyện/Xã</label>
-                                        <input type="text" 
-                                               class="form-control" 
-                                               id="xaphuong" 
-                                               name="xaphuong" 
-                                               placeholder="VD: Quận 1, Huyện Gia Lâm">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control bg-white" id="xaphuong" name="xaphuong" placeholder="Quận/Huyện/Xã">
+                                            <label for="xaphuong">Quận/Huyện/Xã</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="mb-0">
-                                    <label for="chitiet" class="form-label">Địa chỉ chi tiết</label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="chitiet" 
-                                           name="chitiet" 
-                                           placeholder="VD: Số 123 đường Nguyễn Trãi">
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control bg-white" id="chitiet" name="chitiet" placeholder="Địa chỉ chi tiết">
+                                            <label for="chitiet">Đường/Thôn/Xóm/Số nhà</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Privacy & Settings -->
-                        <div class="card mb-3 bg-light">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-cog"></i> Cài đặt</h6>
-                            </div>
+                        <div class="card mb-4 border-0 shadow-sm bg-light">
                             <div class="card-body">
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           id="is_public" 
-                                           name="is_public" 
-                                           checked>
-                                    <label class="form-check-label" for="is_public">
-                                        <i class="fas fa-globe text-success"></i> <strong>Công khai</strong>
-                                        <br>
-                                        <small class="text-muted">
-                                            Phản ánh sẽ hiển thị trên Newsfeed để mọi người xem và tương tác. 
-                                            Nếu bỏ chọn, phản ánh sẽ chỉ cán bộ xem được.
-                                        </small>
-                                    </label>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="is_public" name="is_public" checked>
+                                    <label class="form-check-label fw-bold ms-2" for="is_public">Công khai phản ánh</label>
+                                    <small class="d-block text-muted ms-2 mt-1">
+                                        Nếu tắt, phản ánh sẽ chỉ hiển thị với bạn và cán bộ quản lý (Chế độ riêng tư).
+                                    </small>
                                 </div>
-                                
-                                <div class="form-check">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           id="allow_comment" 
-                                           name="allow_comment" 
-                                           checked>
-                                    <label class="form-check-label" for="allow_comment">
-                                        <i class="fas fa-comments text-info"></i> <strong>Cho phép bình luận</strong>
-                                        <br>
-                                        <small class="text-muted">
-                                            Người dùng khác có thể bình luận và thảo luận về phản ánh này
-                                        </small>
-                                    </label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="allow_comment" name="allow_comment" checked>
+                                    <label class="form-check-label fw-bold ms-2" for="allow_comment">Cho phép bình luận</label>
+                                    <small class="d-block text-muted ms-2 mt-1">
+                                        Cho phép người khác bình luận và thảo luận về phản ánh này.
+                                    </small>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Alert Info -->
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Lưu ý:</strong>
-                            <ul class="mb-0 mt-2">
-                                <li>Phản ánh của bạn sẽ được cán bộ xem xét và xử lý</li>
-                                <li>Nếu chọn <strong>riêng tư</strong>, một hộp chat sẽ tự động được tạo để bạn liên hệ với cán bộ</li>
-                                <li>Bạn có thể chỉnh sửa hoặc xóa phản ánh sau khi tạo</li>
-                            </ul>
+                        <div class="alert alert-soft-primary d-flex align-items-center border-0 mb-4" role="alert">
+                            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                            <div>
+                                <strong>Lưu ý:</strong> Phản ánh của bạn sẽ được kiểm duyệt trước khi hiển thị công khai (nếu chọn công khai).
+                            </div>
                         </div>
 
                         <!-- Action buttons -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane"></i> Gửi Phản ánh
-                            </button>
-                            <a href="{{ url_for('phananh_list') }}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times"></i> Hủy
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a href="{{ url_for('phananh_list') }}" class="btn btn-white border shadow-sm fw-bold hover-lift">
+                                <i class="bi bi-x-lg me-1"></i>Hủy bỏ
                             </a>
+                            <button type="submit" class="btn btn-primary shadow-sm fw-bold px-4 hover-lift">
+                                <i class="bi bi-send-fill me-1"></i>Gửi Phản ánh
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -216,51 +159,51 @@ function previewFile(input, previewId) {
         const fileName = file.name;
         const fileExt = fileName.split('.').pop().toLowerCase();
         
-        // Icon theo loại file
-        let icon = 'fa-file';
+        let icon = 'bi-file-earmark';
         let iconColor = 'text-secondary';
         
         if (['png', 'jpg', 'jpeg', 'gif'].includes(fileExt)) {
-            icon = 'fa-file-image';
+            icon = 'bi-file-earmark-image';
             iconColor = 'text-success';
         } else if (['pdf'].includes(fileExt)) {
-            icon = 'fa-file-pdf';
+            icon = 'bi-file-earmark-pdf';
             iconColor = 'text-danger';
         } else if (['doc', 'docx'].includes(fileExt)) {
-            icon = 'fa-file-word';
+            icon = 'bi-file-earmark-word';
             iconColor = 'text-primary';
         } else if (['xls', 'xlsx'].includes(fileExt)) {
-            icon = 'fa-file-excel';
+            icon = 'bi-file-earmark-excel';
             iconColor = 'text-success';
         } else if (['zip', 'rar'].includes(fileExt)) {
-            icon = 'fa-file-archive';
+            icon = 'bi-file-earmark-zip';
             iconColor = 'text-warning';
         }
         
+        preview.className = ""; // Remove cursor pointer
+        preview.onclick = null; // Remove click handler
         preview.innerHTML = `
-            <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+            <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded shadow-sm border">
                 <div class="d-flex align-items-center">
-                    <i class="fas ${icon} fa-2x ${iconColor} me-3"></i>
-                    <div>
-                        <div class="fw-bold text-truncate" style="max-width: 300px;">${fileName}</div>
+                    <i class="bi ${icon} fs-2 ${iconColor} me-3"></i>
+                    <div class="text-start">
+                        <div class="fw-bold text-truncate text-dark" style="max-width: 250px;">${fileName}</div>
                         <small class="text-muted">${fileSize} MB</small>
                     </div>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile('file', '${previewId}')">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm" onclick="clearFile('file', '${previewId}')" style="width: 32px; height: 32px;">
+                    <i class="bi bi-x"></i>
                 </button>
             </div>
         `;
         
-        // Preview hình ảnh
+        // Preview if image
         if (['png', 'jpg', 'jpeg', 'gif'].includes(fileExt)) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.innerHTML += `
-                    <div class="mt-2">
-                        <img src="${e.target.result}" class="img-fluid rounded" style="max-height: 200px;">
-                    </div>
-                `;
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'mt-3 position-relative d-inline-block';
+                imgDiv.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded shadow-sm border" style="max-height: 200px;">`;
+                preview.appendChild(imgDiv);
             };
             reader.readAsDataURL(file);
         }
@@ -272,21 +215,19 @@ function clearFile(inputId, previewId) {
     const preview = document.getElementById(previewId);
     
     input.value = '';
+    preview.className = "cursor-pointer";
+    preview.onclick = function() { document.getElementById(inputId).click(); };
     preview.innerHTML = `
-        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-        <h6 class="mb-2">Kéo thả hoặc nhấp vào đây để tải lên</h6>
-        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('${inputId}').click()">
-            <i class="fas fa-folder-open"></i> Chọn tệp
-        </button>
-        <p class="text-muted small mt-2 mb-0">
-            Hình ảnh, PDF, Word, Excel, ZIP - Tối đa 16MB
-        </p>
+        <div class="bg-white rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+            <i class="bi bi-cloud-arrow-up text-primary fs-2"></i>
+        </div>
+        <h6 class="fw-bold mb-1">Kéo thả hoặc nhấp vào đây để tải lên</h6>
+        <p class="text-muted small mb-0">Hình ảnh, PDF, Word, Excel, ZIP - Tối đa 16MB</p>
     `;
 }
 
-// Drag and drop
+// Drag and drop support
 const dropZone = document.querySelector('.border-dashed');
-
 if (dropZone) {
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults, false);
@@ -306,11 +247,13 @@ if (dropZone) {
     });
 
     function highlight(e) {
-        dropZone.classList.add('border-primary', 'bg-light');
+        dropZone.classList.add('bg-white', 'border-primary');
+        dropZone.classList.remove('bg-light');
     }
 
     function unhighlight(e) {
-        dropZone.classList.remove('border-primary', 'bg-light');
+        dropZone.classList.remove('bg-white', 'border-primary');
+        dropZone.classList.add('bg-light');
     }
 
     dropZone.addEventListener('drop', handleDrop, false);
@@ -318,60 +261,53 @@ if (dropZone) {
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
-        const input = document.getElementById('file');
-        input.files = files;
-        previewFile(input, 'filePreview');
+        document.getElementById('file').files = files;
+        previewFile(document.getElementById('file'), 'filePreview');
     }
 }
-</script>
 
-<script>
-// Toggle privacy info
-document.getElementById('is_public').addEventListener('change', function() {
-    const publicIcon = this.parentElement.querySelector('i');
-    if (this.checked) {
-        publicIcon.className = 'fas fa-globe text-success';
-    } else {
-        publicIcon.className = 'fas fa-lock text-secondary';
-    }
-});
+// Auto fill support
+const btnAutoFill = document.getElementById('btn-auto-fill');
+if (btnAutoFill) {
+    btnAutoFill.addEventListener('click', function() {
+        const addressData = {
+            tinh: "{{ hokhau_diachi[0] if hokhau_diachi else '' }}",
+            xaphuong: "{{ hokhau_diachi[1] if hokhau_diachi else '' }}",
+            chitiet: "{{ hokhau_diachi[2] if hokhau_diachi else '' }}"
+        };
 
-// Auto fill địa chỉ hộ khẩu
-{% if hokhau_diachi %}
-document.getElementById('btn-auto-fill').addEventListener('click', function() {
-    {% if hokhau_diachi[0] %}
-    document.getElementById('tinh').value = '{{ hokhau_diachi[0] }}';
-    {% endif %}
-    {% if hokhau_diachi[1] %}
-    document.getElementById('xaphuong').value = '{{ hokhau_diachi[1] }}';
-    {% endif %}
-    {% if hokhau_diachi[2] %}
-    document.getElementById('chitiet').value = '{{ hokhau_diachi[2] }}';
-    {% endif %}
-    
-    // Hiệu ứng nhấp nháy để người dùng biết đã điền
-    const inputs = [document.getElementById('tinh'), document.getElementById('xaphuong'), document.getElementById('chitiet')];
-    inputs.forEach(input => {
-        if (input.value) {
-            input.classList.add('border-success');
-            setTimeout(() => {
-                input.classList.remove('border-success');
-            }, 1500);
+        if (!addressData.tinh && !addressData.xaphuong && !addressData.chitiet) {
+            alert('Không tìm thấy thông tin địa chỉ trong hồ sơ của bạn!');
+            return;
         }
+
+        if (addressData.tinh) {
+            const el = document.getElementById('tinh');
+            if(el) el.value = addressData.tinh;
+        }
+        
+        if (addressData.xaphuong) {
+            const el = document.getElementById('xaphuong');
+            if(el) el.value = addressData.xaphuong;
+        }
+        
+        if (addressData.chitiet) {
+            const el = document.getElementById('chitiet');
+            if(el) el.value = addressData.chitiet;
+        }
+        
+        // Visual feedback
+        this.innerHTML = '<i class="bi bi-check-lg me-1"></i>Đã điền!';
+        this.classList.remove('btn-white', 'text-primary');
+        this.classList.add('btn-success', 'text-white');
+        
+        setTimeout(() => {
+            this.innerHTML = '<i class="bi bi-magic me-1"></i>Tự động điền';
+            this.classList.add('btn-white', 'text-primary');
+            this.classList.remove('btn-success', 'text-white');
+        }, 2000);
     });
-    
-    // Thông báo
-    const btn = this;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Đã điền!';
-    btn.classList.remove('btn-outline-primary');
-    btn.classList.add('btn-success');
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-outline-primary');
-    }, 2000);
-});
-{% endif %}
+}
 </script>
 {% endblock %}
+

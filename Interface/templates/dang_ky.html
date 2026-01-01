@@ -6,249 +6,267 @@
     <title>Đăng ký tài khoản - Quản lý Dân cư</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
-            padding: 20px 0;
+            padding: 40px 0;
+            font-family: 'Inter', sans-serif;
         }
         .register-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        .card-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
-        .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 25px;
+        .form-floating > .form-control:focus,
+        .form-floating > .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            border-color: #0d6efd;
         }
-        .form-label {
+        .btn-primary {
+            padding: 12px 24px;
             font-weight: 600;
-            color: #495057;
+            border-radius: 10px;
+            transition: all 0.2s;
         }
-        .required {
-            color: #dc3545;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            font-size: 1.2rem;
+            margin: 0 auto 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container register-container">
-        <div class="card">
-            <div class="card-header text-center">
-                <h3 class="mb-2">
-                    <i class="bi bi-person-plus-fill me-2"></i>Đăng ký tài khoản
-                </h3>
-                <p class="mb-0">Hệ thống Quản lý Dân cư Tổ dân phố</p>
-            </div>
+    <div class="container">
+        <div class="register-container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center animate-fade-in-up">
+                            {% if category == 'success' %}
+                                <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                            {% elif category == 'danger' %}
+                                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                            {% elif category == 'warning' %}
+                                <i class="bi bi-exclamation-circle-fill fs-4 me-3"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-            <div class="card-body p-4">
-                <!-- Flash messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message|safe }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="card card-glass overflow-hidden">
+                <div class="card-header bg-white border-bottom py-4 text-center">
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="bi bi-pencil-square fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-primary mb-1">Đăng Ký Tài Khoản</h3>
+                    <p class="text-muted mb-0">Hệ thống Quản lý Dân cư & Phản ánh</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" action="{{ url_for('public_register') }}" class="needs-validation" novalidate>
+                        
+                        <!-- Thông tin cá nhân -->
+                        <h5 class="text-primary fw-bold mb-4 border-bottom pb-2">
+                            <i class="bi bi-person-badge me-2"></i>Thông tin cá nhân
+                        </h5>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="cccd" name="cccd" placeholder="Số CCCD/CMND" required pattern="[0-9]{9,12}">
+                                    <label for="cccd">Số CCCD/CMND <span class="text-danger">*</span></label>
+                                    <div class="invalid-feedback">Vui lòng nhập số CCCD hợp lệ (9-12 số).</div>
+                                </div>
                             </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <form method="POST" action="{{ url_for('public_register') }}">
-                    <!-- Thông tin cá nhân -->
-                    <h5 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="bi bi-person-vcard me-2"></i>Thông tin cá nhân
-                    </h5>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="cccd" class="form-label">
-                                Số CCCD <span class="required">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="cccd" name="cccd" 
-                                   pattern="[0-9]{12}" maxlength="12" required
-                                   placeholder="12 chữ số">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="hoten" name="hoten" placeholder="Họ và tên" required>
+                                    <label for="hoten">Họ và tên <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="ngaysinh" name="ngaysinh" required>
+                                    <label for="ngaysinh">Ngày sinh <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select class="form-select" id="gioitinh" name="gioitinh" required>
+                                        <option value="" selected disabled>Chọn giới tính</option>
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nu">Nữ</option>
+                                        <option value="Khac">Khác</option>
+                                    </select>
+                                    <label for="gioitinh">Giới tính <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="tel" class="form-control" id="sdt" name="sdt" placeholder="Số điện thoại" required pattern="[0-9]{10}">
+                                    <label for="sdt">Số điện thoại <span class="text-danger">*</span></label>
+                                    <div class="invalid-feedback">Số điện thoại phải có 10 chữ số.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="dantoc" name="dantoc" placeholder="Dân tộc">
+                                    <label for="dantoc">Dân tộc</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="quoctich" name="quoctich" value="Việt Nam" placeholder="Quốc tịch">
+                                    <label for="quoctich">Quốc tịch</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="hoten" class="form-label">
-                                Họ và tên <span class="required">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="hoten" name="hoten" required
-                                   placeholder="VD: Nguyễn Văn A">
+
+                        <!-- Thông tin cư trú -->
+                        <h5 class="text-primary fw-bold mb-4 border-bottom pb-2">
+                            <i class="bi bi-geo-alt-fill me-2"></i>Thông tin cư trú
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select class="form-select" id="loaidangky" name="loaidangky" required>
+                                        <option value="" selected disabled>Chọn loại đăng ký</option>
+                                        <option value="CuTru">Thường trú (Hộ khẩu)</option>
+                                        <option value="TamTru">Tạm trú</option>
+                                    </select>
+                                    <label for="loaidangky">Loại đăng ký <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="tinh" name="tinh" value="Hà Nội" readonly>
+                                    <label for="tinh">Tỉnh/Thành phố</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" placeholder="Xã/Phường" required>
+                                    <label for="xaphuong">Xã/Phường <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="diachi_chitiet" name="diachi_chitiet" placeholder="Số nhà, đường, tổ dân phố..." required>
+                                    <label for="diachi_chitiet">Địa chỉ chi tiết (Số nhà, đường, ngõ...) <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="ghichu" name="ghichu" style="height: 100px" placeholder="Ghi chú thêm"></textarea>
+                                    <label for="ghichu">Ghi chú thêm (nếu có)</label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="ngaysinh" class="form-label">
-                                Ngày sinh <span class="required">*</span>
-                            </label>
-                            <input type="date" class="form-control" id="ngaysinh" name="ngaysinh" required
-                                   max="{{ now.strftime('%Y-%m-%d') }}">
+                        <!-- Actions -->
+                        <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-info-circle-fill fs-5 me-3 mt-1"></i>
+                                <div>
+                                    <strong>Lưu ý quan trọng:</strong>
+                                    <ul class="mb-0 ps-3 mt-1 small">
+                                        <li>Vui lòng kiểm tra kỹ thông tin trước khi gửi.</li>
+                                        <li>Hồ sơ sẽ được cán bộ duyệt trong vòng 24h làm việc.</li>
+                                        <li>Sau khi duyệt, bạn cần đến cơ quan để nhận mật khẩu.</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="gioitinh" class="form-label">
-                                Giới tính <span class="required">*</span>
-                            </label>
-                            <select class="form-select" id="gioitinh" name="gioitinh" required>
-                                <option value="">-- Chọn giới tính --</option>
-                                <option value="nam">Nam</option>
-                                <option value="nu">Nữ</option>
-                            </select>
+
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-between align-items-center">
+                            <div>
+                                <a href="{{ url_for('login') }}" class="text-decoration-none text-secondary me-3">
+                                    <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
+                                </a>
+                                <a href="{{ url_for('tra_cuu_don') }}" class="text-decoration-none text-primary fw-bold">
+                                    Tra cứu đơn
+                                </a>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
+                                <i class="bi bi-send-fill me-2"></i>Gửi Đơn Đăng Ký
+                            </button>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="sdt" class="form-label">
-                                Số điện thoại <span class="required">*</span>
-                            </label>
-                            <input type="tel" class="form-control" id="sdt" name="sdt" required
-                                   pattern="[0-9]{10,11}" placeholder="10-11 số">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="quoctich" class="form-label">Quốc tịch</label>
-                            <input type="text" class="form-control" id="quoctich" name="quoctich" 
-                                   value="Việt Nam">
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="dantoc" class="form-label">Dân tộc</label>
-                        <input type="text" class="form-control" id="dantoc" name="dantoc"
-                               placeholder="VD: Kinh">
-                    </div>
-
-                    <!-- Loại đăng ký -->
-                    <h5 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="bi bi-house-check me-2"></i>Loại đăng ký
-                    </h5>
-
-                    <div class="mb-4">
-                        <label for="loaidangky" class="form-label">
-                            Chọn loại đăng ký <span class="required">*</span>
-                        </label>
-                        <select class="form-select" id="loaidangky" name="loaidangky" required>
-                            <option value="">-- Chọn loại --</option>
-                            <option value="TamTru">Tạm trú (cư trú tạm thời)</option>
-                            <option value="CuTru">Cư trú (cư trú thường xuyên)</option>
-                        </select>
-                        <div class="form-text">
-                            <strong>Tạm trú:</strong> Dành cho người tạm thời cư trú tại địa phương.<br>
-                            <strong>Cư trú:</strong> Dành cho người thường xuyên cư trú tại địa phương.
-                        </div>
-                    </div>
-
-                    <!-- Địa chỉ -->
-                    <h5 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="bi bi-geo-alt me-2"></i>Địa chỉ cư trú
-                    </h5>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="tinh" class="form-label">
-                                Tỉnh/Thành phố <span class="required">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="tinh" name="tinh" required
-                                   value="Hà Nội" placeholder="VD: Hà Nội">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="xaphuong" class="form-label">
-                                Xã/Phường <span class="required">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="xaphuong" name="xaphuong" required
-                                   placeholder="VD: Phường Dịch Vọng">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="diachi_chitiet" class="form-label">
-                            Địa chỉ chi tiết <span class="required">*</span>
-                        </label>
-                        <textarea class="form-control" id="diachi_chitiet" name="diachi_chitiet" 
-                                  rows="2" required placeholder="Số nhà, tên đường..."></textarea>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="ghichu" class="form-label">Ghi chú</label>
-                        <textarea class="form-control" id="ghichu" name="ghichu" rows="2"
-                                  placeholder="Thông tin bổ sung (nếu có)"></textarea>
-                    </div>
-
-                    <!-- Thông báo quan trọng -->
-                    <div class="alert alert-warning" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="bi bi-exclamation-triangle me-2"></i>Lưu ý quan trọng:
-                        </h6>
-                        <ol class="mb-0">
-                            <li>Sau khi đăng ký, đơn của bạn sẽ được cán bộ xem xét và duyệt.</li>
-                            <li>Khi đơn được duyệt, bạn cần <strong>đến trực tiếp cơ quan</strong> để nhận mật khẩu đăng nhập lần đầu.</li>
-                            <li>Vui lòng mang theo CCCD gốc để xác minh danh tính.</li>
-                            <li>Mật khẩu sẽ được tạo ngẫu nhiên để đảm bảo bảo mật.</li>
-                        </ol>
-                    </div>
-
-                    <!-- Buttons -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                        <div>
-                            <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
-                            </a>
-                            <a href="{{ url_for('tra_cuu_don') }}" class="btn btn-outline-info ms-2">
-                                <i class="bi bi-search me-1"></i>Tra cứu đơn
-                            </a>
-                        </div>
-                        <button type="submit" class="btn btn-primary px-5">
-                            <i class="bi bi-check-lg me-1"></i>Đăng ký
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- Hướng dẫn -->
-        <div class="card mt-4">
-            <div class="card-body">
-                <h6 class="text-primary">
-                    <i class="bi bi-info-circle me-2"></i>Quy trình đăng ký:
-                </h6>
-                <div class="row text-center mt-3">
-                    <div class="col-md-3">
-                        <div class="mb-2">
-                            <i class="bi bi-1-circle-fill text-primary" style="font-size: 2rem;"></i>
+            <!-- Footer Icons -->
+            <div class="card border-0 card-glass mt-4">
+                <div class="card-body py-4">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="step-icon"><i class="bi bi-1-circle-fill"></i></div>
+                            <small class="fw-bold text-dark">Điền thông tin</small>
                         </div>
-                        <small><strong>Điền form</strong><br>Cung cấp thông tin</small>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-2">
-                            <i class="bi bi-2-circle-fill text-info" style="font-size: 2rem;"></i>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="step-icon"><i class="bi bi-2-circle-fill"></i></div>
+                            <small class="fw-bold text-dark">Chờ phê duyệt</small>
                         </div>
-                        <small><strong>Chờ duyệt</strong><br>Cán bộ xem xét</small>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-2">
-                            <i class="bi bi-3-circle-fill text-success" style="font-size: 2rem;"></i>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="step-icon"><i class="bi bi-3-circle-fill"></i></div>
+                            <small class="fw-bold text-dark">Nhận mật khẩu</small>
                         </div>
-                        <small><strong>Nhận mật khẩu</strong><br>Đến cơ quan</small>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-2">
-                            <i class="bi bi-4-circle-fill text-warning" style="font-size: 2rem;"></i>
+                        <div class="col-md-3">
+                            <div class="step-icon"><i class="bi bi-4-circle-fill"></i></div>
+                            <small class="fw-bold text-dark">Đăng nhập</small>
                         </div>
-                        <small><strong>Đăng nhập</strong><br>Sử dụng hệ thống</small>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
 </body>
 </html>

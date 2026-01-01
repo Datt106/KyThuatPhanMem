@@ -25,7 +25,18 @@
 <body>
     {% if session.user %}
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+    <!-- Gov Header -->
+    <header class="gov-header">
+        <div class="container">
+            <h5 class="mb-1 text-uppercase fw-bold text-danger">Cộng hòa xã hội chủ nghĩa Việt Nam</h5>
+            <h6 class="mb-2 fw-bold">Độc lập - Tự do - Hạnh phúc</h6>
+            <hr style="width: 15rem; margin: 0.5rem auto; border-top: 2px solid #333; opacity: 1;">
+            <h1 class="mt-2 display-6 fw-bold text-uppercase text-danger">HỆ THỐNG QUẢN LÝ DÂN CƯ</h1>
+        </div>
+    </header>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark gov-navbar sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
                 <i class="bi bi-house-door-fill me-2"></i>
@@ -279,7 +290,7 @@
     
     <!-- Footer -->
     {% if session.user %}
-    <footer class="footer bg-light border-top mt-5">
+    <footer class="footer gov-footer mt-5">
         <div class="container py-4">
             <div class="row">
                 <div class="col-md-6">

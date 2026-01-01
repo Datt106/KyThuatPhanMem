@@ -3,108 +3,118 @@
 {% block title %}Chat - {{ boxchat[4] }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
+<div class="container-fluid py-4 h-100 d-flex flex-column" style="min-height: calc(100vh - 70px);">
+    <!-- Page Header (Compact) -->
+    <div class="row mb-3 flex-shrink-0">
         <div class="col-md-12">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('chat_list') }}">Tin nhắn</a></li>
-                    <li class="breadcrumb-item active">Chat #{{ boxchat[0] }}</li>
+                    <li class="breadcrumb-item active">Chat</li>
                 </ol>
             </nav>
+        </div>
+    </div>
 
-            <div class="card shadow">
-                <div class="card-header bg-info text-white">
-                    <h4>
-                        <i class="fas fa-comments"></i> {{ boxchat[4] or 'Chat về phản ánh #' ~ boxchat[1] }}
-                    </h4>
-                    <small>
-                        Giữa: {{ boxchat[5] }} và {{ boxchat[6] }}
-                    </small>
+    <div class="row flex-grow-1 fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-lg-8 mx-auto h-100 d-flex flex-column">
+            <div class="card border-0 shadow-lg h-100 d-flex flex-column" style="overflow: hidden; border-radius: 1rem;">
+                <!-- Chat Header -->
+                <div class="card-header bg-white border-bottom py-3 flex-shrink-0">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                <i class="bi bi-chat-dots-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ boxchat[4] or 'Hỗ trợ phản ánh #' ~ boxchat[1] }}</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    <i class="bi bi-people me-1"></i>{{ boxchat[5] }} &bull; {{ boxchat[6] }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body" style="height: 500px; overflow-y: auto;" id="chatMessages">
-                    {% if messages %}
-                        {% for msg in messages %}
-                        <div class="mb-3 {% if msg[1] == current_cccd %}text-end{% endif %}">
-                            <div class="d-inline-block" style="max-width: 70%;">
-                                <div class="card {% if msg[1] == current_cccd %}bg-primary text-white{% else %}bg-light{% endif %}">
-                                    <div class="card-body py-2 px-3">
-                                        <small class="d-block mb-1">
-                                            <strong>{{ msg[5] }}</strong>
-                                        </small>
-                                        <p class="mb-1">{{ msg[2] }}</p>
+
+                <!-- Chat Body -->
+                <div class="card-body bg-light position-relative flex-grow-1" style="overflow-y: auto;" id="chatMessages">
+                    <div class="p-3">
+                        {% if messages %}
+                            {% for msg in messages %}
+                            <div class="mb-3 d-flex {% if msg[1] == current_cccd %}justify-content-end{% else %}justify-content-start{% endif %}">
+                                <div class="d-flex flex-column {% if msg[1] == current_cccd %}align-items-end{% else %}align-items-start{% endif %}" style="max-width: 75%;">
+                                    {% if msg[1] != current_cccd %}
+                                    <small class="text-muted mb-1 ms-1 fw-bold" style="font-size: 0.7rem;">{{ msg[5] }}</small>
+                                    {% endif %}
+                                    
+                                    <div class="p-3 shadow-sm position-relative 
+                                                {% if msg[1] == current_cccd %}bg-primary text-white rounded-3 rounded-bottom-0{% else %}bg-white text-dark rounded-3 rounded-bottom-0{% endif %}"
+                                         style="border-radius: 1rem !important; {% if msg[1] == current_cccd %}border-bottom-right-radius: 0.2rem !important;{% else %}border-bottom-left-radius: 0.2rem !important;{% endif %}">
                                         
-                                        <!-- File đính kèm -->
+                                        <p class="mb-1" style="white-space: pre-wrap; word-break: break-word;">{{ msg[2] }}</p>
+                                        
+                                        <!-- File Attachment -->
                                         {% if msg[6] %}
-                                        <div class="mt-2 {% if msg[1] == current_cccd %}border-light{% else %}border-secondary{% endif %} border-top pt-2">
-                                            <small>
-                                                <i class="fas fa-paperclip"></i>
-                                                <a href="{{ url_for('serve_file', filename=msg[6]) }}" 
-                                                   class="{% if msg[1] == current_cccd %}text-white{% else %}text-dark{% endif %}" 
-                                                   target="_blank">
-                                                    {{ msg[6].split('_', 1)[1] if '_' in msg[6] else msg[6] }}
-                                                </a>
-                                            </small>
+                                        <div class="mt-2 pt-2 border-top {% if msg[1] == current_cccd %}border-white border-opacity-25{% else %}border-secondary border-opacity-10{% endif %}">
                                             {% set ext = msg[6].split('.')[-1].lower() %}
                                             {% if ext in ['png', 'jpg', 'jpeg', 'gif'] %}
-                                            <div class="mt-1">
-                                                <img src="{{ url_for('serve_file', filename=msg[6]) }}" 
-                                                     class="img-thumbnail" 
-                                                     style="max-width: 200px;" 
-                                                     alt="Hình ảnh">
-                                            </div>
+                                            <a href="{{ url_for('serve_file', filename=msg[6]) }}" target="_blank" class="d-block mb-2">
+                                                <img src="{{ url_for('serve_file', filename=msg[6]) }}" class="img-fluid rounded border" style="max-height: 150px; object-fit: cover;" alt="Attachment">
+                                            </a>
                                             {% endif %}
+                                            
+                                            <a href="{{ url_for('serve_file', filename=msg[6]) }}" target="_blank" class="text-decoration-none d-flex align-items-center {% if msg[1] == current_cccd %}text-white{% else %}text-primary{% endif %}">
+                                                <i class="bi bi-paperclip me-1"></i>
+                                                <span class="text-truncate" style="max-width: 150px;">{{ msg[6].split('_', 1)[1] if '_' in msg[6] else msg[6] }}</span>
+                                            </a>
                                         </div>
                                         {% endif %}
-                                        
-                                        <small class="text-muted">
-                                            {{ msg[3].strftime('%d/%m/%Y %H:%M') if msg[3] else '' }}
-                                        </small>
                                     </div>
+                                    <small class="text-muted mt-1 mx-1" style="font-size: 0.65rem;">
+                                        {{ msg[3].strftime('%H:%M %d/%m') if msg[3] else '' }}
+                                    </small>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center text-muted mt-5">
-                            <i class="fas fa-comments fa-3x mb-3"></i>
-                            <p>Chưa có tin nhắn. Hãy gửi tin nhắn đầu tiên!</p>
-                        </div>
-                    {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted mt-5 opacity-50">
+                                <i class="bi bi-chat-square-dots display-1 d-block mb-3"></i>
+                                <p>Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="card-footer">
+
+                <!-- Chat Footer -->
+                <div class="card-footer bg-white border-top p-3 flex-shrink-0">
                     <form method="POST" action="{{ url_for('chat_send_message', maboxchat=boxchat[0]) }}" enctype="multipart/form-data">
-                        <!-- File preview area -->
+                        <!-- Preview -->
                         <div id="chatFilePreview" class="mb-2" style="display: none;">
-                            <div class="alert alert-secondary py-2 px-3 mb-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-file me-2"></i>
-                                        <small id="chatFileName" class="fw-bold"></small>
-                                        <small id="chatFileSize" class="text-muted ms-2"></small>
+                            <div class="alert alert-light border shadow-sm py-2 px-3 d-flex align-items-center justify-content-between mb-0">
+                                <div class="d-flex align-items-center overflow-hidden">
+                                    <div class="rounded p-1 bg-secondary bg-opacity-10 me-2 text-secondary">
+                                        <i class="bi bi-file-earmark fs-5"></i>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="clearChatFile()">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <div class="d-flex flex-column text-truncate">
+                                        <small id="chatFileName" class="fw-bold text-dark text-truncate"></small>
+                                        <small id="chatFileSize" class="text-muted" style="font-size: 0.7rem;"></small>
+                                    </div>
                                 </div>
+                                <button type="button" class="btn btn-sm btn-close" onclick="clearChatFile()"></button>
                             </div>
                         </div>
-                        
-                        <div class="d-flex gap-2 align-items-end">
-                            <input type="file" class="d-none" id="chat-file" name="file"
-                                   accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx"
-                                   onchange="previewChatFile(this)">
-                            
-                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('chat-file').click()" title="Đính kèm tệp">
-                                <i class="fas fa-paperclip"></i>
+
+                        <div class="input-group">
+                            <button type="button" class="btn btn-light border" onclick="document.getElementById('chat-file').click()" title="Đính kèm tệp">
+                                <i class="bi bi-paperclip fs-5 text-secondary"></i>
                             </button>
+                            <input type="file" class="d-none" id="chat-file" name="file" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx" onchange="previewChatFile(this)">
                             
-                            <input type="text" name="noidung" class="form-control" 
-                                   placeholder="Nhập tin nhắn..." required autofocus>
+                            <input type="text" name="noidung" class="form-control border-start-0 border-end-0 bg-light" placeholder="Nhập tin nhắn..." required autofocus style="box-shadow: none;">
                             
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold">
+                                <i class="bi bi-send-fill"></i>
                             </button>
                         </div>
                     </form>
@@ -125,26 +135,18 @@ function previewChatFile(input) {
         const size = (file.size / (1024 * 1024)).toFixed(2);
         const ext = file.name.split('.').pop().toLowerCase();
         
-        let icon = 'fa-file';
-        let iconColor = 'text-secondary';
+        let iconClass = 'bi-file-earmark';
         
-        if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
-            icon = 'fa-file-image';
-            iconColor = 'text-success';
-        } else if (['pdf'].includes(ext)) {
-            icon = 'fa-file-pdf';
-            iconColor = 'text-danger';
-        } else if (['doc', 'docx'].includes(ext)) {
-            icon = 'fa-file-word';
-            iconColor = 'text-primary';
-        } else if (['xls', 'xlsx'].includes(ext)) {
-            icon = 'fa-file-excel';
-            iconColor = 'text-success';
-        }
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) iconClass = 'bi-file-earmark-image';
+        else if (['pdf'].includes(ext)) iconClass = 'bi-file-earmark-pdf';
+        else if (['doc', 'docx'].includes(ext)) iconClass = 'bi-file-earmark-word';
+        else if (['xls', 'xlsx'].includes(ext)) iconClass = 'bi-file-earmark-excel';
         
-        preview.querySelector('i.fa-file').className = `fas ${icon} ${iconColor} me-2`;
+        const iconContainer = preview.querySelector('.bi').parentNode;
+        iconContainer.innerHTML = `<i class="bi ${iconClass} fs-5"></i>`;
+        
         fileName.textContent = file.name;
-        fileSize.textContent = `(${size} MB)`;
+        fileSize.textContent = `${size} MB`;
         preview.style.display = 'block';
     }
 }
@@ -156,9 +158,7 @@ function clearChatFile() {
     input.value = '';
     preview.style.display = 'none';
 }
-</script>
 
-<script>
 // Auto scroll to bottom
 window.onload = function() {
     const chatMessages = document.getElementById('chatMessages');

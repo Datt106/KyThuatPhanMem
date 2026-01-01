@@ -7,252 +7,237 @@
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div>
-                    <h2 class="fw-bold text-primary mb-1">
-                        <i class="bi bi-house-door me-2"></i>Quản lý Hộ khẩu
-                    </h2>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Hộ khẩu</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div>
-                    <a href="{{ url_for('hokhau_add') }}" class="btn btn-primary">
+             <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-house-door me-2"></i>Quản lý Hộ khẩu
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Quản lý Hộ khẩu</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Actions (Add New) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm card-glass overflow-hidden">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                    <div>
+                         <h6 class="mb-0 fw-bold text-primary">Danh sách Hộ khẩu</h6>
+                         <span class="text-muted small">Tổng số {{ total_count }} hộ khẩu đang quản lý</span>
+                    </div>
+                    <a href="{{ url_for('hokhau_add') }}" class="btn btn-primary shadow-sm hover-lift fw-bold">
                         <i class="bi bi-plus-circle me-2"></i>Thêm hộ khẩu mới
                     </a>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Search & Filter -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body py-3">
-                    <form method="GET" action="{{ url_for('hokhau_list') }}" class="row g-3 align-items-center">
-                        <div class="col-md-5">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0">
-                                    <i class="bi bi-search text-muted"></i>
-                                </span>
-                                <input type="text" 
-                                       class="form-control border-start-0" 
-                                       name="search"
-                                       value="{{ search or '' }}"
-                                       placeholder="Tìm kiếm theo mã HK, địa chỉ...">
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="bi bi-geo-alt text-primary"></i>
-                                </span>
-                                <input type="text" class="form-control bg-light" value="Hà Nội" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" 
-                                   class="form-control" 
-                                   name="xaphuong"
-                                   value="{{ xaphuong or '' }}"
-                                   placeholder="Xã/Phường">
-                        </div>
-                        <div class="col-md-2">
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary flex-grow-1">
-                                    <i class="bi bi-funnel me-1"></i>Lọc
-                                </button>
-                                <a href="{{ url_for('hokhau_list') }}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-x-circle"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </form>
+    <div class="card border-0 shadow-sm mb-4 card-glass">
+        <div class="card-body py-3">
+            <form method="GET" action="{{ url_for('hokhau_list') }}" class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <div class="form-floating">
+                        <input type="text" class="form-control bg-white border-0 shadow-none" name="search" 
+                               value="{{ search or '' }}" placeholder="Tìm kiếm...">
+                        <label>Tìm kiếm theo mã HK, địa chỉ...</label>
+                    </div>
                 </div>
-            </div>
+                <!-- Fixed Location Filter (Hà Nội Default) - Optional usage -->
+                <div class="col-md-2">
+                     <div class="form-floating">
+                        <input type="text" class="form-control bg-light" value="Hà Nội" readonly disabled>
+                        <label>Tỉnh/Thành phố</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <input type="text" class="form-control bg-white border-0 shadow-none" name="xaphuong"
+                               value="{{ xaphuong or '' }}" placeholder="Xã/Phường">
+                        <label>Xã/Phường</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                     <div class="d-flex gap-2 h-100">
+                        <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center fw-bold shadow-sm">
+                            <i class="bi bi-filter me-2"></i>Lọc
+                        </button>
+                         <a href="{{ url_for('hokhau_list') }}" class="btn btn-white w-25 py-3 d-flex align-items-center justify-content-center shadow-sm" title="Làm mới">
+                            <i class="bi bi-arrow-clockwise text-secondary"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
     
     <!-- Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0 fw-bold">
-                            Danh sách Hộ khẩu
-                            <span class="badge bg-primary ms-2">{{ total_count }}</span>
-                        </h5>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary">
-                                <i class="bi bi-download"></i> Export
-                            </button>
-                            <button class="btn btn-outline-secondary">
-                                <i class="bi bi-printer"></i> In
-                            </button>
-                        </div>
-                    </div>
+    <div class="card border-0 shadow-sm mb-4 card-glass animate-fade-in-up">
+        <div class="card-body p-0">
+             <div class="d-flex justify-content-end p-2 border-bottom border-light bg-light bg-opacity-10">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-white border-0 text-secondary hover-lift" title="Xuất dữ liệu">
+                        <i class="bi bi-download"></i>
+                    </button>
+                    <button class="btn btn-white border-0 text-secondary hover-lift" title="In danh sách">
+                        <i class="bi bi-printer"></i>
+                    </button>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="border-0 ps-4">Mã HK</th>
-                                    <th class="border-0">Chủ hộ</th>
-                                    <th class="border-0">Địa chỉ chi tiết</th>
-                                    <th class="border-0">Xã/Phường</th>
-                                    <th class="border-0">Tỉnh/TP</th>
-                                    <th class="border-0 text-center">Thành viên</th>
-                                    <th class="border-0">Ngày cấp</th>
-                                    <th class="border-0 text-center pe-4">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if ds_hokhau %}
-                                    {% for hk in ds_hokhau %}
-                                    <tr>
-                                        <td class="ps-4">
-                                            <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold">
-                                                HK{{ hk[0] }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                    <i class="bi bi-person text-muted"></i>
-                                                </div>
-                                                <span class="fw-medium">{{ hk[7] or 'Chưa xác định' }}</span>
-                                            </div>
-                                        </td>
-                                        <td>{{ hk[3] or 'Chưa cập nhật' }}</td>
-                                        <td>{{ hk[2] or 'N/A' }}</td>
-                                        <td>{{ hk[1] or 'N/A' }}</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success bg-opacity-10 text-success">
-                                                <i class="bi bi-people me-1"></i>{{ hk[6] }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">
-                                                {% if hk[4] %}
-                                                    {{ hk[4].strftime('%d/%m/%Y') }}
-                                                {% else %}
-                                                    N/A
-                                                {% endif %}
-                                            </small>
-                                        </td>
-                                        <td class="text-center pe-4">
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{{ url_for('hokhau_detail', mahokhau=hk[0]) }}" 
-                                                   class="btn btn-outline-primary" 
-                                                   title="Xem chi tiết">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="{{ url_for('hokhau_edit', mahokhau=hk[0]) }}" 
-                                                   class="btn btn-outline-secondary" 
-                                                   title="Chỉnh sửa">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <button class="btn btn-outline-danger" 
-                                                        title="Xóa"
-                                                        onclick="confirmDeleteHokhau({{ hk[0] }}, '{{ hk[3] or 'N/A' }}')">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="8" class="text-center py-5">
-                                            <div class="text-muted">
-                                                <i class="bi bi-inbox display-4 d-block mb-3 opacity-50"></i>
-                                                <p class="mb-0">Chưa có dữ liệu hộ khẩu</p>
-                                                <small>Hãy thêm hộ khẩu mới để bắt đầu quản lý</small>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
+            </div>
+            {% if ds_hokhau %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-glass table-hover">
+                    <thead class="bg-light bg-opacity-50">
+                        <tr class="text-muted text-uppercase small ls-1">
+                            <th class="ps-4">Mã HK</th>
+                            <th>Chủ hộ</th>
+                            <th>Địa chỉ chi tiết</th>
+                            <th>Xã/Phường</th>
+                            <th>Tỉnh/TP</th>
+                            <th class="text-center">Thành viên</th>
+                            <th>Ngày cấp</th>
+                            <th class="text-center pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hk in ds_hokhau %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-medium px-3">
+                                    HK{{ hk[0] }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-2 shadow-sm" style="width:32px; height:32px;">
+                                        <i class="bi bi-house-door-fill small"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark">{{ hk[7] or 'Chưa xác định' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-dark">{{ hk[3] or 'Chưa cập nhật' }}</span>
+                            </td>
+                            <td class="text-secondary">{{ hk[2] or 'N/A' }}</td>
+                            <td class="text-secondary">{{ hk[1] or 'N/A' }}</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-2">
+                                    <i class="bi bi-people me-1"></i>{{ hk[6] }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="small text-muted">
+                                    {% if hk[4] %}
+                                        {{ hk[4].strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        --/--/----
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-center pe-4">
+                                <div class="btn-group">
+                                    <a href="{{ url_for('hokhau_detail', mahokhau=hk[0]) }}" 
+                                       class="btn btn-sm btn-white text-primary border-light shadow-sm" 
+                                       title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('hokhau_edit', mahokhau=hk[0]) }}" 
+                                       class="btn btn-sm btn-white text-secondary border-light shadow-sm" 
+                                       title="Chỉnh sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-white text-danger border-light shadow-sm" 
+                                            title="Xóa"
+                                            onclick="confirmDeleteHokhau({{ hk[0] }}, '{{ hk[3] or 'N/A' }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination (Styled) -->
+            {% if total_pages > 1 %}
+            <div class="p-3 border-top border-light d-flex justify-content-between align-items-center flex-wrap">
+                 <!-- Thông tin trang -->
+                <div class="text-muted small mb-2 mb-md-0">
+                    Trang <strong>{{ page }}</strong> / <strong>{{ total_pages }}</strong>
+                    <span class="d-none d-md-inline ms-2">
+                        (Hiển thị <strong>{{ ds_hokhau|length }}</strong> / <strong>{{ total_count }}</strong> bản ghi)
+                    </span>
                 </div>
                 
-                <!-- Pagination -->
-                {% if total_pages > 1 %}
-                <div class="card-footer bg-white border-top">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <!-- Thông tin trang -->
-                        <div class="text-muted small">
-                            Trang <strong>{{ page }}</strong> / <strong>{{ total_pages }}</strong>
-                            <span class="d-none d-md-inline">
-                                - Hiển thị <strong>{{ ds_hokhau|length }}</strong> / <strong>{{ total_count }}</strong> hộ khẩu
-                            </span>
-                        </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                            <a class="page-link border-0 text-secondary" href="{% if page > 1 %}{{ url_for('hokhau_list', page=page-1, search=search, xaphuong=xaphuong) }}{% else %}#{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
                         
-                        <!-- Pagination Controls -->
-                        <nav aria-label="Pagination">
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- Nút Previous -->
-                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                    <a class="page-link" 
-                                       href="{% if page > 1 %}{{ url_for('hokhau_list', page=page-1, search=search, xaphuong=xaphuong) }}{% else %}#{% endif %}"
-                                       aria-label="Previous">
-                                        <i class="bi bi-chevron-left"></i>
-                                        <span class="d-none d-sm-inline ms-1">Trước</span>
-                                    </a>
-                                </li>
-                                
-                                <!-- Trang đầu tiên -->
-                                {% if page > 3 %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('hokhau_list', page=1, search=search, xaphuong=xaphuong) }}">1</a>
-                                </li>
-                                {% if page > 4 %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                                {% endif %}
-                                {% endif %}
-                                
-                                <!-- Các trang lân cận -->
-                                {% for p in range([1, page - 2]|max, [total_pages, page + 2]|min + 1) %}
-                                <li class="page-item {% if p == page %}active{% endif %}">
-                                    <a class="page-link" href="{{ url_for('hokhau_list', page=p, search=search, xaphuong=xaphuong) }}">{{ p }}</a>
-                                </li>
-                                {% endfor %}
-                                
-                                <!-- Trang cuối cùng -->
-                                {% if page < total_pages - 2 %}
-                                {% if page < total_pages - 3 %}
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                                {% endif %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('hokhau_list', page=total_pages, search=search, xaphuong=xaphuong) }}">{{ total_pages }}</a>
-                                </li>
-                                {% endif %}
-                                
-                                <!-- Nút Next -->
-                                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                                    <a class="page-link" 
-                                       href="{% if page < total_pages %}{{ url_for('hokhau_list', page=page+1, search=search, xaphuong=xaphuong) }}{% else %}#{% endif %}"
-                                       aria-label="Next">
-                                        <span class="d-none d-sm-inline me-1">Sau</span>
-                                        <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
+                        <!-- Simplified Pagination Logic for Display -->
+                        {% for p in range([1, page - 2]|max, [total_pages, page + 2]|min + 1) %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link border-0 {% if p == page %}bg-primary text-white shadow-sm rounded-circle{% else %}text-secondary bg-transparent{% endif %} mx-1" 
+                                href="{{ url_for('hokhau_list', page=p, search=search, xaphuong=xaphuong) }}">{{ p }}</a>
+                            </li>
+                        {% endfor %}
+
+                        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                            <a class="page-link border-0 text-secondary" href="{% if page < total_pages %}{{ url_for('hokhau_list', page=page+1, search=search, xaphuong=xaphuong) }}{% else %}#{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+               <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-inbox text-muted opacity-50 display-1"></i>
                     </div>
+                    <h5 class="text-muted fw-normal">Không tìm thấy dữ liệu</h5>
+                    <p class="text-muted mb-0">Hãy thêm hộ khẩu mới để bắt đầu quản lý</p>
                 </div>
-                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirm delete -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+             <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                 <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    Thao tác này sẽ xóa vĩnh viễn hộ khẩu và tất cả nhân khẩu trong hộ!
+                </div>
+                <p>Bạn có chắc chắn muốn xóa hộ khẩu <strong id="delHkId" class="text-primary"></strong> không?</p>
+                <p class="small text-muted mb-0">Địa chỉ: <span id="delHkAddress"></span></p>
+            </div>
+             <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-white border" data-bs-dismiss="modal">Hủy bỏ</button>
+                <form id="deleteForm" method="POST" action="">
+                     <button type="submit" class="btn btn-danger fw-bold">
+                        <i class="bi bi-trash-fill me-2"></i>Xóa vĩnh viễn
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -260,13 +245,11 @@
 
 <script>
 function confirmDeleteHokhau(mahokhau, diachi) {
-    if (confirm(`Bạn có chắc chắn muốn xóa hộ khẩu HK${mahokhau} (${diachi})?\n\nCảnh báo: Thao tác này sẽ xóa:\n- Tất cả thành viên trong hộ\n- Thông tin địa chỉ\n- Dữ liệu không thể khôi phục!`)) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/hokhau/delete/${mahokhau}`;
-        document.body.appendChild(form);
-        form.submit();
-    }
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    document.getElementById('delHkId').textContent = 'HK' + mahokhau;
+    document.getElementById('delHkAddress').textContent = diachi;
+    document.getElementById('deleteForm').action = `/hokhau/delete/${mahokhau}`;
+    modal.show();
 }
 </script>
 {% endblock %}

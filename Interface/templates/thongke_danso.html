@@ -1,22 +1,37 @@
 {% extends "base.html" %}
 
+{% block title %}Thống kê Dân số - Quản lý Dân cư{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-bar-chart-fill me-2"></i>Thống kê dân số</h2>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+             <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-bar-chart-fill me-2"></i>Thống kê Dân số
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Thống kê Dân số</li>
+                </ol>
+            </nav>
+        </div>
     </div>
 
     <!-- Filter form -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ url_for('thongke_danso') }}" class="row g-3">
-                <div class="col-md-10">
-                    <label for="xaphuong" class="form-label">Xã/Phường</label>
-                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
-                           value="{{ xaphuong }}" placeholder="Nhập để lọc theo xã/phường">
+    <div class="card border-0 shadow-sm mb-4 card-glass">
+        <div class="card-body py-3">
+            <form method="GET" action="{{ url_for('thongke_danso') }}" class="row g-3 align-items-center">
+                 <div class="col-md-10">
+                    <div class="form-floating">
+                        <input type="text" class="form-control bg-white border-0 shadow-none" id="xaphuong" name="xaphuong" 
+                               value="{{ xaphuong }}" placeholder="Nhập để lọc theo xã/phường">
+                        <label for="xaphuong">Lọc theo Xã/Phường...</label>
+                    </div>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-md-2">
+                     <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center fw-bold shadow-sm">
                         <i class="bi bi-search me-2"></i>Lọc
                     </button>
                 </div>
@@ -25,88 +40,96 @@
     </div>
 
     <!-- Statistics cards -->
-    <div class="row mb-4">
+    <div class="row mb-4 g-3">
         <div class="col-md-4">
-            <div class="card shadow-sm text-center border-primary">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="bi bi-people-fill text-primary" style="font-size: 2.5rem;"></i>
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative z-1">
+                     <div class="text-center w-100">
+                        <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3 shadow-sm">
+                            <i class="bi bi-people-fill fs-2"></i>
+                        </div>
+                        <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-1">Tổng dân số</h6>
+                        <h2 class="text-primary fw-bold mb-0 display-4">{{ stats_total[0] or 0 }}</h2>
+                         <small class="text-muted">Cư dân</small>
                     </div>
-                    <h5 class="card-title text-muted">Tổng dân số</h5>
-                    <h2 class="mb-0 text-primary">{{ stats_total[0] or 0 }}</h2>
                 </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-primary opacity-50"></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm text-center border-info">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="bi bi-gender-male text-info" style="font-size: 2.5rem;"></i>
+             <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative z-1">
+                     <div class="text-center w-100">
+                        <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-info bg-opacity-10 text-info mb-3 shadow-sm">
+                            <i class="bi bi-gender-male fs-2"></i>
+                        </div>
+                        <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-1">Nam giới</h6>
+                        <h2 class="text-info fw-bold mb-0 display-4">{{ stats_total[1] or 0 }}</h2>
+                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 mt-2">
+                            {% if stats_total[0] and stats_total[0] > 0 %}
+                                {{ "%.1f"|format((stats_total[1] or 0) * 100.0 / stats_total[0]) }}%
+                            {% else %}
+                                0.0%
+                            {% endif %}
+                        </span>
                     </div>
-                    <h5 class="card-title text-muted">Nam giới</h5>
-                    <h2 class="mb-0 text-info">{{ stats_total[1] or 0 }}</h2>
-                    <small class="text-muted">
-                        {% if stats_total[0] and stats_total[0] > 0 %}
-                            {{ "%.1f"|format((stats_total[1] or 0) * 100.0 / stats_total[0]) }}%
-                        {% else %}
-                            0.0%
-                        {% endif %}
-                    </small>
                 </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-info opacity-50"></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm text-center border-danger">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="bi bi-gender-female text-danger" style="font-size: 2.5rem;"></i>
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative z-1">
+                     <div class="text-center w-100">
+                        <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-danger bg-opacity-10 text-danger mb-3 shadow-sm">
+                            <i class="bi bi-gender-female fs-2"></i>
+                        </div>
+                        <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-1">Nữ giới</h6>
+                        <h2 class="text-danger fw-bold mb-0 display-4">{{ stats_total[2] or 0 }}</h2>
+                         <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 mt-2">
+                            {% if stats_total[0] and stats_total[0] > 0 %}
+                                {{ "%.1f"|format((stats_total[2] or 0) * 100.0 / stats_total[0]) }}%
+                            {% else %}
+                                0.0%
+                            {% endif %}
+                        </span>
                     </div>
-                    <h5 class="card-title text-muted">Nữ giới</h5>
-                    <h2 class="mb-0 text-danger">{{ stats_total[2] or 0 }}</h2>
-                    <small class="text-muted">
-                        {% if stats_total[0] and stats_total[0] > 0 %}
-                            {{ "%.1f"|format((stats_total[2] or 0) * 100.0 / stats_total[0]) }}%
-                        {% else %}
-                            0.0%
-                        {% endif %}
-                    </small>
                 </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-danger opacity-50"></div>
             </div>
         </div>
     </div>
 
     <!-- Charts -->
-    <div class="row mb-4">
+    <div class="row mb-4 g-4">
         <!-- Gender Pie Chart -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Tỷ lệ giới tính</h5>
-                    <small class="text-muted">Phân bố dân số theo giới tính (Nam/Nữ)</small>
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm card-glass h-100">
+                <div class="card-header bg-white bg-opacity-50 border-bottom py-3">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Tỷ lệ giới tính</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="genderChart" style="max-height: 300px;"></canvas>
-                    <div class="text-center mt-3">
-                        <small class="text-muted fst-italic">
-                            Biểu đồ tròn thể hiện tỷ lệ phần trăm nam giới và nữ giới trong tổng dân số
-                        </small>
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 350px;">
+                        <canvas id="genderChart"></canvas>
                     </div>
+                     <small class="text-muted fst-italic mt-3 text-center">
+                        Biểu đồ tròn thể hiện tỷ lệ phần trăm nam giới và nữ giới
+                    </small>
                 </div>
             </div>
         </div>
         
         <!-- Age Group Bar Chart -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Phân bổ theo nhóm tuổi</h5>
-                    <small class="text-muted">Số lượng người trong từng độ tuổi (Mầm non, Tiểu học, THCS, THPT, Lao động, Nghỉ hưu)</small>
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm card-glass h-100">
+                <div class="card-header bg-white bg-opacity-50 border-bottom py-3">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Phân bổ theo nhóm tuổi</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="ageChart" style="max-height: 300px;"></canvas>
-                    <div class="text-center mt-3">
-                        <small class="text-muted fst-italic">
-                            <strong>Chú thích nhóm tuổi:</strong> 0-5 (Mầm non), 6-10 (Tiểu học), 11-14 (THCS), 15-17 (THPT), 18-59 (Lao động), 60+ (Nghỉ hưu)
+                    <div class="mt-3 p-3 bg-light bg-opacity-50 rounded text-center">
+                         <small class="text-muted">
+                            <strong>Chú thích:</strong> 0-5 (Mầm non), 6-10 (Tiểu học), 11-14 (THCS), 15-17 (THPT), 18-59 (Lao động), 60+ (Nghỉ hưu)
                         </small>
                     </div>
                 </div>
@@ -117,17 +140,13 @@
     <!-- Age by Gender Chart -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-bar-chart-fill me-2"></i>Phân bổ theo nhóm tuổi và giới tính</h5>
-                    <small class="text-muted">So sánh số lượng nam và nữ trong từng nhóm tuổi</small>
+            <div class="card border-0 shadow-sm card-glass">
+                <div class="card-header bg-white bg-opacity-50 border-bottom py-3">
+                   <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Phân bổ theo nhóm tuổi và giới tính</h6>
                 </div>
                 <div class="card-body">
-                    <canvas id="ageGenderChart" style="max-height: 400px;"></canvas>
-                    <div class="text-center mt-3">
-                        <small class="text-muted fst-italic">
-                            Biểu đồ cột kép giúp so sánh trực quan số lượng nam (màu xanh) và nữ (màu đỏ) trong từng nhóm tuổi
-                        </small>
+                    <div style="height: 400px;">
+                         <canvas id="ageGenderChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -136,17 +155,16 @@
 
     <!-- District Statistics Table -->
     {% if stats_diaban %}
-    <div class="card shadow-sm">
-        <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="bi bi-map-fill me-2"></i>Thống kê theo địa bàn (Top 10)</h5>
-            <small class="text-muted">Xếp hạng 10 xã/phường có dân số đông nhất và phân tích giới tính</small>
+    <div class="card border-0 shadow-sm mb-4 card-glass animate-fade-in-up">
+        <div class="card-header bg-white bg-opacity-50 border-bottom py-3">
+            <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-map-fill me-2 text-primary"></i>Thống kê theo địa bàn (Top 10)</h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>STT</th>
+                <table class="table align-middle mb-0 table-glass table-hover">
+                    <thead class="bg-light bg-opacity-50">
+                        <tr class="text-muted text-uppercase small ls-1">
+                            <th class="ps-4">STT</th>
                             <th>Xã/Phường</th>
                             <th class="text-center">Tổng</th>
                             <th class="text-center">Nam</th>
@@ -157,22 +175,22 @@
                     <tbody>
                         {% for row in stats_diaban %}
                         <tr>
-                            <td>{{ loop.index }}</td>
-                            <td><strong>{{ row[0] or 'N/A' }}</strong></td>
-                            <td class="text-center"><span class="badge bg-primary">{{ row[1] }}</span></td>
-                            <td class="text-center"><span class="badge bg-info">{{ row[2] }}</span></td>
-                            <td class="text-center"><span class="badge bg-danger">{{ row[3] }}</span></td>
-                            <td>
-                                <div class="progress" style="height: 25px;">
+                            <td class="ps-4 text-muted">{{ loop.index }}</td>
+                            <td><strong class="text-dark">{{ row[0] or 'N/A' }}</strong></td>
+                            <td class="text-center"><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">{{ row[1] }}</span></td>
+                            <td class="text-center"><span class="badge bg-info bg-opacity-10 text-info rounded-pill">{{ row[2] }}</span></td>
+                            <td class="text-center"><span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">{{ row[3] }}</span></td>
+                            <td class="pe-4">
+                                <div class="progress rounded-pill shadow-sm" style="height: 20px;">
                                     {% set total = row[1] or 1 %}
                                     {% set nam_pct = (row[2] or 0) * 100.0 / total %}
                                     {% set nu_pct = 100 - nam_pct %}
-                                    <div class="progress-bar bg-info text-white fw-bold" role="progressbar" 
+                                    <div class="progress-bar bg-info" role="progressbar" 
                                          style="width: {{ nam_pct }}%" 
                                          aria-valuenow="{{ nam_pct }}" aria-valuemin="0" aria-valuemax="100">
                                         {% if nam_pct >= 10 %}{{ "%.0f"|format(nam_pct) }}%{% endif %}
                                     </div>
-                                    <div class="progress-bar bg-danger text-white fw-bold" role="progressbar" 
+                                    <div class="progress-bar bg-danger" role="progressbar" 
                                          style="width: {{ nu_pct }}%" 
                                          aria-valuenow="{{ nu_pct }}" aria-valuemin="0" aria-valuemax="100">
                                         {% if nu_pct >= 10 %}{{ "%.0f"|format(nu_pct) }}%{% endif %}
@@ -192,14 +210,12 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// Debug - In ra dữ liệu
-console.log('stats_total:', {{ stats_total|tojson }});
-console.log('stats_age:', {{ stats_age|tojson }});
-console.log('stats_age_gender:', {{ stats_age_gender|tojson }});
+// Font configuration
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#6c757d';
 
 // Gender Pie Chart
 const genderCtx = document.getElementById('genderChart').getContext('2d');
-console.log('Gender data:', [{{ stats_total[1] or 0 }}, {{ stats_total[2] or 0 }}]);
 new Chart(genderCtx, {
     type: 'pie',
     data: {
@@ -211,38 +227,32 @@ new Chart(genderCtx, {
                 'rgba(220, 53, 69, 0.7)'
             ],
             borderColor: [
-                'rgba(13, 202, 240, 1)',
-                'rgba(220, 53, 69, 1)'
+                'rgba(255, 255, 255, 1)',
+                'rgba(255, 255, 255, 1)'
             ],
-            borderWidth: 2
+            borderWidth: 3,
+            hoverOffset: 4
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'bottom',
                 labels: {
-                    font: {
-                        size: 14
-                    },
-                    padding: 15
-                }
-            },
-            title: {
-                display: true,
-                text: 'Tỷ lệ phần trăm Nam/Nữ',
-                font: {
-                    size: 16,
-                    weight: 'bold'
-                },
-                padding: {
-                    top: 10,
-                    bottom: 20
+                    usePointStyle: true,
+                    padding: 20
                 }
             },
             tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#000',
+                bodyColor: '#6c757d',
+                borderColor: '#e9ecef',
+                borderWidth: 1,
+                padding: 12,
+                boxPadding: 6,
                 callbacks: {
                     label: function(context) {
                         let label = context.label || '';
@@ -261,47 +271,38 @@ new Chart(genderCtx, {
 const ageCtx = document.getElementById('ageChart').getContext('2d');
 const ageLabels = [{% for row in stats_age %}'{{ row[0] }}'{% if not loop.last %}, {% endif %}{% endfor %}];
 const ageData = [{% for row in stats_age %}{{ row[1] }}{% if not loop.last %}, {% endif %}{% endfor %}];
-console.log('Age labels:', ageLabels);
-console.log('Age data:', ageData);
 
 new Chart(ageCtx, {
     type: 'bar',
     data: {
         labels: ageLabels,
         datasets: [{
-            label: 'Số người',
+            label: 'Số lượng',
             data: ageData,
-            backgroundColor: 'rgba(13, 110, 253, 0.7)',
+            backgroundColor: 'rgba(13, 110, 253, 0.6)',
             borderColor: 'rgba(13, 110, 253, 1)',
-            borderWidth: 2
+            borderWidth: 1,
+            borderRadius: 6,
+            barThickness: 40
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: {
-                    stepSize: 1
+                grid: {
+                    color: '#e9ecef',
+                    borderDash: [5, 5]
                 },
-                title: {
-                    display: true,
-                    text: 'Số lượng (người)',
-                    font: {
-                        size: 13,
-                        weight: 'bold'
-                    }
+                ticks: {
+                    padding: 10
                 }
             },
             x: {
-                title: {
-                    display: true,
-                    text: 'Nhóm tuổi',
-                    font: {
-                        size: 13,
-                        weight: 'bold'
-                    }
+                grid: {
+                    display: false
                 }
             }
         },
@@ -309,32 +310,16 @@ new Chart(ageCtx, {
             legend: {
                 display: false
             },
-            title: {
-                display: true,
-                text: 'Phân bố dân số theo độ tuổi',
-                font: {
-                    size: 16,
-                    weight: 'bold'
-                },
-                padding: {
-                    top: 10,
-                    bottom: 20
-                }
-            },
             tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#000',
+                bodyColor: '#6c757d',
+                borderColor: '#e9ecef',
+                borderWidth: 1,
+                padding: 12,
                 callbacks: {
                     label: function(context) {
-                        let value = context.parsed.y;
-                        let label = context.label;
-                        let ageGroupNames = {
-                            '0-5': 'Mầm non (0-5 tuổi)',
-                            '6-10': 'Tiểu học (6-10 tuổi)',
-                            '11-14': 'THCS (11-14 tuổi)',
-                            '15-17': 'THPT (15-17 tuổi)',
-                            '18-59': 'Độ tuổi lao động (18-59 tuổi)',
-                            '60+': 'Nghỉ hưu (60+ tuổi)'
-                        };
-                        return ageGroupNames[label] + ': ' + value + ' người';
+                        return context.parsed.y + ' người';
                     }
                 }
             }
@@ -365,10 +350,6 @@ const nuData = new Array(ageGroups.length).fill(0);
     })();
 {% endfor %}
 
-console.log('Age groups:', ageGroups);
-console.log('Nam data:', namData);
-console.log('Nu data:', nuData);
-
 new Chart(ageGenderCtx, {
     type: 'bar',
     data: {
@@ -379,43 +360,33 @@ new Chart(ageGenderCtx, {
                 data: namData,
                 backgroundColor: 'rgba(13, 202, 240, 0.7)',
                 borderColor: 'rgba(13, 202, 240, 1)',
-                borderWidth: 2
+                borderWidth: 1,
+                borderRadius: 4
             },
             {
                 label: 'Nữ',
                 data: nuData,
                 backgroundColor: 'rgba(220, 53, 69, 0.7)',
                 borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 2
+                borderWidth: 1,
+                borderRadius: 4
             }
         ]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: {
-            y: {
+             y: {
                 beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                },
-                title: {
-                    display: true,
-                    text: 'Số lượng (người)',
-                    font: {
-                        size: 13,
-                        weight: 'bold'
-                    }
+                grid: {
+                    color: '#e9ecef',
+                    borderDash: [5, 5]
                 }
             },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Nhóm tuổi',
-                    font: {
-                        size: 13,
-                        weight: 'bold'
-                    }
+             x: {
+                grid: {
+                    display: false
                 }
             }
         },
@@ -423,43 +394,17 @@ new Chart(ageGenderCtx, {
             legend: {
                 position: 'top',
                 labels: {
-                    font: {
-                        size: 14
-                    }
-                }
-            },
-            title: {
-                display: true,
-                text: 'Phân tích cấu trúc dân số theo tuổi và giới tính',
-                font: {
-                    size: 16,
-                    weight: 'bold'
-                },
-                padding: {
-                    top: 10,
-                    bottom: 20
+                    usePointStyle: true,
+                    padding: 20
                 }
             },
             tooltip: {
-                callbacks: {
-                    title: function(context) {
-                        let label = context[0].label;
-                        let ageGroupNames = {
-                            '0-5': 'Mầm non (0-5 tuổi)',
-                            '6-10': 'Tiểu học (6-10 tuổi)',
-                            '11-14': 'THCS (11-14 tuổi)',
-                            '15-17': 'THPT (15-17 tuổi)',
-                            '18-59': 'Độ tuổi lao động (18-59 tuổi)',
-                            '60+': 'Nghỉ hưu (60+ tuổi)'
-                        };
-                        return ageGroupNames[label] || label;
-                    },
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        let value = context.parsed.y;
-                        return label + ': ' + value + ' người';
-                    }
-                }
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#000',
+                bodyColor: '#6c757d',
+                borderColor: '#e9ecef',
+                borderWidth: 1,
+                padding: 12
             }
         }
     }

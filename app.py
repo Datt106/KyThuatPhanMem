@@ -3611,6 +3611,7 @@ def phananh_list():
         query = """
             SELECT 
                 p.maphananh,
+                'Tôi' as nguoiphan,
                 p.tieude,
                 p.loaiphananh,
                 p.trangthaiphananh,
@@ -3621,9 +3622,12 @@ def phananh_list():
                 p.comment_count,
                 p.view_count,
                 v.tenvande,
-                v.trangthai as trangthai_vande
+                v.trangthai as trangthai_vande,
+                d.xaphuong,
+                d.chitiet
             FROM phananh p
             LEFT JOIN vande v ON p.mavande = v.mavande
+            LEFT JOIN diachi d ON p.madiachi = d.madiachi
             WHERE p.cccd = %s
             ORDER BY p.thoigiantao DESC
         """
@@ -6182,11 +6186,11 @@ def reports_engagement():
                 n.name,
                 n.cccd,
                 COUNT(DISTINCT p.maphananh) as post_count,
-                COUNT(DISTINCT l.malike) as like_count,
-                COUNT(DISTINCT b.mabinhluan) as comment_count,
+                COUNT(DISTINCT l.maphananh) as like_count,
+                COUNT(DISTINCT b.id) as comment_count,
                 (COUNT(DISTINCT p.maphananh) * 3 + 
-                 COUNT(DISTINCT l.malike) + 
-                 COUNT(DISTINCT b.mabinhluan) * 2) as activity_score
+                 COUNT(DISTINCT l.maphananh) + 
+                 COUNT(DISTINCT b.id) * 2) as activity_score
             FROM nguoidung n
             LEFT JOIN phananh p ON n.cccd = p.cccd {' AND p.thoigiantao BETWEEN %s AND %s' if params else ''}
             LEFT JOIN like_post l ON n.cccd = l.cccd

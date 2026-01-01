@@ -30,12 +30,12 @@
     </div>
 
     <!-- Form -->
-    <div class="row">
+    <div class="row fade-in-up" style="animation-delay: 0.1s;">
         <div class="col-lg-8 mx-auto">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="bi bi-file-earmark-text text-primary me-2"></i>Thông tin nhân khẩu
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-person-lines-fill me-2"></i>Thông tin nhân khẩu
                     </h5>
                 </div>
                 <div class="card-body p-4">
@@ -43,244 +43,203 @@
                         <!-- Thông tin bắt buộc -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary fw-bold mb-3">
-                                    <i class="bi bi-person-fill me-2"></i>Thông tin cơ bản
-                                    <span class="text-danger ms-2" style="font-size: 12px;">* Bắt buộc</span>
+                                <h6 class="text-primary fw-bold mb-3 text-uppercase small ls-1">
+                                    <i class="bi bi-info-circle-fill me-2"></i>Thông tin cơ bản
+                                    <span class="text-danger ms-2" style="font-size: 11px;">(Các trường có dấu * là bắt buộc)</span>
                                 </h6>
                             </div>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="cccd" class="form-label fw-semibold">
-                                    CCCD <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="cccd" 
-                                       name="cccd" 
-                                       required
-                                       maxlength="12"
-                                       pattern="[0-9]{12}"
-                                       placeholder="Nhập 12 số CCCD">
-                                <div class="form-text">12 chữ số</div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="cccd" name="cccd" required maxlength="12" pattern="[0-9]{12}" placeholder="CCCD">
+                                    <label for="cccd">Số CCCD <span class="text-danger">*</span></label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="name" class="form-label fw-semibold">
-                                    Họ và tên <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="name" 
-                                       name="name" 
-                                       required
-                                       placeholder="Nhập họ và tên đầy đủ">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="name" name="name" required placeholder="Họ và tên">
+                                    <label for="name">Họ và tên <span class="text-danger">*</span></label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="user_name" class="form-label fw-semibold">
-                                    Tên đăng nhập <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="user_name" 
-                                       name="user_name" 
-                                       required
-                                       placeholder="Tên dùng để đăng nhập">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="user_name" name="user_name" required placeholder="Tên đăng nhập">
+                                    <label for="user_name">Tên đăng nhập <span class="text-danger">*</span></label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="matkhau" class="form-label fw-semibold">
-                                    Mật khẩu <span class="text-danger">*</span>
-                                </label>
-                                <input type="password" 
-                                       class="form-control" 
-                                       id="matkhau" 
-                                       name="matkhau" 
-                                       required
-                                       placeholder="Nhập mật khẩu">
+                                <div class="form-floating">
+                                    <input type="password" class="form-control" id="matkhau" name="matkhau" required placeholder="Mật khẩu">
+                                    <label for="matkhau">Mật khẩu <span class="text-danger">*</span></label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="bidanh" class="form-label fw-semibold">Bí danh</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="bidanh" 
-                                       name="bidanh"
-                                       placeholder="Tên gọi khác (nếu có)">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="bidanh" name="bidanh" placeholder="Bí danh">
+                                    <label for="bidanh">Bí danh (nếu có)</label>
+                                </div>
                             </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4" style="opacity: 0.1;">
 
                         <!-- Thông tin CCCD -->
                         <div class="row mb-3">
                             <div class="col-12">
-                                <h6 class="text-primary fw-bold mb-3">
-                                    <i class="bi bi-card-text me-2"></i>Thông tin CCCD
+                                <h6 class="text-primary fw-bold mb-3 text-uppercase small ls-1">
+                                    <i class="bi bi-card-heading me-2"></i>Chi tiết CCCD
                                 </h6>
                             </div>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="ngaycapcccd" class="form-label fw-semibold">Ngày cấp CCCD</label>
-                                <input type="date" 
-                                       class="form-control" 
-                                       id="ngaycapcccd" 
-                                       name="ngaycapcccd">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="ngaycapcccd" name="ngaycapcccd" placeholder="Ngày cấp">
+                                    <label for="ngaycapcccd">Ngày cấp CCCD</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="noicapcccd" class="form-label fw-semibold">Nơi cấp CCCD</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="noicapcccd" 
-                                       name="noicapcccd"
-                                       placeholder="Ví dụ: Cục Cảnh sát ĐKQL cư trú và DLQG về dân cư">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="noicapcccd" name="noicapcccd" placeholder="Nơi cấp">
+                                    <label for="noicapcccd">Nơi cấp CCCD</label>
+                                </div>
                             </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4" style="opacity: 0.1;">
 
                         <!-- Thông tin bổ sung -->
                         <div class="row mb-3">
                             <div class="col-12">
-                                <h6 class="text-secondary fw-bold mb-3">
-                                    <i class="bi bi-info-circle me-2"></i>Thông tin bổ sung
+                                <h6 class="text-secondary fw-bold mb-3 text-uppercase small ls-1">
+                                    <i class="bi bi-clipboard-data me-2"></i>Thông tin cá nhân khác
                                 </h6>
                             </div>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="sdt" class="form-label fw-semibold">Số điện thoại</label>
-                                <input type="tel" 
-                                       class="form-control" 
-                                       id="sdt" 
-                                       name="sdt"
-                                       pattern="[0-9]{10,11}"
-                                       placeholder="Nhập số điện thoại">
+                                <div class="form-floating">
+                                    <input type="tel" class="form-control" id="sdt" name="sdt" pattern="[0-9]{10,11}" placeholder="Số điện thoại">
+                                    <label for="sdt">Số điện thoại</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="ngaysinh" class="form-label fw-semibold">Ngày sinh</label>
-                                <input type="date" 
-                                       class="form-control" 
-                                       id="ngaysinh" 
-                                       name="ngaysinh">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="ngaysinh" name="ngaysinh" placeholder="Ngày sinh">
+                                    <label for="ngaysinh">Ngày sinh</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="gioitinh" class="form-label fw-semibold">Giới tính</label>
-                                <select class="form-select" id="gioitinh" name="gioitinh">
-                                    <option value="">-- Chọn giới tính --</option>
-                                    <option value="nam">Nam</option>
-                                    <option value="nu">Nữ</option>
-                                </select>
+                                <div class="form-floating">
+                                    <select class="form-select" id="gioitinh" name="gioitinh">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="nam">Nam</option>
+                                        <option value="nu">Nữ</option>
+                                    </select>
+                                    <label for="gioitinh">Giới tính</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="dantoc" class="form-label fw-semibold">Dân tộc</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="dantoc" 
-                                       name="dantoc"
-                                       placeholder="Ví dụ: Kinh">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="dantoc" name="dantoc" placeholder="Dân tộc">
+                                    <label for="dantoc">Dân tộc</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="vaitro" class="form-label fw-semibold">Vai trò</label>
-                                <select class="form-select" id="vaitro" name="vaitro">
-                                    <option value="NguoiDan" selected>Người dân</option>
-                                    <option value="CanBo">Cán bộ</option>
-                                    <option value="QuanLy">Quản lý</option>
-                                </select>
+                                <div class="form-floating">
+                                    <select class="form-select" id="vaitro" name="vaitro">
+                                        <option value="NguoiDan" selected>Người dân</option>
+                                        <option value="CanBo">Cán bộ</option>
+                                        <option value="QuanLy">Quản lý</option>
+                                    </select>
+                                    <label for="vaitro">Vai trò hệ thống</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="nghenghiep" class="form-label fw-semibold">Nghề nghiệp</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="nghenghiep" 
-                                       name="nghenghiep"
-                                       placeholder="Nghề nghiệp hiện tại">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nghenghiep" name="nghenghiep" placeholder="Nghề nghiệp">
+                                    <label for="nghenghiep">Nghề nghiệp</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="noilamviec" class="form-label fw-semibold">Nơi làm việc</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="noilamviec" 
-                                       name="noilamviec"
-                                       placeholder="Tên công ty/cơ quan">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="noilamviec" name="noilamviec" placeholder="Nơi làm việc">
+                                    <label for="noilamviec">Nơi làm việc</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="noisinh" class="form-label fw-semibold">Nơi sinh</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="noisinh" 
-                                       name="noisinh"
-                                       placeholder="Tỉnh/Thành phố nơi sinh">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="noisinh" name="noisinh" placeholder="Nơi sinh">
+                                    <label for="noisinh">Nơi sinh</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label for="nguyenquan" class="form-label fw-semibold">Nguyên quán</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="nguyenquan" 
-                                       name="nguyenquan"
-                                       placeholder="Quê quán gốc">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nguyenquan" name="nguyenquan" placeholder="Nguyên quán">
+                                    <label for="nguyenquan">Nguyên quán</label>
+                                </div>
                             </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4" style="opacity: 0.1;">
 
                         <!-- Địa chỉ thường trú -->
                         <div class="row mb-3">
                             <div class="col-12">
-                                <h6 class="text-success fw-bold mb-3">
-                                    <i class="bi bi-geo-alt me-2"></i>Địa chỉ thường trú
+                                <h6 class="text-success fw-bold mb-3 text-uppercase small ls-1">
+                                    <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ thường trú
                                 </h6>
                             </div>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="ngaydangkythuongtru" class="form-label fw-semibold">Ngày đăng ký thường trú</label>
-                                <input type="date" 
-                                       class="form-control" 
-                                       id="ngaydangkythuongtru" 
-                                       name="ngaydangkythuongtru">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="ngaydangkythuongtru" name="ngaydangkythuongtru" placeholder="Ngày đăng ký">
+                                    <label for="ngaydangkythuongtru">Ngày đăng ký thường trú</label>
+                                </div>
                             </div>
 
                             <div class="col-md-6"></div>
 
                             <div class="col-12">
-                                <label for="diachitruoc" class="form-label fw-semibold">Địa chỉ thường trú trước khi chuyển đến</label>
-                                <textarea class="form-control" 
-                                          id="diachitruoc" 
-                                          name="diachitruoc"
-                                          rows="2"
-                                          placeholder="Nhập địa chỉ cũ hoặc ghi 'Mới sinh' nếu sinh ra tại đây"></textarea>
-                                <div class="form-text">
-                                    <i class="bi bi-lightbulb me-1"></i>
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="diachitruoc" name="diachitruoc" style="height: 100px" placeholder="Địa chỉ trước đây"></textarea>
+                                    <label for="diachitruoc">Địa chỉ thường trú trước khi chuyển đến</label>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>
                                     Nếu trẻ mới sinh, nhập "Mới sinh"
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4" style="opacity: 0.1;">
 
                         <!-- Buttons -->
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ url_for('nguoidung_list') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-2"></i>Hủy
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{{ url_for('nguoidung_list') }}" class="btn btn-white border shadow-sm px-4">
+                                <i class="bi bi-x-lg me-2"></i>Hủy bỏ
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-2"></i>Thêm nhân khẩu
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="bi bi-save me-2"></i>Lưu thông tin
                             </button>
                         </div>
                     </form>

@@ -3,45 +3,35 @@
 {% block title %}Chỉnh sửa Phản ánh{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+<div class="container py-5">
+    <div class="row justify-content-center animate-fade-in-up">
+        <div class="col-lg-8">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('phananh_list') }}">Phản ánh</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('phananh_detail', maphananh=phananh[0]) }}">Chi tiết</a></li>
                     <li class="breadcrumb-item active">Chỉnh sửa</li>
                 </ol>
             </nav>
 
-            <div class="card shadow-lg">
-                <div class="card-header bg-warning text-white">
-                    <h4 class="mb-0"><i class="fas fa-edit"></i> Chỉnh sửa Phản ánh #{{ phananh[0] }}</h4>
+            <div class="card border-0 shadow-lg glass-card overflow-hidden">
+                <div class="card-header bg-white border-bottom py-4">
+                    <h4 class="fw-bold text-primary mb-0 d-flex align-items-center">
+                        <i class="bi bi-pencil-square me-2 fs-3"></i> Chỉnh sửa Phản ánh #{{ phananh[0] }}
+                    </h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4 p-lg-5">
                     <form method="POST" action="{{ url_for('phananh_edit', maphananh=phananh[0]) }}">
                         <!-- Tiêu đề -->
-                        <div class="mb-3">
-                            <label for="tieude" class="form-label">
-                                <i class="fas fa-heading"></i> Tiêu đề <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="tieude" 
-                                   name="tieude" 
-                                   value="{{ phananh[1] or '' }}"
-                                   placeholder="Nhập tiêu đề ngắn gọn cho phản ánh"
-                                   required 
-                                   maxlength="200">
-                            <small class="form-text text-muted">Tối đa 200 ký tự</small>
+                        <div class="form-floating mb-4">
+                            <input type="text" class="form-control" id="tieude" name="tieude" value="{{ phananh[1] or '' }}" placeholder="Nhập tiêu đề" required maxlength="200">
+                            <label for="tieude" class="text-secondary fw-bold">Tiêu đề phản ánh <span class="text-danger">*</span></label>
+                            <small class="form-text text-muted ms-2"><i class="bi bi-info-circle me-1"></i>Tối đa 200 ký tự</small>
                         </div>
 
                         <!-- Loại phản ánh -->
-                        <div class="mb-3">
-                            <label for="loaiphananh" class="form-label">
-                                <i class="fas fa-tag"></i> Loại phản ánh
-                            </label>
+                        <div class="form-floating mb-4">
                             <select class="form-select" id="loaiphananh" name="loaiphananh">
                                 <option value="" {% if not phananh[3] %}selected{% endif %}>-- Chọn loại phản ánh --</option>
                                 <option value="Hạ tầng" {% if phananh[3] == 'Hạ tầng' %}selected{% endif %}>🏗️ Hạ tầng (Đường xá, cầu, thoát nước)</option>
@@ -53,89 +43,110 @@
                                 <option value="Điện nước" {% if phananh[3] == 'Điện nước' %}selected{% endif %}>💡 Điện - Nước</option>
                                 <option value="Khác" {% if phananh[3] == 'Khác' %}selected{% endif %}>📋 Khác</option>
                             </select>
+                            <label for="loaiphananh" class="text-secondary fw-bold">Loại phản ánh</label>
                         </div>
 
                         <!-- Mô tả -->
-                        <div class="mb-3">
-                            <label for="mota" class="form-label">
-                                <i class="fas fa-align-left"></i> Mô tả chi tiết <span class="text-danger">*</span>
+                        <div class="mb-4">
+                            <label for="mota" class="form-label text-secondary fw-bold small text-uppercase ls-1 mb-2">
+                                Mô tả chi tiết <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control" 
-                                      id="mota" 
-                                      name="mota" 
-                                      rows="6" 
-                                      placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..."
-                                      required>{{ phananh[2] or '' }}</textarea>
-                            <small class="form-text text-muted">Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
+                            <textarea class="form-control" id="mota" name="mota" rows="6" placeholder="Mô tả chi tiết vấn đề bạn muốn phản ánh..." required style="resize: none;">{{ phananh[2] or '' }}</textarea>
+                            <small class="form-text text-muted ms-2 mt-1"><i class="bi bi-card-text me-1"></i>Hãy mô tả rõ ràng và đầy đủ để cán bộ có thể hiểu và xử lý tốt hơn</small>
                         </div>
 
                         <!-- Trạng thái (chỉ cán bộ/quản lý) -->
-                        {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
-                        <div class="mb-3">
-                            <label for="trangthaiphananh" class="form-label">
-                                <i class="fas fa-tasks"></i> Trạng thái
-                            </label>
-                            <select class="form-select" id="trangthaiphananh" name="trangthaiphananh">
-                                <option value="ChuaXuLy" {% if phananh[4] == 'ChuaXuLy' %}selected{% endif %}>Chưa xử lý</option>
-                                <option value="DangXuLy" {% if phananh[4] == 'DangXuLy' %}selected{% endif %}>Đang xử lý</option>
-                                <option value="DaXuLy" {% if phananh[4] == 'DaXuLy' %}selected{% endif %}>Đã xử lý</option>
-                                <option value="TuChoi" {% if phananh[4] == 'TuChoi' %}selected{% endif %}>Từ chối</option>
-                            </select>
+                        <!-- INFO: Assuming role checking logic is consistent -->
+                        {% if session.user and session.user.vaitro in ['CanBo', 'QuanLy'] %}
+                        <div class="card mb-4 border-0 shadow-sm bg-primary bg-opacity-10">
+                            <div class="card-body">
+                                <div class="form-floating">
+                                    <select class="form-select border-primary" id="trangthaiphananh" name="trangthaiphananh">
+                                        <option value="ChuaXuLy" {% if phananh[4] == 'ChuaXuLy' %}selected{% endif %}>Chưa xử lý</option>
+                                        <option value="DangXuLy" {% if phananh[4] == 'DangXuLy' %}selected{% endif %}>Đang xử lý</option>
+                                        <option value="DaXuLy" {% if phananh[4] == 'DaXuLy' %}selected{% endif %}>Đã xử lý</option>
+                                        <option value="TuChoi" {% if phananh[4] == 'TuChoi' %}selected{% endif %}>Từ chối</option>
+                                    </select>
+                                    <label for="trangthaiphananh" class="text-primary fw-bold">Trạng thái xử lý</label>
+                                </div>
+                            </div>
                         </div>
                         {% endif %}
 
                         <!-- Địa chỉ (read-only) -->
                         {% if phananh[7] or phananh[8] or phananh[9] %}
-                        <div class="card mb-3 bg-light">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Vị trí</h6>
+                        <div class="card mb-4 border-0 shadow-sm bg-light">
+                            <div class="card-header bg-transparent border-bottom py-3">
+                                <h6 class="fw-bold text-secondary mb-0 small text-uppercase ls-1"><i class="bi bi-geo-alt-fill me-2"></i>Vị trí hiện tại</h6>
                             </div>
                             <div class="card-body">
-                                <p class="mb-0">
-                                    <strong>Địa chỉ:</strong> 
+                                <p class="mb-0 fw-medium text-dark">
+                                    <i class="bi bi-pin-map text-danger me-2"></i>
                                     {{ phananh[9] or '' }}{% if phananh[8] %}, {{ phananh[8] }}{% endif %}{% if phananh[7] %}, {{ phananh[7] }}{% endif %}
                                 </p>
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle"></i> Để thay đổi địa chỉ, vui lòng liên hệ cán bộ
+                                <small class="text-muted d-block mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>Để thay đổi địa chỉ, vui lòng tạo phản ánh mới hoặc liên hệ cán bộ
                                 </small>
                             </div>
                         </div>
                         {% endif %}
 
                         <!-- Cài đặt (read-only) -->
-                        <div class="card mb-3 bg-light">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-cog"></i> Cài đặt</h6>
+                        <div class="card mb-4 border-0 shadow-sm bg-light">
+                            <div class="card-header bg-transparent border-bottom py-3">
+                                <h6 class="fw-bold text-secondary mb-0 small text-uppercase ls-1"><i class="bi bi-gear-fill me-2"></i>Cài đặt hiện tại</h6>
                             </div>
                             <div class="card-body">
-                                <p class="mb-2">
+                                <div class="d-flex align-items-center mb-3">
                                     {% if phananh[5] %}
-                                    <i class="fas fa-globe text-success"></i> <strong>Công khai</strong> - Hiển thị trên Newsfeed
+                                    <div class="bg-success bg-opacity-10 text-success rounded-circle p-2 me-3">
+                                        <i class="bi bi-globe fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark">Công khai</strong>
+                                        <span class="d-block text-muted small">Hiển thị trên Newsfeed</span>
+                                    </div>
                                     {% else %}
-                                    <i class="fas fa-lock text-secondary"></i> <strong>Riêng tư</strong> - Chỉ cán bộ xem được
+                                     <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2 me-3">
+                                        <i class="bi bi-lock fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark">Riêng tư</strong>
+                                        <span class="d-block text-muted small">Chỉ cán bộ xem được</span>
+                                    </div>
                                     {% endif %}
-                                </p>
-                                <p class="mb-0">
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
                                     {% if phananh[6] %}
-                                    <i class="fas fa-comments text-info"></i> <strong>Cho phép bình luận</strong>
+                                    <div class="bg-info bg-opacity-10 text-info rounded-circle p-2 me-3">
+                                        <i class="bi bi-chat-dots fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark">Cho phép bình luận</strong>
+                                        <span class="d-block text-muted small">Người dùng có thể thảo luận</span>
+                                    </div>
                                     {% else %}
-                                    <i class="fas fa-comment-slash text-muted"></i> <strong>Không cho phép bình luận</strong>
+                                    <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2 me-3">
+                                        <i class="bi bi-chat-left-slash fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark">Không cho phép bình luận</strong>
+                                        <span class="d-block text-muted small">Đã tắt tính năng thảo luận</span>
+                                    </div>
                                     {% endif %}
-                                </p>
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle"></i> Để thay đổi cài đặt này, vui lòng liên hệ cán bộ
-                                </small>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Action buttons -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg">
-                                <i class="fas fa-save"></i> Lưu thay đổi
-                            </button>
-                            <a href="{{ url_for('phananh_detail', maphananh=phananh[0]) }}" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times"></i> Hủy
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a href="{{ url_for('phananh_detail', maphananh=phananh[0]) }}" class="btn btn-white border shadow-sm fw-bold hover-lift">
+                                <i class="bi bi-x-lg me-1"></i>Hủy bỏ
                             </a>
+                            <button type="submit" class="btn btn-primary shadow-sm fw-bold px-4 hover-lift">
+                                <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
+                            </button>
                         </div>
                     </form>
                 </div>

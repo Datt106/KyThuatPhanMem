@@ -1,129 +1,123 @@
 {% extends "base.html" %}
 
+{% block title %}Cấp giấy Tạm trú - Quản lý Dân cư{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-house-heart me-2"></i>Cấp giấy tạm trú</h2>
-        <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Danh sách
-        </a>
-    </div>
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('tam_vang_tru_list') }}">QL Tạm vắng/Tạm trú</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Cấp giấy Tạm trú</li>
+        </ol>
+    </nav>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 animate-fade-in-up">
+            <div class="card border-0 shadow-lg card-glass">
+                <div class="card-header bg-white bg-opacity-70 border-bottom py-3">
+                    <h4 class="mb-0 fw-bold text-info text-center">
+                        <i class="bi bi-house-heart me-2"></i>Cấp giấy Tạm trú
+                    </h4>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+                
+                <div class="card-body p-4 p-md-5">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category if category != 'error' else 'danger' }} border-0 shadow-sm mb-4 rounded-3 d-flex align-items-center" role="alert">
+                                    <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                                    <div>{{ message }}</div>
+                                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-info bg-opacity-10">
-            <h5 class="mb-0 text-info"><i class="bi bi-file-earmark-text me-2"></i>Thông tin tạm trú</h5>
-        </div>
-        <div class="card-body">
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>Giấy tạm trú:</strong> Dành cho người dân từ nơi khác đến tạm trú tại địa phương 
-                trong một khoảng thời gian nhất định (thường trên 30 ngày).
-            </div>
-
-            <form method="POST" action="{{ url_for('tam_tru_add') }}">
-                <!-- Chọn người -->
-                <div class="mb-4">
-                    <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-person-fill me-2"></i>Thông tin người tạm vắng
-                    </h6>
-                <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="cccd" class="form-label">
-                    CCCD người đăng ký <span class="text-danger">*</span>
-                </label>
-                <input type="text"
-                   class="form-control"
-                   id="cccd"
-                   name="cccd"
-                   placeholder="Nhập số CCCD (12 số)"
-                   maxlength="12"
-                   required>
-                <div class="form-text">
-                    Nhập đúng 12 số CCCD
-                </div>
-            </div>
-        </div>
-    </div>
-
-                <!-- Địa chỉ tạm trú -->
-                <div class="mb-4">
-                    <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ tạm trú
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="xaphuong" class="form-label">
-                                Xã/Phường <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
-                                   placeholder="Ví dụ: Phường Bến Nghé" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="diachi_tamtru" class="form-label">
-                                Địa chỉ chi tiết <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="diachi_tamtru" name="diachi_tamtru" 
-                                   placeholder="Số nhà, đường..." required>
+                    <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info shadow-sm mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                            <div>
+                                <strong>Giấy tạm trú:</strong> Dành cho người dân từ nơi khác đến tạm trú tại địa phương trong một khoảng thời gian nhất định (thường trên 30 ngày).
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Thời gian -->
-                <div class="mb-4">
-                    <h6 class="border-bottom pb-2 mb-3">
-                        <i class="bi bi-calendar-range me-2"></i>Thời gian tạm trú
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="ngaybatdau" class="form-label">
-                                Ngày bắt đầu <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" class="form-control" id="ngaybatdau" name="ngaybatdau" required>
+                    <form method="POST" action="{{ url_for('tam_tru_add') }}">
+                        
+                        <!-- Thông tin người đăng ký -->
+                        <h6 class="text-uppercase text-secondary fw-bold small ls-1 border-bottom pb-2 mb-3 mt-4">Thông tin người tạm trú</h6>
+                        
+                        <div class="mb-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="cccd" name="cccd" required placeholder="Nhập số CCCD (12 số)" maxlength="12">
+                                <label for="cccd">Số CCCD người đăng ký <span class="text-danger">*</span></label>
+                            </div>
+                            <div class="form-text mt-2">Nhập chính xác 12 số CCCD của người cần cấp giấy.</div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="ngayketthuc" class="form-label">
-                                Ngày kết thúc (dự kiến)
-                            </label>
-                            <input type="date" class="form-control" id="ngayketthuc" name="ngayketthuc">
-                            <small class="text-muted">Để trống nếu chưa xác định</small>
+
+                        <!-- Địa chỉ tạm trú -->
+                        <h6 class="text-uppercase text-secondary fw-bold small ls-1 border-bottom pb-2 mb-3 mt-4">Địa chỉ tạm trú</h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" required placeholder="Phường...">
+                                    <label for="xaphuong">Xã/Phường <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="diachi_tamtru" name="diachi_tamtru" required placeholder="Số nhà...">
+                                    <label for="diachi_tamtru">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Lý do -->
-                <div class="mb-4">
-                    <label for="lydo" class="form-label">Lý do tạm trú</label>
-                    <select class="form-select" id="lydo" name="lydo">
-                        <option value="Công tác dài hạn">Công tác dài hạn</option>
-                        <option value="Học tập">Học tập</option>
-                        <option value="Chữa bệnh">Chữa bệnh</option>
-                        <option value="Làm việc">Làm việc</option>
-                        <option value="Tạm trú cùng người thân">Tạm trú cùng người thân</option>
-                        <option value="Khác">Khác</option>
-                    </select>
-                </div>
+                         <!-- Thời gian -->
+                        <h6 class="text-uppercase text-secondary fw-bold small ls-1 border-bottom pb-2 mb-3 mt-4">Thông tin đăng ký</h6>
 
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle me-2"></i>Hủy
-                    </a>
-                    <button type="submit" class="btn btn-info">
-                        <i class="bi bi-check-circle me-2"></i>Cấp giấy tạm trú
-                    </button>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="ngaybatdau" name="ngaybatdau" required>
+                                    <label for="ngaybatdau">Ngày bắt đầu <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="ngayketthuc" name="ngayketthuc">
+                                    <label for="ngayketthuc">Ngày kết thúc (Dự kiến)</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <select class="form-select" id="lydo" name="lydo">
+                                        <option value="Công tác dài hạn">Công tác dài hạn</option>
+                                        <option value="Học tập">Học tập</option>
+                                        <option value="Chữa bệnh">Chữa bệnh</option>
+                                        <option value="Làm việc">Làm việc</option>
+                                        <option value="Tạm trú cùng người thân">Tạm trú cùng người thân</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                    <label for="lydo">Lý do tạm trú</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-5">
+                            <a href="{{ url_for('tam_vang_tru_list') }}" class="btn btn-white border px-4 py-2 fw-bold shadow-sm">
+                                <i class="bi bi-x-lg me-2"></i>Hủy bỏ
+                            </a>
+                            <button type="submit" class="btn btn-info px-4 py-2 fw-bold shadow-sm hover-lift text-white">
+                                <i class="bi bi-check-circle-fill me-2"></i>Cấp giấy Tạm trú
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

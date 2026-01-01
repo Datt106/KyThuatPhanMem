@@ -3,154 +3,121 @@
 {% block title %}Tạo thông báo chung{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('thongbao_chung_list') }}">Bảng tin chung</a></li>
+                    <li class="breadcrumb-item active">Tạo thông báo</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-primary mb-0">
+                <i class="bi bi-megaphone-fill me-2"></i>Tạo thông báo mới
+            </h2>
+        </div>
+    </div>
+
+    <div class="row justify-content-center fade-in-up" style="animation-delay: 0.1s;">
         <div class="col-md-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
-                    <h4 class="mb-0">
-                        <i class="fas fa-bullhorn me-2"></i>
-                        Tạo thông báo chung
-                    </h4>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-pencil-square me-2"></i>Nội dung thông báo
+                    </h5>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('thongbao_chung_tao') }}" enctype="multipart/form-data">
                         <!-- Tiêu đề -->
                         <div class="mb-4">
-                            <label for="tieude" class="form-label">
-                                <strong>Tiêu đề</strong>
-                                <span class="text-danger">*</span>
+                            <label for="tieude" class="form-label fw-bold small text-uppercase text-muted">
+                                Tiêu đề thông báo <span class="text-danger">*</span>
                             </label>
                             <input type="text" 
-                                   class="form-control form-control-lg" 
+                                   class="form-control form-control-lg bg-light border-0 shadow-none fw-medium" 
                                    id="tieude" 
                                    name="tieude" 
-                                   placeholder="Nhập tiêu đề thông báo..."
+                                   placeholder="VD: Thông báo lịch cắt điện..."
                                    required
                                    maxlength="255">
-                            <small class="text-muted">Tiêu đề ngắn gọn, rõ ràng</small>
                         </div>
 
                         <!-- Nội dung -->
                         <div class="mb-4">
-                            <label for="noidung" class="form-label">
-                                <strong>Nội dung</strong>
-                                <span class="text-danger">*</span>
+                            <label for="noidung" class="form-label fw-bold small text-uppercase text-muted">
+                                Nội dung chi tiết <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control" 
+                            <textarea class="form-control bg-light border-0 shadow-none" 
                                       id="noidung" 
                                       name="noidung" 
-                                      rows="10"
-                                      placeholder="Nhập nội dung chi tiết thông báo..."
+                                      rows="8"
+                                      placeholder="Nhập nội dung đầy đủ của thông báo..."
+                                      style="resize: none;"
                                       required></textarea>
-                            <small class="text-muted">Nội dung chi tiết, đầy đủ thông tin</small>
                         </div>
 
                         <!-- Đính kèm tệp -->
                         <div class="mb-4">
-                            <label for="file" class="form-label">
-                                <strong>Đính kèm tệp</strong>
+                            <label for="file" class="form-label fw-bold small text-uppercase text-muted">
+                                Tệp đính kèm <span class="text-secondary fw-normal text-lowercase">(Tùy chọn)</span>
                             </label>
-                            <input class="form-control" type="file" id="file" name="file">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Hỗ trợ: hình ảnh, pdf, doc, docx, xls, xlsx, zip. Tối đa 16MB.
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-muted">
+                                    <i class="bi bi-paperclip"></i>
+                                </span>
+                                <input class="form-control border-start-0 ps-0" type="file" id="file" name="file">
+                            </div>
+                            <small class="text-muted mt-1 d-block">
+                                <i class="bi bi-info-circle me-1"></i>Hỗ trợ: ảnh, pdf, doc, xls. Tối đa 16MB.
                             </small>
                         </div>
 
                         <!-- Tùy chọn gửi cho tất cả -->
                         <div class="mb-4">
-                            <div class="alert alert-info d-flex align-items-start">
-                                <i class="fas fa-info-circle me-3 mt-1"></i>
-                                <div>
-                                    <strong>Lựa chọn phạm vi thông báo:</strong>
-                                    <div class="form-check mt-2">
-                                        <input class="form-check-input" 
-                                               type="checkbox" 
-                                               id="gui_cho_tat_ca" 
-                                               name="gui_cho_tat_ca">
-                                        <label class="form-check-label" for="gui_cho_tat_ca">
-                                            <strong>Gửi thông báo cá nhân đến TẤT CẢ người dân</strong>
-                                        </label>
+                            <div class="card bg-primary bg-opacity-10 border-0 rounded-3 p-3">
+                                <div class="d-flex">
+                                    <div class="me-3 mt-1">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="gui_cho_tat_ca" name="gui_cho_tat_ca" style="width: 2.5em; height: 1.25em;">
+                                        </div>
                                     </div>
-                                    <small class="text-muted d-block mt-2">
-                                        <i class="fas fa-lightbulb me-1"></i>
-                                        <strong>Không chọn:</strong> Chỉ hiển thị trên bảng tin công khai<br>
-                                        <i class="fas fa-lightbulb me-1"></i>
-                                        <strong>Có chọn:</strong> Hiển thị trên bảng tin + Gửi thông báo riêng đến từng người dân 
-                                        (có thể theo dõi trạng thái đã đọc)
-                                    </small>
+                                    <div>
+                                        <label class="form-check-label fw-bold text-primary mb-1" for="gui_cho_tat_ca">
+                                            Gửi thông báo riêng đến từng người dân
+                                        </label>
+                                        <p class="small text-dark mb-0 opacity-75" style="line-height: 1.4;">
+                                            Nếu bật: Hệ thống sẽ gửi bản sao thông báo này vào hộp thư cá nhân của <strong>tất cả cư dân</strong>. Dùng cho các thông báo quan trọng cần đảm bảo mọi người đều nhận được.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <hr class="my-4 border-light">
+
                         <!-- Buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('thongbao_chung_list') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('thongbao_chung_list') }}" class="btn btn-white border shadow-sm fw-medium hover-lift">
+                                <b class="bi bi-x-lg me-2"></b>Hủy bỏ
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>Đăng thông báo
+                            <button type="submit" class="btn btn-primary shadow-sm fw-bold px-4 hover-lift">
+                                <i class="bi bi-send-fill me-2"></i>Đăng thông báo
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Hướng dẫn sử dụng -->
-            <div class="card shadow-sm border-0 mt-4">
-                <div class="card-body">
-                    <h6 class="mb-3">
-                        <i class="fas fa-question-circle me-2"></i>
-                        Hướng dẫn sử dụng
-                    </h6>
-                    <ul class="mb-0">
-                        <li class="mb-2">
-                            <strong>Thông báo công khai:</strong> Hiển thị trên bảng tin trang chủ, 
-                            tất cả người dùng đều xem được.
-                        </li>
-                        <li class="mb-2">
-                            <strong>Gửi cho tất cả:</strong> Ngoài bảng tin công khai, hệ thống sẽ 
-                            tạo bản sao thông báo cá nhân cho từng người dân để theo dõi trạng thái đã đọc.
-                        </li>
-                        <li>
-                            <strong>Ví dụ sử dụng:</strong>
-                            <ul class="mt-2">
-                                <li>Thông báo bảo trì hệ thống → Chỉ đăng công khai</li>
-                                <li>Thông báo quan trọng cần đọc → Đăng + Gửi cho tất cả</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
+            <!-- Hướng dẫn sử dụng - Simplified -->
+            <div class="mt-4 text-center">
+                <p class="text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Thông báo sẽ được hiển thị ngay lập tức trên bảng tin công cộng.
+                </p>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border: none;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #764ba2, #667eea);
-    transform: translateY(-1px);
-}
-
-.card {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.alert-info {
-    background-color: #e7f3ff;
-    border-color: #b3d7ff;
-}
-</style>
 {% endblock %}

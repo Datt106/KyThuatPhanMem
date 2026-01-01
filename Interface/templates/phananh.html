@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Page Header -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate-fade-in-up">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
@@ -19,66 +19,76 @@
                         </ol>
                     </nav>
                 </div>
+                <!-- TODO: Add "Create New" button if needed, linking to phananh_add -->
+                <!-- <a href="{{ url_for('phananh_add') }}" class="btn btn-primary shadow-sm hover-lift"><i class="bi bi-plus-lg me-1"></i>Tạo phản ánh</a> -->
             </div>
         </div>
     </div>
     
     <!-- Statistics -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-primary text-white">
+    <div class="row g-3 mb-4 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <small class="text-white-50">Tổng phản ánh</small>
-                            <h3 class="mb-0 fw-bold">{{ ds_phananh|length }}</h3>
+                            <small class="text-muted fw-bold text-uppercase small ls-1">Tổng phản ánh</small>
+                            <h3 class="mb-0 fw-bold text-primary">{{ ds_phananh|length }}</h3>
                         </div>
-                        <i class="bi bi-chat-dots opacity-50" style="font-size: 2rem;"></i>
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-chat-dots fs-4"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-warning text-dark">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <small class="opacity-75">Chưa xử lý</small>
-                            <h3 class="mb-0 fw-bold">
+                             <small class="text-muted fw-bold text-uppercase small ls-1">Chưa xử lý</small>
+                            <h3 class="mb-0 fw-bold text-warning">
                                 {{ ds_phananh|selectattr(4, 'equalto', 'ChuaXuLy')|list|length if ds_phananh else 0 }}
                             </h3>
                         </div>
-                        <i class="bi bi-clock-history opacity-50" style="font-size: 2rem;"></i>
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-info text-white">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <small class="text-white-50">Đang xử lý</small>
-                            <h3 class="mb-0 fw-bold">
+                             <small class="text-muted fw-bold text-uppercase small ls-1">Đang xử lý</small>
+                            <h3 class="mb-0 fw-bold text-info">
                                 {{ ds_phananh|selectattr(4, 'equalto', 'DangXuLy')|list|length if ds_phananh else 0 }}
                             </h3>
                         </div>
-                        <i class="bi bi-arrow-repeat opacity-50" style="font-size: 2rem;"></i>
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-arrow-repeat fs-4"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm glass-card h-100">
                 <div class="card-body py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <small class="text-white-50">Đã hoàn thành</small>
-                            <h3 class="mb-0 fw-bold">
+                             <small class="text-muted fw-bold text-uppercase small ls-1">Hoàn thành</small>
+                            <h3 class="mb-0 fw-bold text-success">
                                 {{ ds_phananh|selectattr(4, 'equalto', 'DaXuLy')|list|length if ds_phananh else 0 }}
                             </h3>
                         </div>
-                        <i class="bi bi-check-circle opacity-50" style="font-size: 2rem;"></i>
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-check-circle fs-4"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -86,22 +96,22 @@
     </div>
     
     <!-- Filter -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate-fade-in-up" style="animation-delay: 0.2s;">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm glass-card">
                 <div class="card-body py-3">
                     <form class="row g-3 align-items-center">
                         <div class="col-md-4">
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0">
-                                    <i class="bi bi-search text-muted"></i>
+                                <span class="input-group-text bg-white border-end-0 text-muted">
+                                    <i class="bi bi-search"></i>
                                 </span>
-                                <input type="text" class="form-control border-start-0" 
-                                       placeholder="Tìm kiếm theo mã PA, người phản ánh...">
+                                <input type="text" class="form-control hover-shadow border-start-0 ps-0" 
+                                       placeholder="Tìm kiếm theo mã PA, tên người gửi...">
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select">
+                            <select class="form-select hover-shadow cursor-pointer">
                                 <option selected>Tất cả loại phản ánh</option>
                                 <option value="AnNinhTratTu">An ninh trật tự</option>
                                 <option value="MoiTruong">Môi trường</option>
@@ -110,7 +120,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select">
+                            <select class="form-select hover-shadow cursor-pointer">
                                 <option selected>Tất cả trạng thái</option>
                                 <option value="ChuaXuLy">Chưa xử lý</option>
                                 <option value="DangXuLy">Đang xử lý</option>
@@ -118,7 +128,7 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-outline-primary w-100">
+                            <button type="submit" class="btn btn-primary w-100 shadow-sm hover-lift fw-medium">
                                 <i class="bi bi-funnel me-1"></i>Lọc
                             </button>
                         </div>
@@ -129,109 +139,100 @@
     </div>
     
     <!-- Table -->
-    <div class="row">
+    <div class="row animate-fade-in-up" style="animation-delay: 0.3s;">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0 fw-bold">
-                            Danh sách Phản ánh
-                            <span class="badge bg-primary ms-2">{{ ds_phananh|length }}</span>
-                        </h5>
-                    </div>
+            <div class="card border-0 shadow-lg glass-card overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                     <h5 class="fw-bold text-primary mb-0"><i class="bi bi-list-ul me-2"></i>Danh sách Phản ánh</h5>
+                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ ds_phananh|length }} bản ghi</span>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                        <table class="table table-hover align-middle mb-0 table-borderless table-glass">
+                            <thead class="bg-light text-secondary small text-uppercase">
                                 <tr>
-                                    <th class="border-0 ps-4">Mã PA</th>
-                                    <th class="border-0">Người phản ánh</th>
-                                    <th class="border-0">Loại phản ánh</th>
-                                    <th class="border-0">Trạng thái</th>
-                                    <th class="border-0">Mô tả</th>
-                                    <th class="border-0">Địa chỉ</th>
-                                    <th class="border-0 text-center pe-4">Thao tác</th>
+                                    <th class="ps-4 py-3 fw-bold" style="width: 100px;">Mã PA</th>
+                                    <th class="py-3 fw-bold">Người phản ánh</th>
+                                    <th class="py-3 fw-bold">Loại & Địa chỉ</th>
+                                    <th class="py-3 fw-bold">Mô tả</th>
+                                    <th class="py-3 fw-bold">Trạng thái</th>
+                                    <th class="text-center pe-4 py-3 fw-bold" style="width: 150px;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% if ds_phananh %}
                                     {% for pa in ds_phananh %}
-                                    <tr>
+                                    <tr class="border-bottom border-light hover-shadow transition-all">
                                         <td class="ps-4">
-                                            <span class="badge bg-info bg-opacity-10 text-info fw-semibold">
-                                                PA{{ pa[0] }}
-                                            </span>
+                                            <span class="fw-bold text-primary">#{{ pa[0] }}</span>
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
-                                                    <i class="bi bi-person text-primary"></i>
+                                                <div class="avatar-sm bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm border border-success border-opacity-25" style="width: 40px; height: 40px;">
+                                                    <span class="fw-bold">{{ (pa[1] or 'A')[0]|upper }}</span>
                                                 </div>
-                                                <span class="fw-medium">{{ pa[1] or 'Ẩn danh' }}</span>
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ pa[1] or 'Ẩn danh' }}</div>
+                                                    <small class="text-muted" style="font-size: 0.75rem;">CCCD: {{ pa[1] or 'N/A' }}</small>
+                                                </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge bg-secondary bg-opacity-10 text-secondary">
-                                                {{ pa[3] or 'Chưa phân loại' }}
-                                            </span>
+                                             <div class="d-flex flex-column gap-1">
+                                                <span class="badge bg-light text-dark border fw-normal align-self-start">
+                                                    <i class="bi bi-tag me-1 text-secondary"></i>{{ pa[3] or 'Chưa phân loại' }}
+                                                </span>
+                                                <small class="text-muted text-truncate" style="max-width: 200px;" title="{{ pa[14] or '' }}, {{ pa[13] or '' }}">
+                                                    <i class="bi bi-geo-alt me-1"></i>{{ pa[14] or '' }}, {{ pa[13] or '' }}
+                                                </small>
+                                             </div>
                                         </td>
                                         <td>
-                                            {% if pa[4] == 'ChuaXuLy' %}
-                                                <span class="badge bg-warning text-dark">
-                                                    <i class="bi bi-clock me-1"></i>Chưa xử lý
-                                                </span>
-                                            {% elif pa[4] == 'DangXuLy' %}
-                                                <span class="badge bg-info">
-                                                    <i class="bi bi-arrow-repeat me-1"></i>Đang xử lý
-                                                </span>
-                                            {% elif pa[4] == 'DaXuLy' %}
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-check-circle me-1"></i>Đã xử lý
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ pa[4] }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ pa[5] }}">
+                                            <span class="d-inline-block text-truncate text-secondary" style="max-width: 250px;" title="{{ pa[5] }}">
                                                 {{ pa[5] or 'Không có mô tả' }}
                                             </span>
                                         </td>
                                         <td>
-                                            <small class="text-muted">
-                                                {% if pa[13] %}
-                                                    {{ pa[14] or '' }}, {{ pa[13] }}
-                                                {% else %}
-                                                    N/A
-                                                {% endif %}
-                                            </small>
+                                            {% if pa[4] == 'ChuaXuLy' %}
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3">
+                                                    <i class="bi bi-clock me-1"></i>Chưa xử lý
+                                                </span>
+                                            {% elif pa[4] == 'DangXuLy' %}
+                                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">
+                                                    <i class="bi bi-arrow-repeat me-1 spinner-border-sm"></i>Đang xử lý
+                                                </span>
+                                            {% elif pa[4] == 'DaXuLy' %}
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">
+                                                    <i class="bi bi-check-circle me-1"></i>Đã xử lý
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary rounded-pill px-3">{{ pa[4] }}</span>
+                                            {% endif %}
                                         </td>
                                         <td class="text-center pe-4">
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{{ url_for('phananh_detail', maphananh=pa[0]) }}" 
-                                                   class="btn btn-outline-primary" title="Xem chi tiết">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="{{ url_for('phananh_edit', maphananh=pa[0]) }}" 
-                                                   class="btn btn-outline-success" title="Chỉnh sửa">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <a href="{{ url_for('phananh_chat', maphananh=pa[0]) }}" 
-                                                   class="btn btn-outline-info" title="Nhắn tin">
-                                                    <i class="bi bi-chat"></i>
-                                                </a>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-white border shadow-sm rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
+                                                    <i class="bi bi-three-dots-vertical text-muted"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                                    <li><a class="dropdown-item" href="{{ url_for('phananh_detail', maphananh=pa[0]) }}"><i class="bi bi-eye me-2 text-primary"></i>Xem chi tiết</a></li>
+                                                    <li><a class="dropdown-item" href="{{ url_for('phananh_edit', maphananh=pa[0]) }}"><i class="bi bi-pencil me-2 text-warning"></i>Chỉnh sửa</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="{{ url_for('phananh_chat', maphananh=pa[0]) }}"><i class="bi bi-chat-dots me-2 text-info"></i>Hỗ trợ</a></li>
+                                                </ul>
                                             </div>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="7" class="text-center py-5">
-                                            <div class="text-muted">
-                                                <i class="bi bi-chat-left-text display-4 d-block mb-3 opacity-50"></i>
-                                                <p class="mb-0">Chưa có phản ánh nào</p>
-                                                <small>Các phản ánh từ người dân sẽ hiển thị tại đây</small>
+                                        <td colspan="6" class="text-center py-5">
+                                            <div class="py-5">
+                                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                                    <i class="bi bi-inbox text-muted opacity-50" style="font-size: 2.5rem;"></i>
+                                                </div>
+                                                <p class="mb-0 text-muted fw-medium">Chưa có phản ánh nào</p>
+                                                <small class="text-muted opacity-75">Các phản ánh từ người dân sẽ hiển thị tại đây</small>
                                             </div>
                                         </td>
                                     </tr>
@@ -245,17 +246,20 @@
                 {% if ds_phananh %}
                 <div class="card-footer bg-white border-top py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Hiển thị {{ ds_phananh|length }} phản ánh</small>
+                        <small class="text-muted">Đang hiển thị {{ ds_phananh|length }} kết quả</small>
                         <nav>
                             <ul class="pagination pagination-sm mb-0">
                                 <li class="page-item disabled">
-                                    <a class="page-link" href="#">Trước</a>
+                                    <a class="page-link border-0" href="#"><i class="bi bi-chevron-left"></i></a>
                                 </li>
                                 <li class="page-item active">
-                                    <a class="page-link" href="#">1</a>
+                                    <a class="page-link border-0 rounded-circle shadow-sm fw-bold" href="#">1</a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="#">Sau</a>
+                                    <a class="page-link border-0 rounded-circle fw-bold" href="#">2</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link border-0" href="#"><i class="bi bi-chevron-right"></i></a>
                                 </li>
                             </ul>
                         </nav>

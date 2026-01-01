@@ -1,126 +1,112 @@
 {% extends "base.html" %}
 
-{% block title %}Chi tiết vấn đề #{{ vande[0] }}{% endblock %}
+{% block title %}Chi tiết vấn đề #{{ vande[0] }} - Cổng Thông tin{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-12">
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <div class="row mb-4 animate-fade-in-up">
+        <div class="col-12">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('vande_list') }}">Vấn đề</a></li>
                     <li class="breadcrumb-item active">Chi tiết #{{ vande[0] }}</li>
                 </ol>
             </nav>
+        </div>
+    </div>
 
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4><i class="fas fa-tasks"></i> {{ vande[1] }}</h4>
-                    {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
-                    <div>
-                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
-                            <i class="fas fa-edit"></i> Cập nhật trạng thái
-                        </button>
-                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#gopThemModal">
-                            <i class="fas fa-plus"></i> Gộp thêm PA
-                        </button>
-                        <form method="POST" action="{{ url_for('vande_delete', mavande=vande[0]) }}" style="display: inline;"
-                              onsubmit="return confirm('Bạn có chắc muốn xóa vấn đề này?');">
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                <i class="fas fa-trash"></i> Xóa
-                            </button>
-                        </form>
+    <div class="row animate-fade-in-up" style="animation-delay: 0.1s;">
+        <!-- Left Column: Main Content -->
+        <div class="col-lg-8 mb-4">
+            <!-- Main Info Card -->
+            <div class="card border-0 shadow-lg glass-card overflow-hidden mb-4">
+                <div class="card-header bg-white border-bottom py-4">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <span class="badge bg-light text-dark border fw-normal mb-2">
+                                <i class="bi bi-tag me-1 text-secondary"></i>{{ vande[2] }}
+                            </span>
+                            <h3 class="fw-bold text-primary mb-2 ls-1">{{ vande[1] }}</h3>
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="bi bi-clock me-1"></i>
+                                Created: {{ vande[5].strftime('%d/%m/%Y %H:%M') if vande[5] and vande[5].strftime is defined else (vande[5] or 'N/A') }}
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            {% if vande[3] == 'Mới' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-2 fs-6">Mới</span>
+                            {% elif vande[3] == 'Đang xử lý' %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-2 fs-6">Đang xử lý</span>
+                            {% elif vande[3] == 'Đã giải quyết' %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fs-6">Đã giải quyết</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill px-3 py-2 fs-6">{{ vande[3] }}</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Phân loại:</strong> <span class="badge bg-info">{{ vande[2] }}</span></p>
-                            <p><strong>Trạng thái:</strong> 
-                                <span class="badge bg-{{ 'success' if vande[3] == 'Đã giải quyết' else 'warning' if vande[3] == 'Đang xử lý' else 'secondary' }}">
-                                    {{ vande[3] }}
-                                </span>
-                            </p>
-                            <p><strong>Cán bộ xử lý:</strong> {{ vande[7] or 'Chưa gán' }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Ngày tạo:</strong>
-                                {% if vande[5] %}
-                                    {% if vande[5].__class__.__name__ == 'datetime' %}
-                                        {{ vande[5].strftime('%d/%m/%Y %H:%M') }}
-                                    {% else %}
-                                        {{ vande[5][:16] }}
-                                    {% endif %}
-                                {% endif %}
-                            </p>
-                            <p><strong>Ngày cập nhật:</strong>
-                                {% if vande[6] %}
-                                    {% if vande[6].__class__.__name__ == 'datetime' %}
-                                        {{ vande[6].strftime('%d/%m/%Y %H:%M') }}
-                                    {% else %}
-                                        {{ vande[6][:16] }}
-                                    {% endif %}
-                                {% else %}
-                                    Chưa cập nhật
-                                {% endif %}
-                            </p>
+                
+                <div class="card-body p-4">
+                    {% if vande[4] %}
+                    <div class="alert alert-soft-success border-0 d-flex align-items-start mb-4">
+                        <i class="bi bi-check-circle-fill fs-4 me-3 mt-1 tex-success"></i>
+                        <div>
+                            <h6 class="fw-bold text-success mb-1">Kết quả xử lý</h6>
+                            <p class="mb-0 text-success opacity-75">{{ vande[4] }}</p>
                         </div>
                     </div>
-
-                    {% if vande[4] %}
-                    <div class="alert alert-success">
-                        <strong><i class="fas fa-check-circle"></i> Kết quả xử lý:</strong>
-                        <p class="mb-0 mt-2">{{ vande[4] }}</p>
+                    {% elif vande[3] != 'Mới' %}
+                     <div class="alert alert-soft-warning border-0 d-flex align-items-start mb-4">
+                        <i class="bi bi-cone-striped fs-4 me-3 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold text-warning mb-1">Đang tiến hành xử lý</h6>
+                            <p class="mb-0 text-dark opacity-75">Vấn đề đang được các cơ quan chức năng xem xét và giải quyết.</p>
+                        </div>
                     </div>
                     {% endif %}
+                    
+                    <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-file-text me-2"></i>Mô tả chi tiết</h5>
+                    <p class="text-secondary mb-0">
+                        <!-- Assuming description is not directly in vande table query provided in template, using title as placeholder or empty if specific desc column exists -->
+                        {{ vande[1] }} (Theo dõi và xử lý các phản ánh liên quan)
+                    </p>
                 </div>
             </div>
 
-            <!-- Danh sách phản ánh thuộc vấn đề -->
-            <div class="card shadow">
-                <div class="card-header bg-secondary text-white">
-                    <h5><i class="fas fa-list"></i> Danh sách phản ánh ({{ ds_phananh|length }})</h5>
+            <!-- Linked Reflections -->
+            <div class="card border-0 shadow-lg glass-card overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-collection me-2 text-primary"></i>Phản ánh liên quan</h5>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">{{ ds_phananh|length }} phản ánh</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if ds_phananh %}
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
+                            <table class="table table-hover align-middle mb-0 table-borderless table-glass">
+                                <thead class="bg-light text-secondary small text-uppercase">
                                     <tr>
-                                        <th>Mã PA</th>
+                                        <th class="ps-4">Mã PA</th>
                                         <th>Tiêu đề</th>
                                         <th>Người gửi</th>
-                                        <th>Trạng thái</th>
-                                        <th>Ngày tạo</th>
-                                        <th>Thao tác</th>
+                                        <th class="text-end pe-4">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for pa in ds_phananh %}
-                                    <tr>
-                                        <td>{{ pa[0] }}</td>
-                                        <td>{{ pa[1] }}</td>
+                                    <tr class="border-bottom border-light hover-shadow transition-all">
+                                        <td class="ps-4 fw-bold text-primary">#{{ pa[0] }}</td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-medium">{{ pa[1] }}</span>
+                                                <small class="text-muted">{{ pa[4].strftime('%d/%m/%Y') if pa[4] and pa[4].strftime else (pa[4] or 'N/A') }}</small>
+                                            </div>
+                                        </td>
                                         <td>{{ pa[2] }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ 'success' if pa[3] == 'Đã xử lý' else 'warning' if pa[3] == 'Đang xử lý' else 'secondary' }}">
-                                                {{ pa[3] }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if pa[4] %}
-                                                {% if pa[4].__class__.__name__ == 'datetime' %}
-                                                    {{ pa[4].strftime('%d/%m/%Y') }}
-                                                {% else %}
-                                                    {{ pa[4][:10] }}
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{{ url_for('phananh_detail', maphananh=pa[0]) }}" 
-                                               class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i> Xem
+                                        <td class="text-end pe-4">
+                                            <a href="{{ url_for('phananh_detail', maphananh=pa[0]) }}" class="btn btn-sm btn-white border shadow-sm hover-lift fw-medium">
+                                                Xem <i class="bi bi-arrow-right ms-1"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -129,10 +115,76 @@
                             </table>
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Chưa có phản ánh nào được gộp vào vấn đề này.
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox text-muted opacity-50 display-4"></i>
+                            <p class="text-muted mt-2">Chưa có phản ánh nào được gộp vào vấn đề này.</p>
                         </div>
                     {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Actions & Meta -->
+        <div class="col-lg-4">
+            <!-- Action Card -->
+            {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
+            <div class="card border-0 shadow-sm glass-card mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3">Thao tác quản lý</h6>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary shadow-sm hover-lift fw-bold" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                            <i class="bi bi-pencil-square me-2"></i>Cập nhật trạng thái
+                        </button>
+                        <button class="btn btn-warning shadow-sm hover-lift fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#gopThemModal">
+                            <i class="bi bi-plus-circle me-2"></i>Gộp thêm phản ánh
+                        </button>
+                        <hr class="my-2 border-secondary opacity-10">
+                        <form method="POST" action="{{ url_for('vande_delete', mavande=vande[0]) }}" onsubmit="return confirm('Bạn có chắc muốn xóa vấn đề này? Hành động này không thể hoàn tác!');">
+                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold border-0 hover-lift text-start ps-3">
+                                <i class="bi bi-trash3 me-2"></i>Xóa vấn đề
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Meta Info Card -->
+            <div class="card border-0 shadow-sm glass-card">
+                <div class="card-body">
+                    <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3">Thông tin xử lý</h6>
+                    
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
+                                <i class="bi bi-person-badge fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Cán bộ phụ trách</small>
+                                <span class="fw-bold text-dark">{{ vande[7] or 'Chưa phân công' }}</span>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <div class="bg-info bg-opacity-10 text-info rounded-circle p-2 me-3">
+                                <i class="bi bi-chat-left-text fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Thảo luận</small>
+                                <span class="fw-bold text-dark">{{ vande[10] or 0 }} bình luận</span>
+                            </div>
+                        </li>
+                         <li class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
+                                <i class="bi bi-eye fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Cập nhật lần cuối</small>
+                                <span class="fw-bold text-dark">
+                                    {{ vande[6].strftime('%d/%m/%Y %H:%M') if vande[6] and vande[6].strftime else (vande[6] or 'Chưa cập nhật') }}
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -141,32 +193,32 @@
 
 <!-- Modal Cập nhật trạng thái -->
 <div class="modal fade" id="updateStatusModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Cập nhật trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <form method="POST" action="{{ url_for('vande_update_status', mavande=vande[0]) }}">
-                <div class="modal-header">
-                    <h5 class="modal-title">Cập nhật trạng thái vấn đề</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Trạng thái</label>
-                        <select name="trangthai" class="form-select" required>
+                <div class="modal-body pt-4">
+                    <div class="form-floating mb-3">
+                        <select name="trangthai" class="form-select" id="trangthaiSelect" required>
                             <option value="Mới" {% if vande[3] == 'Mới' %}selected{% endif %}>Mới</option>
                             <option value="Đang xử lý" {% if vande[3] == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
                             <option value="Đã giải quyết" {% if vande[3] == 'Đã giải quyết' %}selected{% endif %}>Đã giải quyết</option>
                             <option value="Đóng" {% if vande[3] == 'Đóng' %}selected{% endif %}>Đóng</option>
                         </select>
+                        <label for="trangthaiSelect">Trạng thái mới</label>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Kết quả xử lý</label>
-                        <textarea name="ketqua" class="form-control" rows="4" 
+                    <div class="form-floating">
+                        <textarea name="ketqua" class="form-control" id="ketquaText" style="height: 120px"
                                   placeholder="Mô tả kết quả xử lý...">{{ vande[4] or '' }}</textarea>
+                        <label for="ketquaText">Kết quả / Ghi chú xử lý</label>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-white border shadow-sm fw-bold hover-lift" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary shadow-sm fw-bold hover-lift">Lưu thay đổi</button>
                 </div>
             </form>
         </div>
@@ -175,24 +227,27 @@
 
 <!-- Modal Gộp thêm PA -->
 <div class="modal fade" id="gopThemModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Gộp thêm phản ánh</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <form method="POST" action="{{ url_for('vande_gop_them', mavande=vande[0]) }}">
-                <div class="modal-header">
-                    <h5 class="modal-title">Gộp thêm phản ánh</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Mã phản ánh (cách nhau bởi dấu phẩy)</label>
-                        <input type="text" name="list_maphananh" class="form-control" 
+                <div class="modal-body pt-4">
+                    <div class="alert alert-soft-primary border-0 d-flex align-items-center mb-3">
+                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                        <span>Nhập các Mã phản ánh cách nhau bởi dấu phẩy (VD: 10,15,20)</span>
+                    </div>
+                    <div class="form-floating">
+                        <input type="text" name="list_maphananh" class="form-control" id="maphananhInput" 
                                placeholder="VD: 10,15,20" required>
-                        <small class="text-muted">Nhập các mã phản ánh bạn muốn gộp vào vấn đề này</small>
+                        <label for="maphananhInput">Danh sách Mã phản ánh</label>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-success">Gộp</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-white border shadow-sm fw-bold hover-lift" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-success shadow-sm fw-bold hover-lift">Xác nhận gộp</button>
                 </div>
             </form>
         </div>

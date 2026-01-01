@@ -7,13 +7,20 @@
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">
-                    <i class="fas fa-bullhorn me-2"></i>
-                    Bảng tin - Thông báo chung
-                </h3>
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-megaphone-fill me-2"></i>Bảng tin - Thông báo chung
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Bảng tin</li>
+                        </ol>
+                    </nav>
+                </div>
                 {% if session.user.vaitro in ['CanBo', 'QuanLy'] %}
-                <a href="{{ url_for('thongbao_chung_tao') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Tạo thông báo mới
+                <a href="{{ url_for('thongbao_chung_tao') }}" class="btn btn-primary shadow-sm hover-lift">
+                    <i class="bi bi-plus-lg me-2"></i>Tạo thông báo mới
                 </a>
                 {% endif %}
             </div>
@@ -21,34 +28,42 @@
     </div>
 
     {% if thongbao_list %}
-    <div class="row">
-        {% for tb in thongbao_list %}
-        <div class="col-md-12 mb-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-bullhorn me-2"></i>
-                            {{ tb[1] }}
-                        </h5>
-                        {% if session.user.vaitro == 'QuanLy' %}
-                        <form method="POST" action="{{ url_for('thongbao_chung_an', mathongbao=tb[0]) }}" 
-                              onsubmit="return confirm('Bạn có chắc muốn ẩn thông báo này?');" class="mb-0">
-                            <button type="submit" class="btn btn-sm btn-light">
-                                <i class="fas fa-eye-slash"></i> Ẩn
-                            </button>
-                        </form>
-                        {% endif %}
+    <div class="row fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-lg-10 mx-auto">
+            {% for tb in thongbao_list %}
+            <div class="card border-0 shadow-sm mb-4 hover-lift transition-all">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi bi-megaphone-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-dark">{{ tb[1] }}</h5>
+                            <small class="text-muted text-uppercase ls-1" style="font-size: 0.75rem;">
+                                {{ tb[3].strftime('%d/%m/%Y') }} &bull; {{ tb[3].strftime('%H:%M') }}
+                            </small>
+                        </div>
                     </div>
+                    {% if session.user.vaitro == 'QuanLy' %}
+                    <form method="POST" action="{{ url_for('thongbao_chung_an', mathongbao=tb[0]) }}" 
+                          onsubmit="return confirm('Bạn có chắc muốn ẩn thông báo này?');" class="mb-0">
+                        <button type="submit" class="btn btn-sm btn-white border shadow-sm text-danger">
+                            <i class="bi bi-eye-slash me-1"></i> Ẩn
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <div class="mb-3" style="white-space: pre-wrap;">{{ tb[2] }}</div>
+                <div class="card-body p-4">
+                    <div class="mb-4 text-justify" style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.6;">{{ tb[2] }}</div>
                     
                     {% if tb[7] %}
-                        <div class="mb-3 mt-3">
+                        <div class="bg-light p-3 rounded-3 border">
+                            <h6 class="text-uppercase small fw-bold text-secondary mb-3">
+                                <i class="bi bi-paperclip me-2"></i>Tệp đính kèm
+                            </h6>
                             {% set ext = tb[7].split('.')[-1].lower() %}
                             {% if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
-                                <div class="text-center mb-2">
+                                <div class="mb-3 text-center">
                                     <img src="{{ url_for('uploaded_file', filename=tb[7]) }}" 
                                          class="img-fluid rounded shadow-sm border" 
                                          style="max-height: 400px; width: auto;" 
@@ -56,60 +71,46 @@
                                 </div>
                             {% endif %}
                             
-                            <div class="mt-2">
-                                <a href="{{ url_for('uploaded_file', filename=tb[7]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                    <i class="fas fa-paperclip me-2"></i>
-                                    {% if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
-                                        Xem ảnh gốc / Tải xuống
-                                    {% else %}
-                                        Tải xuống tệp đính kèm (`{{ ext }}`)
-                                    {% endif %}
-                                </a>
-                            </div>
+                            <a href="{{ url_for('uploaded_file', filename=tb[7]) }}" class="btn btn-white border shadow-sm" target="_blank">
+                                <i class="bi bi-download me-2"></i>Tải xuống / Xem chi tiết
+                            </a>
                         </div>
                     {% endif %}
-                    
-                    <hr>
-                    
-                    <div class="d-flex justify-content-between align-items-center text-muted small">
-                        <span>
-                            <i class="fas fa-user me-1"></i>
-                            Đăng bởi: <strong>{{ tb[5] or 'Hệ thống' }}</strong>
-                        </span>
-                        <span>
-                            <i class="far fa-clock me-1"></i>
-                            {{ tb[3].strftime('%d/%m/%Y %H:%M') if tb[3] else 'N/A' }}
-                        </span>
+                </div>
+                <div class="card-footer bg-white py-3">
+                    <div class="d-flex align-items-center text-muted small">
+                        <i class="bi bi-person-circle me-2"></i>
+                        Đăng bởi: <strong class="ms-1">{{ tb[5] or 'Ban Quản Trị' }}</strong>
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 
     <!-- Pagination -->
     {% if total_pages > 1 %}
-    <nav aria-label="Pagination">
+    <nav aria-label="Pagination" class="mt-4">
         <ul class="pagination justify-content-center">
             <li class="page-item {% if page == 1 %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('thongbao_chung_list', page=page-1) }}">
-                    <i class="fas fa-chevron-left"></i>
+                <a class="page-link border-0 shadow-sm rounded-circle mx-1" href="{{ url_for('thongbao_chung_list', page=page-1) }}" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
             
             {% for p in range(1, total_pages + 1) %}
                 {% if p == page %}
-                <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                <li class="page-item active"><span class="page-link border-0 shadow-sm rounded-circle mx-1 bg-primary text-white" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">{{ p }}</span></li>
                 {% elif p <= 3 or p >= total_pages - 2 or (p >= page - 1 and p <= page + 1) %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('thongbao_chung_list', page=p) }}">{{ p }}</a></li>
+                <li class="page-item"><a class="page-link border-0 shadow-sm rounded-circle mx-1 text-dark" href="{{ url_for('thongbao_chung_list', page=p) }}" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">{{ p }}</a></li>
                 {% elif p == 4 or p == total_pages - 3 %}
-                <li class="page-item disabled"><span class="page-link">...</span></li>
+                <li class="page-item disabled"><span class="page-link border-0 shadow-sm rounded-circle mx-1" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">...</span></li>
                 {% endif %}
             {% endfor %}
             
             <li class="page-item {% if page == total_pages %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('thongbao_chung_list', page=page+1) }}">
-                    <i class="fas fa-chevron-right"></i>
+                <a class="page-link border-0 shadow-sm rounded-circle mx-1" href="{{ url_for('thongbao_chung_list', page=page+1) }}" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
         </ul>
@@ -117,37 +118,16 @@
     {% endif %}
     
     {% else %}
-    <div class="card shadow-sm border-0">
-        <div class="card-body text-center py-5">
-            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-            <p class="text-muted mb-0">Chưa có thông báo nào.</p>
+    <div class="text-center py-5 fade-in-up">
+        <div class="card border-0 shadow-sm mx-auto" style="max-width: 400px;">
+            <div class="card-body py-5">
+                <div class="mb-3">
+                    <i class="bi bi-megaphone text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                </div>
+                <h5 class="text-muted fw-normal">Chưa có thông báo nào.</h5>
+            </div>
         </div>
     </div>
     {% endif %}
 </div>
-
-<style>
-.card {
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-.page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-color: #667eea;
-}
-
-.page-link {
-    color: #667eea;
-}
-
-.page-link:hover {
-    color: #764ba2;
-    background-color: #f8f9fa;
-}
-</style>
 {% endblock %}

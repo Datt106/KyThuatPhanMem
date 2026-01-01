@@ -1,184 +1,202 @@
 {% extends "base.html" %}
 
-{% block title %}Quản lý cư trú{% endblock %}
+{% block title %}Quản lý Cư trú - Quản lý Dân cư{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-house-check me-2"></i>Quản lý cư trú
-            </h5>
-            <a href="{{ url_for('cu_tru_add') }}" class="btn btn-light btn-sm">
-                <i class="bi bi-plus-circle me-1"></i>Đăng ký cư trú
-            </a>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+             <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-house-check me-2"></i>Quản lý Cư trú
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Quản lý Cư trú</li>
+                </ol>
+            </nav>
         </div>
+    </div>
 
-        <div class="card-body">
-            <!-- Thống kê -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="card-title">Tổng số cư trú</h6>
-                                    <h3 class="mb-0">{{ stats.tong_cutru }}</h3>
-                                    <small class="text-white-50">{{ stats.con_hieu_luc }} đang hiệu lực</small>
-                                </div>
-                                <i class="bi bi-house-fill" style="font-size: 3rem; opacity: 0.3;"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="card-title">Còn hiệu lực</h6>
-                                    <h3 class="mb-0">{{ stats.con_hieu_luc }}</h3>
-                                    <small class="text-white-50">Đang cư trú</small>
-                                </div>
-                                <i class="bi bi-check-circle-fill" style="font-size: 3rem; opacity: 0.3;"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="card-title">Đã hết hạn</h6>
-                                    <h3 class="mb-0">{{ stats.het_hieu_luc }}</h3>
-                                    <small class="text-white-50">Lịch sử</small>
-                                </div>
-                                <i class="bi bi-archive-fill" style="font-size: 3rem; opacity: 0.3;"></i>
-                            </div>
-                        </div>
+    <!-- Actions & Stats -->
+    <div class="row mb-4 g-3">
+        <!-- Actions Card -->
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden">
+                <div class="card-body p-3 d-flex flex-column justify-content-center">
+                    <h6 class="text-uppercase text-secondary small fw-bold ls-1 mb-3">Thao tác nhanh</h6>
+                     <div class="d-grid gap-2">
+                        <a href="{{ url_for('cu_tru_add') }}" class="btn btn-primary shadow-sm hover-lift fw-bold text-start">
+                            <i class="bi bi-plus-circle me-2"></i>Đăng ký cư trú
+                        </a>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Bộ lọc -->
-            <form method="GET" action="{{ url_for('cu_tru_list') }}" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="search" class="form-label">Tìm kiếm</label>
-                        <input type="text" class="form-control" id="search" name="search" 
-                               placeholder="Tìm theo họ tên hoặc CCCD..." value="{{ search }}">
+        <!-- Stats Cards -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-3 d-flex align-items-center justify-content-between position-relative z-1">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-1">Tổng số cư trú</h6>
+                        <h2 class="text-primary fw-bold mb-0">{{ stats.tong_cutru }}</h2>
+                        <small class="text-muted d-block mt-1">Hồ sơ đã ghi nhận</small>
                     </div>
-                    
-                    <div class="col-md-3">
-                        <label for="xaphuong" class="form-label">Xã/Phường</label>
-                        <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
-                               placeholder="Lọc theo xã/phường..." value="{{ xaphuong }}">
+                    <div class="icon-square bg-primary bg-opacity-10 text-primary rounded-4">
+                        <i class="bi bi-house-fill fs-4"></i>
                     </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-primary opacity-50"></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-3 d-flex align-items-center justify-content-between position-relative z-1">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-1">Còn hiệu lực</h6>
+                        <h2 class="text-success fw-bold mb-0">{{ stats.con_hieu_luc }}</h2>
+                        <small class="text-muted d-block mt-1">Đang cư trú</small>
+                    </div>
+                    <div class="icon-square bg-success bg-opacity-10 text-success rounded-4">
+                        <i class="bi bi-check-circle-fill fs-4"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-success opacity-50"></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm h-100 card-glass overflow-hidden position-relative">
+                <div class="card-body p-3 d-flex align-items-center justify-content-between position-relative z-1">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold ls-1 mb-1">Đã hết hạn</h6>
+                        <h2 class="text-secondary fw-bold mb-0">{{ stats.het_hieu_luc }}</h2>
+                        <small class="text-muted d-block mt-1">Lịch sử cư trú</small>
+                    </div>
+                    <div class="icon-square bg-secondary bg-opacity-10 text-secondary rounded-4">
+                        <i class="bi bi-archive-fill fs-4"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 h-1 bg-secondary opacity-50"></div>
+            </div>
+        </div>
+    </div>
 
-                    <div class="col-md-3">
-                        <label for="hieuluc" class="form-label">Trạng thái</label>
-                        <select class="form-select" id="hieuluc" name="hieuluc">
+    <!-- Filter/Search -->
+    <div class="card border-0 shadow-sm mb-4 card-glass">
+        <div class="card-body py-3">
+             <form method="GET" action="{{ url_for('cu_tru_list') }}" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                     <div class="form-floating">
+                        <input type="text" class="form-control bg-white border-0 shadow-none" id="search" name="search" 
+                               value="{{ search }}" placeholder="Tìm kiếm...">
+                        <label for="search">Tìm theo họ tên hoặc CCCD...</label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                     <div class="form-floating">
+                        <input type="text" class="form-control bg-white border-0 shadow-none" id="xaphuong" name="xaphuong" 
+                               value="{{ xaphuong }}" placeholder="Xã/Phường">
+                        <label for="xaphuong">Lọc theo Xã/Phường...</label>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select bg-white border-0 shadow-none" id="hieuluc" name="hieuluc">
                             <option value="">Tất cả</option>
                             <option value="con" {% if hieuluc == 'con' %}selected{% endif %}>Còn hiệu lực</option>
                             <option value="het" {% if hieuluc == 'het' %}selected{% endif %}>Hết hạn</option>
                         </select>
-                    </div>
-                    
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-search me-1"></i>Lọc
-                        </button>
+                        <label for="hieuluc">Trạng thái</label>
                     </div>
                 </div>
+                
+                <div class="col-md-2">
+                     <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center fw-bold shadow-sm">
+                        <i class="bi bi-search me-2"></i>Lọc
+                    </button>
+                </div>
             </form>
+        </div>
+    </div>
 
-            <!-- Bảng danh sách -->
+    <!-- Table -->
+    <div class="card border-0 shadow-sm mb-4 card-glass animate-fade-in-up">
+        <div class="card-body p-0">
             {% if records %}
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>CCCD</th>
+                    <table class="table align-middle mb-0 table-glass table-hover">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr class="text-muted text-uppercase small ls-1">
+                                <th class="ps-4">CCCD</th>
                                 <th>Họ tên</th>
-                                <th>Ngày sinh</th>
                                 <th>Giới tính</th>
                                 <th>Ngày đăng ký</th>
-                                <th>Địa chỉ cư trú</th>
-                                <th>Xã/Phường</th>
+                                <th>Địa chỉ</th>
                                 <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th class="text-end pe-4">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for rec in records %}
                             <tr>
-                                <td><code class="bg-light p-1 rounded">{{ rec[0] }}</code></td>
-                                <td><strong>{{ rec[1] }}</strong></td>
+                                <td class="ps-4"><span class="font-monospace text-primary">{{ rec[0] }}</span></td>
                                 <td>
-                                    {% if rec[2] %}
-                                        {{ rec[2].strftime('%d/%m/%Y') }}
-                                    {% else %}
-                                        N/A
-                                    {% endif %}
+                                    <div class="fw-bold text-dark">{{ rec[1] }}</div>
+                                    <div class="small text-muted">{{ rec[2].strftime('%d/%m/%Y') if rec[2] else 'N/A' }}</div>
                                 </td>
                                 <td>
                                     {% if rec[3] == 'nam' %}
-                                        <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-normal px-2">
                                             <i class="bi bi-gender-male me-1"></i>Nam
                                         </span>
                                     {% elif rec[3] == 'nu' %}
-                                        <span class="badge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                        <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger fw-normal px-2">
                                             <i class="bi bi-gender-female me-1"></i>Nữ
                                         </span>
                                     {% else %}
-                                        <span class="badge bg-secondary">{{ rec[3] }}</span>
+                                        <span class="text-muted small">{{ rec[3] }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if rec[4] %}
-                                        {{ rec[4].strftime('%d/%m/%Y') }}
-                                    {% else %}
-                                        N/A
-                                    {% endif %}
+                                    <span class="text-dark">{{ rec[4].strftime('%d/%m/%Y') if rec[4] else 'N/A' }}</span>
                                 </td>
                                 <td>
-                                    <small>{{ rec[6] or 'N/A' }}</small>
-                                </td>
-                                <td>
-                                    <small>{{ rec[7] or 'N/A' }}</small>
+                                    <div class="text-truncate" style="max-width: 250px;" title="{{ rec[6] or '' }}, {{ rec[7] or '' }}">
+                                        {{ rec[6] or 'N/A' }}
+                                        <div class="small text-muted">{{ rec[7] or '' }}</div>
+                                    </div>
                                 </td>
                                 <td>
                                     {% if rec[5] and rec[5] < now.date() %}
-                                        <span class="badge" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #6c757d;">
-                                            <i class="bi bi-clock-history me-1"></i>Đã kết thúc
-                                        </span>
-                                    {% elif not rec[5] %}
-                                        <span class="badge" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #fff;">
-                                            <i class="bi bi-check-circle me-1"></i>Đang hiệu lực
+                                        <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary fw-bold px-3">
+                                            Đã kết thúc
                                         </span>
                                     {% else %}
-                                        <span class="badge" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #fff;">
-                                            <i class="bi bi-check-circle me-1"></i>Đang hiệu lực
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success fw-bold px-3">
+                                            Đang hiệu lực
                                         </span>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td class="text-end pe-4">
                                     {% set is_active = (not rec[5]) or (rec[5] >= now.date()) %}
                                     {% if is_active and (session.user.vaitro in ['CanBo', 'QuanLy'] or session.user.cccd == rec[0]) %}
                                         <a href="{{ url_for('cu_tru_edit', cccd=rec[0]) }}" 
-                                           class="btn btn-sm btn-outline-primary" 
+                                           class="btn btn-sm btn-white text-primary border-light shadow-sm" 
                                            title="Thay đổi địa chỉ">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     {% elif rec[5] and rec[5] < now.date() and session.user.vaitro in ['CanBo', 'QuanLy'] %}
                                         <a href="{{ url_for('cu_tru_gia_han', cccd=rec[0], thoidiemketthuc=rec[5].strftime('%Y-%m-%d')) }}" 
-                                           class="btn btn-sm btn-success" 
+                                           class="btn btn-sm btn-white text-success border-light shadow-sm" 
                                            title="Gia hạn cư trú">
-                                            <i class="bi bi-arrow-repeat"></i> Gia hạn
+                                            <i class="bi bi-arrow-repeat"></i>
                                         </a>
                                     {% else %}
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted opacity-50 small">--</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -187,43 +205,39 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
+                <!-- Pagination (Styled) -->
                 {% if total_pages > 1 %}
-                <nav aria-label="Page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item {% if page == 1 %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('cu_tru_list', page=page-1, search=search, xaphuong=xaphuong) }}">
-                                Trước
-                            </a>
-                        </li>
-                        
-                        {% for p in range(1, total_pages + 1) %}
-                            {% if p == page %}
-                                <li class="page-item active"><span class="page-link">{{ p }}</span></li>
-                            {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('cu_tru_list', page=p, search=search, xaphuong=xaphuong) }}">
+                <div class="p-3 border-top border-light d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link border-0 text-secondary" href="{{ url_for('cu_tru_list', page=page-1, search=search, xaphuong=xaphuong) }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% for p in range(1, total_pages + 1) %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link border-0 {% if p == page %}bg-primary text-white shadow-sm rounded-circle{% else %}text-secondary bg-transparent{% endif %} mx-1" 
+                                       href="{{ url_for('cu_tru_list', page=p, search=search, xaphuong=xaphuong) }}">
                                         {{ p }}
                                     </a>
                                 </li>
-                            {% elif p == 4 or p == total_pages - 3 %}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('cu_tru_list', page=page+1, search=search, xaphuong=xaphuong) }}">
-                                Sau
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                            {% endfor %}
+                            <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                                <a class="page-link border-0 text-secondary" href="{{ url_for('cu_tru_list', page=page+1, search=search, xaphuong=xaphuong) }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
                 {% endif %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                    <h5 class="text-muted mt-3">Không có dữ liệu</h5>
-                    <p class="text-muted">Chưa có thông tin cư trú</p>
+                 <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-inbox text-muted opacity-50 display-1"></i>
+                    </div>
+                    <h5 class="text-muted fw-normal">Không tìm thấy dữ liệu</h5>
                 </div>
             {% endif %}
         </div>

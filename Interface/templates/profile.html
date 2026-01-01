@@ -3,140 +3,172 @@
 {% block title %}Thông tin cá nhân{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Trang chủ</a></li>
-                    <li class="breadcrumb-item active">Thông tin cá nhân</li>
-                </ol>
-            </nav>
-
-            <!-- Profile Card -->
-            <div class="card shadow-lg mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"><i class="bi bi-person-circle"></i> Thông tin cá nhân</h4>
-                    <a href="{{ url_for('profile_edit') }}" class="btn btn-light btn-sm">
-                        <i class="bi bi-pencil"></i> Chỉnh sửa
-                    </a>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-person-circle me-2"></i>Thông tin cá nhân
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Hồ sơ của tôi</li>
+                        </ol>
+                    </nav>
                 </div>
-                <div class="card-body">
-                    <!-- Avatar -->
-                    <div class="text-center mb-4">
+            </div>
+        </div>
+    </div>
+
+    <div class="row fade-in-up" style="animation-delay: 0.1s;">
+        <!-- Left Column: Avatar & Quick Info -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4 position-relative d-inline-block">
                         {% if user_info[12] and user_info[12] != './image/default_avatar.png' %}
-                        <img src="/{{ user_info[12] }}" 
-                             alt="Avatar" 
-                             class="rounded-circle shadow" 
-                             style="width: 120px; height: 120px; object-fit: cover;">
+                        <img src="/{{ user_info[12] }}" alt="Avatar" class="avatar-xl">
                         {% else %}
-                        <img src="/image/default_avatar.png" 
-                             alt="Avatar" 
-                             class="rounded-circle shadow" 
-                             style="width: 120px; height: 120px; object-fit: cover;">
+                        <img src="/image/default_avatar.png" alt="Avatar" class="avatar-xl">
                         {% endif %}
-                        <h4 class="mt-3 mb-1">{{ user_info[1] }}</h4>
-                        <span class="badge bg-{{ 'danger' if user_info[6] == 'CanBo' else 'info' if user_info[6] == 'QuanLy' else 'secondary' }}">
-                            {{ 'Cán bộ' if user_info[6] == 'CanBo' else 'Quản lý' if user_info[6] == 'QuanLy' else 'Người dân' }}
+                        <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-light rounded-circle">
+                            <span class="visually-hidden">Online</span>
                         </span>
                     </div>
+                    
+                    <h4 class="fw-bold mb-1">{{ user_info[1] }}</h4>
+                    <p class="text-muted mb-3">@{{ user_info[7] }}</p>
+                    
+                    <span class="badge rounded-pill bg-{{ 'danger' if user_info[6] == 'CanBo' else 'info' if user_info[6] == 'QuanLy' else 'secondary' }} bg-opacity-10 text-{{ 'danger' if user_info[6] == 'CanBo' else 'info' if user_info[6] == 'QuanLy' else 'secondary' }} px-3 py-2 mb-4">
+                        {{ 'Cán bộ' if user_info[6] == 'CanBo' else 'Quản lý' if user_info[6] == 'QuanLy' else 'Người dân' }}
+                    </span>
 
-                    <hr>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('profile_edit') }}" class="btn btn-primary shadow-sm hover-lift">
+                            <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa hồ sơ
+                        </a>
+                        <a href="{{ url_for('settings') }}" class="btn btn-white border shadow-sm hover-lift">
+                            <i class="bi bi-gear me-2"></i>Cài đặt
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Personal Information -->
-                    <h5 class="mb-3"><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
-                    <div class="row mb-3">
+        <!-- Right Column: Detailed Info -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-info-circle-fill me-2"></i>Thông tin cơ bản
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
                         <div class="col-md-6">
-                            <p><strong><i class="bi bi-credit-card text-primary"></i> CCCD:</strong><br>
-                               {{ user_info[0] }}</p>
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-light text-primary rounded-3 me-3" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                    <i class="bi bi-card-heading"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block text-uppercase ls-1" style="font-size: 0.75rem;">Số CCCD</small>
+                                    <span class="fw-bold">{{ user_info[0] }}</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <p><strong><i class="bi bi-person-badge text-primary"></i> Tên đăng nhập:</strong><br>
-                               {{ user_info[7] }}</p>
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-light text-success rounded-3 me-3" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                    <i class="bi bi-telephone mb-0"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block text-uppercase ls-1" style="font-size: 0.75rem;">Số điện thoại</small>
+                                    <span class="fw-bold">{{ user_info[2] or 'Chưa cập nhật' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-light text-info rounded-3 me-3" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                    <i class="bi bi-calendar-event"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block text-uppercase ls-1" style="font-size: 0.75rem;">Ngày sinh</small>
+                                    <span class="fw-bold">{{ user_info[3].strftime('%d/%m/%Y') if user_info[3] else 'Chưa cập nhật' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-light text-warning rounded-3 me-3" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                    <i class="bi bi-gender-ambiguous"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block text-uppercase ls-1" style="font-size: 0.75rem;">Giới tính</small>
+                                    <span class="fw-bold text-capitalize">{{ user_info[4] or 'Chưa cập nhật' }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong><i class="bi bi-telephone text-success"></i> Số điện thoại:</strong><br>
-                               {{ user_info[2] or 'Chưa cập nhật' }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong><i class="bi bi-calendar text-info"></i> Ngày sinh:</strong><br>
-                               {{ user_info[3].strftime('%d/%m/%Y') if user_info[3] else 'Chưa cập nhật' }}</p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong><i class="bi bi-gender-ambiguous text-warning"></i> Giới tính:</strong><br>
-                               {{ user_info[4] or 'Chưa cập nhật' }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong><i class="bi bi-flag text-danger"></i> Dân tộc:</strong><br>
-                               {{ user_info[5] or 'Chưa cập nhật' }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Address -->
                     {% if user_info[9] or user_info[10] or user_info[11] %}
-                    <hr>
-                    <h5 class="mb-3"><i class="bi bi-geo-alt"></i> Địa chỉ cư trú</h5>
-                    <div class="alert alert-light">
-                        <i class="bi bi-house-door"></i>
-                        {{ [user_info[11], user_info[10], user_info[9]] | select | join(', ') }}
+                    <hr class="my-4" style="opacity: 0.1;">
+                    <div class="mt-4">
+                        <h6 class="text-secondary fw-bold mb-3 text-uppercase small ls-1">
+                            <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ cư trú
+                        </h6>
+                        <div class="alert alert-light border-0 shadow-sm d-flex align-items-center">
+                            <i class="bi bi-house-door-fill text-primary me-3 fs-5"></i>
+                            <div class="fw-medium text-dark">
+                                {{ [user_info[11], user_info[10], user_info[9]] | select | join(', ') }}
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
+                </div>
+            </div>
 
-                    <!-- Household Info -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-people-fill me-2"></i>Thông tin hộ khẩu
+                    </h5>
+                </div>
+                <div class="card-body p-4">
                     {% if hokhau_info %}
-                    <hr>
-                    <h5 class="mb-3"><i class="bi bi-people"></i> Thông tin hộ khẩu</h5>
-                    <div class="card bg-light">
+                    <div class="card bg-light border-0">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <p class="mb-1"><strong>Mã hộ khẩu:</strong></p>
-                                    <p>{{ hokhau_info[0] }}</p>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted text-uppercase ls-1" style="font-size: 0.7rem;">Mã hộ khẩu</small>
+                                    <p class="mb-0 fw-bold text-primary">HK{{ hokhau_info[0] }}</p>
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <p class="mb-1"><strong>Quan hệ chủ hộ:</strong></p>
-                                    <span class="badge bg-primary">{{ hokhau_info[1] }}</span>
+                                <div class="col-md-6">
+                                    <small class="text-muted text-uppercase ls-1" style="font-size: 0.7rem;">Vai trò trong hộ</small>
+                                    <p class="mb-0">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">{{ hokhau_info[1] }}</span>
+                                    </p>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <p class="mb-1"><strong>Ngày cấp:</strong></p>
-                                    <p>{{ hokhau_info[2].strftime('%d/%m/%Y') if hokhau_info[2] else 'N/A' }}</p>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <p class="mb-1"><strong>Địa chỉ hộ khẩu:</strong></p>
-                                    <p>{{ [hokhau_info[5], hokhau_info[4], hokhau_info[3]] | select | join(', ') }}</p>
+                                <div class="col-12">
+                                    <small class="text-muted text-uppercase ls-1" style="font-size: 0.7rem;">Địa chỉ hộ khẩu</small>
+                                    <p class="mb-0 fw-medium">{{ [hokhau_info[5], hokhau_info[4], hokhau_info[3]] | select | join(', ') }}</p>
                                 </div>
                             </div>
-                            <a href="{{ url_for('hokhau_detail', mahokhau=hokhau_info[0]) }}" class="btn btn-sm btn-outline-primary mt-2">
-                                <i class="bi bi-eye"></i> Xem chi tiết hộ khẩu
-                            </a>
+                            <div class="mt-3 pt-3 border-top">
+                                <a href="{{ url_for('hokhau_detail', mahokhau=hokhau_info[0]) }}" class="btn btn-sm btn-white border shadow-sm w-100">
+                                    Xem chi tiết hộ khẩu <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                     {% else %}
-                    <hr>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Bạn chưa thuộc hộ khẩu nào.
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <i class="bi bi-info-circle-fill me-2"></i> Bạn chưa thuộc hộ khẩu nào.
                     </div>
                     {% endif %}
-
-                    <!-- Privacy Settings -->
-                    <hr>
-                    <h5 class="mb-3"><i class="bi bi-shield-lock"></i> Quyền riêng tư</h5>
-                    <div class="alert alert-{{ 'warning' if user_info[8] else 'success' }}">
-                        <i class="bi bi-{{ 'shield-exclamation' if user_info[8] else 'shield-check' }}"></i>
-                        <strong>Bảo mật thông tin:</strong>
-                        {{ 'BẬT - Thông tin của bạn sẽ được ẩn cho đến khi cán bộ xử lý phản ánh' if user_info[8] else 'TẮT - Thông tin của bạn có thể được xem bởi cán bộ' }}
-                    </div>
-                    <a href="{{ url_for('settings') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear"></i> Cài đặt quyền riêng tư
-                    </a>
                 </div>
             </div>
         </div>

@@ -1,595 +1,361 @@
-{% extends "base.html" %} {% block title %}Chi tiết Phản ánh #{{ phananh[0] }}{%
-endblock %} {% block content %}
-<div class="container mt-4">
+{% extends "base.html" %} 
+{% block title %}Chi tiết Phản ánh #{{ phananh[0] }}{% endblock %} 
+
+{% block content %}
+<div class="container py-5">
   <div class="row">
-    <div class="col-md-8">
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a href="{{ url_for('dashboard') }}">Trang chủ</a>
-          </li>
-          <li class="breadcrumb-item">
-            <a href="{{ url_for('phananh_list') }}">Phản ánh</a>
-          </li>
-          <li class="breadcrumb-item active">Chi tiết #{{ phananh[0] }}</li>
-        </ol>
-      </nav>
+    <div class="col-lg-8 animate-fade-in-up">
+      <!-- Breadcrumb & Header -->
+      <div class="mb-4">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item">
+              <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="{{ url_for('phananh_list') }}">Phản ánh</a>
+            </li>
+            <li class="breadcrumb-item active">Chi tiết PA#{{ phananh[0] }}</li>
+          </ol>
+        </nav>
+        <h2 class="fw-bold text-primary mb-0">
+            {{ phananh[4] }}
+        </h2>
+      </div>
 
-      <!-- Post Card -->
-      <div class="card shadow-lg mb-4">
-        <div
-          class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
-        >
-          <h4 class="mb-0"><i class="fas fa-bullhorn"></i> {{ phananh[4] }}</h4>
-          <span
-            class="badge bg-{{ 'success' if phananh[7] == 'Đã xử lý' else 'warning' if phananh[7] == 'Đang xử lý' else 'secondary' }}"
-          >
-            {{ phananh[7] }}
-          </span>
-        </div>
-        <div class="card-body">
-          <!-- Author & Time -->
-          <div
-            class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom"
-          >
-            <div class="d-flex align-items-center">
-              {% if phananh[24] and phananh[24] != './image/default_avatar.png'
-              %}
-              <img
-                src="/{{ phananh[24] }}"
-                alt="Avatar"
-                class="rounded-circle me-3"
-                style="width: 50px; height: 50px; object-fit: cover"
-              />
-              {% else %}
-              <img
-                src="/image/default_avatar.png"
-                alt="Avatar"
-                class="rounded-circle me-3"
-                style="width: 50px; height: 50px; object-fit: cover"
-              />
-              {% endif %}
-              <div>
-                <h6 class="mb-0">{{ nguoidung_name }}</h6>
-                <small class="text-muted">
-                  <i class="fas fa-calendar"></i> {{
-                  phananh[13].strftime('%d/%m/%Y %H:%M') if phananh[13] else ''
-                  }}
-                </small>
-              </div>
+      <!-- Main Post Card -->
+      <div class="card border-0 shadow-lg glass-card mb-5 overflow-hidden">
+        <div class="card-body p-4 p-lg-5">
+            <!-- Author & Meta -->
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="position-relative">
+                        {% if phananh[24] and phananh[24] != './image/default_avatar.png' %}
+                        <img src="/{{ phananh[24] }}" alt="Avatar" class="rounded-circle shadow-sm border border-2 border-white object-fit-cover" style="width: 56px; height: 56px;">
+                        {% else %}
+                        <img src="/image/default_avatar.png" alt="Avatar" class="rounded-circle shadow-sm border border-2 border-white object-fit-cover" style="width: 56px; height: 56px;">
+                        {% endif %}
+                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="fw-bold mb-0 text-dark">{{ nguoidung_name }}</h6>
+                        <small class="text-muted d-flex align-items-center">
+                            <i class="bi bi-calendar-event me-1"></i> 
+                            {{ phananh[13].strftime('%d/%m/%Y %H:%M') if phananh[13] else '' }}
+                        </small>
+                    </div>
+                </div>
+                <div class="d-flex flex-column align-items-end gap-2">
+                    <span class="badge rounded-pill px-3 py-2
+                        {% if phananh[7] == 'Đã xử lý' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+                        {% elif phananh[7] == 'Đang xử lý' %}bg-info bg-opacity-10 text-info border border-info border-opacity-25
+                        {% else %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25{% endif %}">
+                        {{ phananh[7] }}
+                    </span>
+                    {% if phananh[8] %}
+                    <small class="text-success fw-medium"><i class="bi bi-globe me-1"></i>Công khai</small>
+                    {% else %}
+                    <small class="text-secondary fw-medium"><i class="bi bi-lock me-1"></i>Riêng tư</small>
+                    {% endif %}
+                </div>
             </div>
-            <div>
-              {% if phananh[8] %}
-              <span class="badge bg-success">
-                <i class="fas fa-globe"></i> Công khai
-              </span>
-              {% else %}
-              <span class="badge bg-secondary">
-                <i class="fas fa-lock"></i> Riêng tư
-              </span>
-              {% endif %}
+
+            <!-- Content -->
+            <div class="content opacity-100 mb-4 text-justify" style="font-size: 1.05rem; line-height: 1.7;">
+                {{ phananh[5] }}
             </div>
-          </div>
 
-          <!-- Content -->
-          <div class="mb-4">
-            <p class="lead">{{ phananh[5] }}</p>
-          </div>
-
-          <!-- File đính kèm -->
-          {% if phananh[23] %}
-          <div class="alert alert-secondary">
-            <i class="fas fa-paperclip"></i> <strong>Tệp đính kèm:</strong>
-            <a
-              href="{{ url_for('serve_file', filename=phananh[23]) }}"
-              class="btn btn-sm btn-outline-primary ms-2"
-              target="_blank"
-            >
-              <i class="fas fa-download"></i>
-              {{ phananh[23].split('_', 1)[1] if '_' in phananh[23] else
-              phananh[23] }}
-            </a>
-            {% set ext = phananh[23].split('.')[-1].lower() %} {% if ext in
-            ['png', 'jpg', 'jpeg', 'gif'] %}
-            <div class="mt-2">
-              <img
-                src="{{ url_for('serve_file', filename=phananh[23]) }}"
-                class="img-fluid rounded shadow-sm"
-                style="max-width: 500px"
-                alt="Hình ảnh đính kèm"
-              />
+            <!-- Attachments -->
+            {% if phananh[23] %}
+            <div class="bg-light rounded-3 p-3 mb-4 border border-light">
+                <h6 class="fw-bold text-secondary mb-3 small text-uppercase ls-1"><i class="bi bi-paperclip me-2"></i>Tệp đính kèm</h6>
+                {% set ext = phananh[23].split('.')[-1].lower() %}
+                {% if ext in ['png', 'jpg', 'jpeg', 'gif'] %}
+                <div class="position-relative d-inline-block group-hover-zoom overflow-hidden rounded shadow-sm">
+                    <a href="{{ url_for('serve_file', filename=phananh[23]) }}" target="_blank">
+                        <img src="{{ url_for('serve_file', filename=phananh[23]) }}" class="img-fluid rounded" style="max-height: 300px; object-fit: cover;" alt="Attachment">
+                    </a>
+                </div>
+                {% else %}
+                <a href="{{ url_for('serve_file', filename=phananh[23]) }}" class="d-flex align-items-center p-3 bg-white rounded border text-decoration-none hover-shadow transition-all" target="_blank">
+                    <div class="me-3 text-primary"><i class="bi bi-file-earmark-text fs-2"></i></div>
+                    <div>
+                        <div class="fw-medium text-dark text-truncate" style="max-width: 250px;">
+                            {{ phananh[23].split('_', 1)[1] if '_' in phananh[23] else phananh[23] }}
+                        </div>
+                        <small class="text-muted">Nhấn để tải xuống</small>
+                    </div>
+                    <i class="bi bi-download ms-auto text-muted"></i>
+                </a>
+                {% endif %}
             </div>
             {% endif %}
-          </div>
-          {% endif %}
 
-          <!-- Location if available -->
-          {% if phananh[20] or phananh[21] or phananh[22] %}
-          <div class="alert alert-info">
-            <i class="fas fa-map-marker-alt"></i> <strong>Vị trí:</strong>
-            {{ [phananh[22], phananh[21], phananh[20]] | select | join(', ') }}
-          </div>
-          {% endif %}
-
-          <!-- Engagement Stats -->
-          <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
-            <div>
-              <form
-                method="POST"
-                action="{{ url_for('phananh_like' if not user_liked else 'phananh_unlike', maphananh=phananh[0]) }}"
-                style="display: inline"
-              >
-                <button
-                  type="submit"
-                  class="btn btn-{{ 'danger' if user_liked else 'outline-danger' }}"
-                >
-                  <i class="fas fa-heart"></i> {{ phananh[10] or 0 }} Likes
-                </button>
-              </form>
+            <!-- Location -->
+            {% if phananh[20] or phananh[21] or phananh[22] %}
+            <div class="d-flex align-items-start mb-4 text-muted small bg-light p-2 rounded">
+                <i class="bi bi-geo-alt-fill me-2 text-danger mt-1"></i>
+                <span>{{ [phananh[22], phananh[21], phananh[20]] | select | join(', ') }}</span>
             </div>
-            <div>
-              <button class="btn btn-outline-info">
-                <i class="fas fa-comment"></i> {{ phananh[11] or 0 }} Comments
-              </button>
-            </div>
-            <div>
-              <span class="btn btn-outline-secondary">
-                <i class="fas fa-eye"></i> {{ phananh[12] or 0 }} Views
-              </span>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="d-flex gap-2">
-            {% if session.user.cccd == phananh[1] %}
-            <a
-              href="{{ url_for('phananh_edit', maphananh=phananh[0]) }}"
-              class="btn btn-warning"
-            >
-              <i class="fas fa-edit"></i> Sửa
-            </a>
-            <form
-              method="POST"
-              action="{{ url_for('phananh_delete', maphananh=phananh[0]) }}"
-              onsubmit="return confirm('Bạn có chắc muốn xóa phản ánh này?');"
-              style="display: inline"
-            >
-              <button type="submit" class="btn btn-danger">
-                <i class="fas fa-trash"></i> Xóa
-              </button>
-            </form>
             {% endif %}
-          </div>
+
+            <hr class="text-muted opacity-25">
+
+            <!-- Actions & Engagement -->
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-3">
+                    <form method="POST" action="{{ url_for('phananh_like' if not user_liked else 'phananh_unlike', maphananh=phananh[0]) }}" class="d-inline">
+                        <button type="submit" class="btn btn-sm {% if user_liked %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3 fw-bold transition-all hover-lift">
+                            <i class="bi {% if user_liked %}bi-heart-fill{% else %}bi-heart{% endif %} me-1"></i> {{ phananh[10] or 0 }}
+                        </button>
+                    </form>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold pe-none">
+                        <i class="bi bi-chat-dots me-1"></i> {{ phananh[11] or 0 }}
+                    </button>
+                    <button class="btn btn-sm btn-ghost-secondary rounded-pill px-3 pe-none text-muted">
+                        <i class="bi bi-eye me-1"></i> {{ phananh[12] or 0 }}
+                    </button>
+                </div>
+
+                {% if session.user.cccd == phananh[1] %}
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('phananh_edit', maphananh=phananh[0]) }}" class="btn btn-sm btn-light text-primary hover-lift fw-medium">
+                        <i class="bi bi-pencil-square me-1"></i>Sửa
+                    </a>
+                    <form method="POST" action="{{ url_for('phananh_delete', maphananh=phananh[0]) }}" onsubmit="return confirm('Bạn có chắc muốn xóa phản ánh này?');" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-light text-danger hover-lift fw-medium">
+                            <i class="bi bi-trash me-1"></i>Xóa
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
         </div>
       </div>
 
       <!-- Comments Section -->
-      <div class="card shadow">
-        <div class="card-header bg-info text-white">
-          <h5>
-            <i class="fas fa-comments"></i> Bình luận ({{ comments|length }})
-          </h5>
+      <div class="card border-0 shadow-lg glass-card mb-5">
+        <div class="card-header bg-white border-bottom py-3 px-4">
+            <h5 class="fw-bold text-primary mb-0"><i class="bi bi-chat-quote-fill me-2"></i>Bình luận <span class="badge bg-primary bg-opacity-10 text-primary ms-1 rounded-pill">{{ comments|length }}</span></h5>
         </div>
-        <div class="card-body">
-          <!-- Comment Form -->
-          <form
-            method="POST"
-            action="{{ url_for('comment_add', maphananh=phananh[0]) }}"
-            enctype="multipart/form-data"
-            class="mb-4"
-          >
-            <!-- File preview area -->
-            <div id="commentFilePreview" class="mb-2" style="display: none">
-              <div class="alert alert-secondary py-2 px-3 mb-2">
-                <div class="d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-file me-2"></i>
-                    <small id="commentFileName" class="fw-bold"></small>
-                    <small id="commentFileSize" class="text-muted ms-2"></small>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-link text-danger p-0"
-                    onclick="clearCommentFile()"
-                  >
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <textarea
-                name="noidung"
-                class="form-control"
-                rows="3"
-                placeholder="Viết bình luận của bạn..."
-                required
-              ></textarea>
-            </div>
-
-            <div class="d-flex gap-2">
-              <input
-                type="file"
-                class="d-none"
-                id="comment-file"
-                name="file"
-                accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx"
-                onchange="previewCommentFile(this)"
-              />
-
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                onclick="document.getElementById('comment-file').click()"
-                title="Đính kèm tệp"
-              >
-                <i class="fas fa-paperclip"></i>
-              </button>
-
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-paper-plane"></i> Gửi bình luận
-              </button>
-            </div>
-          </form>
-
-          <hr />
-
-          <!-- Comments List -->
-          {% if comments %} {% for comment in comments %}
-          <div
-            class="mb-3 {% if not comment[6] %}border-start border-primary border-3{% endif %} ps-3"
-          >
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center mb-2">
-                  {% if comment[3] and comment[3] !=
-                  './image/default_avatar.png' %}
-                  <img
-                    src="/{{ comment[3] }}"
-                    alt="Avatar"
-                    class="rounded-circle me-2"
-                    style="width: 35px; height: 35px; object-fit: cover"
-                  />
-                  {% else %}
-                  <img
-                    src="/image/default_avatar.png"
-                    alt="Avatar"
-                    class="rounded-circle me-2"
-                    style="width: 35px; height: 35px; object-fit: cover"
-                  />
-                  {% endif %}
-                  <div>
-                    <strong>{{ comment[2] }}</strong>
-                    <br />
-                    <small class="text-muted">
-                      <i class="fas fa-clock"></i>
-                      {{ comment[5].strftime('%d/%m/%Y %H:%M') if comment[5]
-                      else '' }}
-                    </small>
-                  </div>
-                </div>
-                <p class="mb-0 ms-5" id="commentText{{ comment[0] }}">
-                  {{ comment[4] }}
-                </p>
-
-                <!-- File đính kèm trong bình luận -->
-                {% if comment[8] %}
-                <div class="ms-5 mt-2">
-                  <div class="alert alert-light py-2">
-                    <i class="fas fa-paperclip"></i>
-                    <a
-                      href="{{ url_for('serve_file', filename=comment[8]) }}"
-                      class="text-decoration-none"
-                      target="_blank"
-                    >
-                      <i class="fas fa-download"></i>
-                      {{ comment[8].split('_', 1)[1] if '_' in comment[8] else
-                      comment[8] }}
-                    </a>
-                    {% set ext = comment[8].split('.')[-1].lower() %} {% if ext
-                    in ['png', 'jpg', 'jpeg', 'gif'] %}
-                    <div class="mt-2">
-                      <img
-                        src="{{ url_for('serve_file', filename=comment[8]) }}"
-                        class="img-thumbnail"
-                        style="max-width: 300px"
-                        alt="Hình ảnh"
-                      />
+        <div class="card-body p-4">
+            <!-- Comment Input -->
+            <div class="d-flex mb-4 gap-3">
+                <div class="flex-shrink-0">
+                     <div class="avatar-placeholder bg-light text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold border" style="width: 40px; height: 40px;">
+                        You
                     </div>
-                    {% endif %}
-                  </div>
                 </div>
-                {% endif %}
-
-                <!-- Edit form (hidden by default) -->
-                <div
-                  id="editForm{{ comment[0] }}"
-                  style="display: none"
-                  class="ms-5 mt-2"
-                >
-                  <form
-                    method="POST"
-                    action="{{ url_for('comment_edit', mabinhluan=comment[0]) }}"
-                  >
-                    <div class="input-group">
-                      <input
-                        type="text"
-                        name="noidung"
-                        class="form-control"
-                        value="{{ comment[4] }}"
-                        required
-                      />
-                      <button type="submit" class="btn btn-sm btn-success">
-                        <i class="fas fa-save"></i> Lưu
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-secondary"
-                        onclick="hideEditForm({{ comment[0] }})"
-                      >
-                        Hủy
-                      </button>
-                    </div>
-                  </form>
-                </div>
-
-                <!-- Action buttons -->
-                <div class="ms-5 mt-2">
-                  <!-- Reply button -->
-                  <button
-                    class="btn btn-sm btn-link text-decoration-none p-0"
-                    onclick="showReplyForm({{ comment[0] }})"
-                  >
-                    <i class="fas fa-reply"></i> Trả lời
-                  </button>
-                </div>
-
-                <!-- Reply form (hidden by default) -->
-                <div
-                  id="replyForm{{ comment[0] }}"
-                  style="display: none"
-                  class="ms-5 mt-2"
-                >
-                  <form
-                    method="POST"
-                    action="{{ url_for('comment_add', maphananh=phananh[0]) }}"
-                    enctype="multipart/form-data"
-                  >
-                    <input
-                      type="hidden"
-                      name="parent_id"
-                      value="{{ comment[0] }}"
-                    />
-
-                    <!-- File preview area -->
-                    <div
-                      id="replyFilePreview{{ comment[0] }}"
-                      class="mb-2"
-                      style="display: none"
-                    >
-                      <div class="alert alert-secondary py-2 px-3 mb-2">
-                        <div
-                          class="d-flex align-items-center justify-content-between"
-                        >
-                          <div class="d-flex align-items-center">
-                            <i class="fas fa-file me-2"></i>
-                            <small
-                              id="replyFileName{{ comment[0] }}"
-                              class="fw-bold"
-                            ></small>
-                            <small
-                              id="replyFileSize{{ comment[0] }}"
-                              class="text-muted ms-2"
-                            ></small>
-                          </div>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-link text-danger p-0"
-                            onclick="clearReplyFile({{ comment[0] }})"
-                          >
-                            <i class="fas fa-times"></i>
-                          </button>
+                <div class="flex-grow-1">
+                    <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}" enctype="multipart/form-data">
+                        <div class="position-relative">
+                            <textarea name="noidung" class="form-control bg-light border-0 shadow-sm ps-4 pt-3 pb-5" rows="3" placeholder="Viết bình luận của bạn..." required style="border-radius: 1rem; resize: none;"></textarea>
+                            
+                            <!-- Actions inside textbox -->
+                            <div class="d-flex justify-content-between align-items-center position-absolute bottom-0 w-100 p-2 ps-3 pe-3">
+                                <div>
+                                    <input type="file" class="d-none" id="comment-file" name="file" accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx" onchange="previewCommentFile(this)">
+                                    <button type="button" class="btn btn-sm btn-link text-secondary p-0 me-2 hover-primary" onclick="document.getElementById('comment-file').click()" title="Đính kèm tệp">
+                                        <i class="bi bi-paperclip fs-5"></i>
+                                    </button>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill fw-bold px-3 hover-lift shadow-sm">
+                                    <i class="bi bi-send-fill me-1"></i> Gửi
+                                </button>
+                            </div>
                         </div>
-                      </div>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                      <input
-                        type="file"
-                        class="d-none"
-                        id="reply-file-{{ comment[0] }}"
-                        name="file"
-                        accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx,.xls,.xlsx"
-                        onchange="previewReplyFile(this, {{ comment[0] }})"
-                      />
-
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        onclick="document.getElementById('reply-file-{{ comment[0] }}').click()"
-                        title="Đính kèm tệp"
-                      >
-                        <i class="fas fa-paperclip"></i>
-                      </button>
-
-                      <input
-                        type="text"
-                        name="noidung"
-                        class="form-control"
-                        placeholder="Nhập câu trả lời..."
-                        required
-                      />
-
-                      <button type="submit" class="btn btn-sm btn-primary">
-                        Gửi
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-secondary"
-                        onclick="hideReplyForm({{ comment[0] }})"
-                      >
-                        Hủy
-                      </button>
-                    </div>
-                  </form>
+                        <!-- File Preview -->
+                        <div id="commentFilePreview" class="mt-2" style="display: none;">
+                            <div class="d-inline-flex align-items-center bg-white border rounded-pill px-3 py-1 shadow-sm">
+                                <i class="bi bi-file-earmark me-2 text-primary"></i>
+                                <small id="commentFileName" class="fw-medium me-2 text-truncate" style="max-width: 200px;"></small>
+                                <span class="text-secondary opacity-50 mx-1">|</span>
+                                <small id="commentFileSize" class="text-muted ms-1"></small>
+                                <button type="button" class="btn-close ms-2" style="font-size: 0.7rem;" onclick="clearCommentFile()"></button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-              </div>
-
-              <!-- Dropdown menu for actions -->
-              <div class="dropdown">
-                <button
-                  class="btn btn-sm btn-link text-muted p-0"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  style="font-size: 1.2rem; line-height: 1"
-                >
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  {% if comment[1] == session.user.cccd %}
-                  <!-- Owner actions -->
-                  <li>
-                    <a
-                      class="dropdown-item"
-                      href="#"
-                      onclick="showEditForm({{ comment[0] }}); return false;"
-                    >
-                      <i class="fas fa-edit text-primary"></i> Chỉnh sửa
-                    </a>
-                  </li>
-                  <li>
-                    <form
-                      method="POST"
-                      action="{{ url_for('comment_delete', mabinhluan=comment[0]) }}"
-                      onsubmit="return confirm('Bạn có chắc muốn xóa bình luận này?');"
-                      class="m-0"
-                    >
-                      <button type="submit" class="dropdown-item text-danger">
-                        <i class="fas fa-trash"></i> Xóa
-                      </button>
-                    </form>
-                  </li>
-                  {% endif %} {% if session.user.vaitro in ['CanBo', 'QuanLy']
-                  %}
-                  <!-- Admin actions -->
-                  {% if comment[1] != session.user.cccd %}
-                  <li><hr class="dropdown-divider" /></li>
-                  {% endif %}
-                  <li>
-                    <form
-                      method="POST"
-                      action="{{ url_for('comment_hide', mabinhluan=comment[0]) }}"
-                      onsubmit="return confirm('Ẩn bình luận này?');"
-                      class="m-0"
-                    >
-                      <button type="submit" class="dropdown-item text-warning">
-                        <i class="fas fa-eye-slash"></i> Ẩn bình luận
-                      </button>
-                    </form>
-                  </li>
-                  {% endif %}
-                </ul>
-              </div>
             </div>
 
-            <!-- Child comments (replies) -->
-            {% if comment[6] == None %} {% set replies = comments|selectattr(6,
-            'equalto', comment[0])|list %} {% if replies %}
-            <div class="ms-5 mt-2 border-start ps-3">
-              {% for reply in replies %}
-              <div class="mb-2">
-                <small>
-                  <strong>{{ reply[2] }}</strong>: {{ reply[4] }}
-                  <span class="text-muted">
-                    - {{ reply[5].strftime('%d/%m/%Y %H:%M') if reply[5] else ''
-                    }}
-                  </span>
-                </small>
-              </div>
-              {% endfor %}
+            <hr class="text-muted opacity-10 mb-4">
+
+            <!-- Comments List -->
+            <div class="comment-list">
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="d-flex mb-4 comment-item animate-fade-in-up" style="animation-delay: {{ loop.index * 0.05 }}s">
+                        <div class="flex-shrink-0 me-3">
+                            {% if comment[3] and comment[3] != './image/default_avatar.png' %}
+                            <img src="/{{ comment[3] }}" alt="Avatar" class="rounded-circle shadow-sm border object-fit-cover" style="width: 40px; height: 40px;">
+                            {% else %}
+                            <img src="/image/default_avatar.png" alt="Avatar" class="rounded-circle shadow-sm border object-fit-cover" style="width: 40px; height: 40px;">
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="bg-light rounded-3 p-3 shadow-sm d-inline-block border border-light" style="min-width: 200px;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="fw-bold mb-0 text-dark small">{{ comment[2] }}</h6>
+                                    <small class="text-muted ms-3" style="font-size: 0.75rem;">{{ comment[5].strftime('%d/%m/%Y %H:%M') if comment[5] else '' }}</small>
+                                </div>
+                                <p class="mb-0 text-secondary" id="commentText{{ comment[0] }}" style="font-size: 0.95rem;">{{ comment[4] }}</p>
+                                
+                                <!-- Attachment in comment -->
+                                {% if comment[8] %}
+                                <div class="mt-2 pt-2 border-top border-white">
+                                    <a href="{{ url_for('serve_file', filename=comment[8]) }}" class="d-inline-flex align-items-center text-decoration-none bg-white px-2 py-1 rounded small border shadow-sm" target="_blank">
+                                        <i class="bi bi-paperclip me-1 text-danger"></i>
+                                        <span class="text-dark">{{ comment[8].split('_', 1)[1] if '_' in comment[8] else comment[8] }}</span>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Comment Actions -->
+                            <div class="d-flex align-items-center gap-3 ms-2 mt-1">
+                                <button class="btn btn-link btn-sm text-decoration-none text-muted p-0 small fw-bold hover-primary" onclick="showReplyForm({{ comment[0] }})">Trả lời</button>
+                                {% if comment[1] == session.user.cccd %}
+                                <button class="btn btn-link btn-sm text-decoration-none text-muted p-0 small hover-secondary" onclick="showEditForm({{ comment[0] }})">Sửa</button>
+                                <form method="POST" action="{{ url_for('comment_delete', mabinhluan=comment[0]) }}" onsubmit="return confirm('Bạn có chắc muốn xóa bình luận này?');" class="d-inline">
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none text-muted p-0 small hover-danger">Xóa</button>
+                                </form>
+                                {% endif %}
+                                {% if session.user.vaitro in ['CanBo', 'QuanLy'] and comment[1] != session.user.cccd %}
+                                <form method="POST" action="{{ url_for('comment_hide', mabinhluan=comment[0]) }}" onsubmit="return confirm('Ẩn bình luận này?');" class="d-inline">
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none text-muted p-0 small hover-warning">Ẩn</button>
+                                </form>
+                                {% endif %}
+                            </div>
+
+                            <!-- Edit Form -->
+                            <div id="editForm{{ comment[0] }}" style="display: none;" class="mt-2">
+                                <form method="POST" action="{{ url_for('comment_edit', mabinhluan=comment[0]) }}">
+                                    <div class="input-group">
+                                        <input type="text" name="noidung" class="form-control form-control-sm" value="{{ comment[4] }}" required>
+                                        <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check"></i></button>
+                                        <button type="button" class="btn btn-sm btn-secondary" onclick="hideEditForm({{ comment[0] }})"><i class="bi bi-x"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Reply Form -->
+                            <div id="replyForm{{ comment[0] }}" style="display: none;" class="mt-3">
+                                <form method="POST" action="{{ url_for('comment_add', maphananh=phananh[0]) }}" enctype="multipart/form-data">
+                                    <input type="hidden" name="parent_id" value="{{ comment[0] }}">
+                                    <div class="d-flex gap-2 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <input type="text" name="noidung" class="form-control form-control-sm bg-light rounded-pill px-3" placeholder="Viết câu trả lời..." required>
+                                            <!-- Simple File Input for Reply -->
+                                            <div class="d-flex align-items-center mt-1 ms-2">
+                                                <input type="file" id="reply-file-{{ comment[0] }}" name="file" class="d-none" onchange="previewReplyFile(this, {{ comment[0] }})">
+                                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" onclick="document.getElementById('reply-file-{{ comment[0] }}').click()">
+                                                    <i class="bi bi-paperclip"></i> Đính kèm
+                                                </button>
+                                                <small id="replyFileName{{ comment[0] }}" class="ms-2 text-muted fst-italic"></small>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary rounded-circle shadow-sm" style="width: 32px; height: 32px;"><i class="bi bi-send-fill" style="font-size: 0.8rem;"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Child Replies -->
+                            {% set replies = comments|selectattr(6, 'equalto', comment[0])|list %}
+                            {% if replies %}
+                            <div class="ms-3 mt-3 ps-3 border-start border-2 border-light">
+                                {% for reply in replies %}
+                                <div class="d-flex mb-2">
+                                    <div class="flex-shrink-0 me-2">
+                                         <div class="bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-secondary small fw-bold" style="width: 24px; height: 24px;">
+                                            <i class="bi bi-person-fill"></i>
+                                         </div>
+                                    </div>
+                                    <div>
+                                        <div class="bg-light rounded-3 px-3 py-2">
+                                            <span class="fw-bold small me-1">{{ reply[2] }}</span>
+                                            <span class="text-secondary small">{{ reply[4] }}</span>
+                                        </div>
+                                        <small class="text-muted ms-2" style="font-size: 0.7rem;">{{ reply[5].strftime('%d/%m/%Y %H:%M') if reply[5] else '' }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-chat-square-text text-muted opacity-25" style="font-size: 3rem;"></i>
+                        </div>
+                        <p class="text-muted">Chưa có bình luận nào. Hãy là người đầu tiên thảo luận!</p>
+                    </div>
+                {% endif %}
             </div>
-            {% endif %} {% endif %}
-          </div>
-          <hr />
-          {% endfor %} {% else %}
-          <div class="alert alert-light text-center">
-            <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-            <p class="text-muted mb-0">
-              Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
-            </p>
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
 
     <!-- Sidebar -->
-    <div class="col-md-4">
-      <!-- Issue Info -->
-      {% if phananh[15] %}
-      <div class="card shadow mb-3">
-        <div class="card-header bg-success text-white">
-          <h6 class="mb-0"><i class="fas fa-link"></i> Thuộc vấn đề</h6>
-        </div>
-        <div class="card-body">
-          <p class="mb-2">
-            <a
-              href="{{ url_for('vande_detail', mavande=phananh[15]) }}"
-              class="text-decoration-none"
-            >
-              <strong>{{ vande_name or 'Vấn đề #' ~ phananh[15] }}</strong>
-            </a>
-          </p>
-          <small class="text-muted"
-            >Phản ánh này đã được gộp vào vấn đề chung</small
-          >
-        </div>
-      </div>
-      {% endif %}
-
+    <div class="col-lg-4 animate-fade-in-up" style="animation-delay: 0.2s;">
+      
       <!-- Processing Info -->
-      {% if phananh[14] %}
-      <div class="card shadow mb-3">
-        <div class="card-header bg-info text-white">
-          <h6 class="mb-0">
-            <i class="fas fa-check-circle"></i> Thông tin xử lý
-          </h6>
+      <div class="card border-0 shadow-sm glass-card mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+            <h6 class="fw-bold text-secondary mb-0 text-uppercase small ls-1"><i class="bi bi-info-circle-fill me-2"></i>Thông tin xử lý</h6>
         </div>
-        <div class="card-body">
-          <p>
-            <strong>Thời gian tạo:</strong><br />
-            {{ phananh[13].strftime('%d/%m/%Y %H:%M') if phananh[13] else 'N/A'
-            }}
-          </p>
-          <p>
-            <strong>Thời gian xử lý:</strong><br />
-            {{ phananh[14].strftime('%d/%m/%Y %H:%M') if phananh[14] else 'Chưa
-            xử lý' }}
-          </p>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush rounded-bottom">
+                {% if phananh[14] %}
+                <div class="list-group-item bg-transparent py-3 px-4">
+                    <small class="text-muted d-block mb-1">Thời gian xử lý</small>
+                    <div class="fw-medium text-dark"><i class="bi bi-clock-history me-2 text-info"></i>{{ phananh[14].strftime('%d/%m/%Y %H:%M') }}</div>
+                </div>
+                {% endif %}
+                <div class="list-group-item bg-transparent py-3 px-4">
+                    <small class="text-muted d-block mb-1">Thời gian tạo</small>
+                    <div class="fw-medium text-dark"><i class="bi bi-calendar-plus me-2 text-primary"></i>{{ phananh[13].strftime('%d/%m/%Y %H:%M') if phananh[13] else 'N/A' }}</div>
+                </div>
+                {% if phananh[15] %}
+                <div class="list-group-item bg-transparent py-3 px-4">
+                    <small class="text-muted d-block mb-1">Thuộc vấn đề</small>
+                    <a href="{{ url_for('vande_detail', mavande=phananh[15]) }}" class="fw-bold text-decoration-none text-primary">
+                        <i class="bi bi-link-45deg me-1"></i>{{ vande_name or 'Vấn đề #' ~ phananh[15] }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+      </div>
+
+      <!-- Action Box -->
+       {% if boxchat_id and (session.user.cccd == phananh[1] or session.user.vaitro in ['CanBo', 'QuanLy']) %}
+      <div class="card border-0 shadow-sm bg-primary text-white mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--gov-red), var(--gov-yellow));">
+        <div class="card-body p-4 position-relative">
+            <div class="position-absolute top-0 end-0 opacity-25 pe-3 pt-2">
+                <i class="bi bi-chat-dots-fill" style="font-size: 5rem;"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Hỗ trợ trực tiếp</h5>
+            <p class="mb-4 text-white-50 small">Trao đổi trực tiếp với cán bộ phụ trách về phản ánh này.</p>
+            <a href="{{ url_for('chat_detail', maboxchat=boxchat_id) }}" class="btn btn-white text-primary fw-bold w-100 shadow-sm hover-lift">
+                <i class="bi bi-chat-dots me-2"></i>Mở hội thoại
+            </a>
         </div>
       </div>
       {% endif %}
 
-      <!-- Chat Box Link - Only for owner or CanBo/QuanLy -->
-      {% if boxchat_id and (session.user.cccd == phananh[1] or
-      session.user.vaitro in ['CanBo', 'QuanLy']) %}
-      <div class="card shadow">
-        <div class="card-header bg-warning">
-          <h6 class="mb-0"><i class="fas fa-comments"></i> Hỗ trợ trực tiếp</h6>
-        </div>
-        <div class="card-body text-center">
-          <p class="mb-3">Nhắn tin trực tiếp với cán bộ xử lý</p>
-          <a
-            href="{{ url_for('chat_detail', maboxchat=boxchat_id) }}"
-            class="btn btn-warning w-100"
-          >
-            <i class="fas fa-comment-dots"></i> Mở chat
-          </a>
+      <!-- Guidelines -->
+      <div class="card border-0 shadow-sm glass-card">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-secondary mb-3 small text-uppercase ls-1"><i class="bi bi-shield-check me-2"></i>Quy định thảo luận</h6>
+            <ul class="list-unstyled small text-muted mb-0 spacing-y-2">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Sử dụng ngôn từ văn minh, lịch sự.</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Không đăng tải thông tin sai sự thật.</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Tôn trọng ý kiến của người khác.</li>
+            </ul>
         </div>
       </div>
-      {% endif %}
     </div>
   </div>
 </div>
@@ -621,84 +387,24 @@ endblock %} {% block content %}
 
     if (file) {
       const size = (file.size / (1024 * 1024)).toFixed(2);
-      const ext = file.name.split(".").pop().toLowerCase();
-
-      let icon = "fa-file";
-      let iconColor = "text-secondary";
-
-      if (["png", "jpg", "jpeg", "gif"].includes(ext)) {
-        icon = "fa-file-image";
-        iconColor = "text-success";
-      } else if (["pdf"].includes(ext)) {
-        icon = "fa-file-pdf";
-        iconColor = "text-danger";
-      } else if (["doc", "docx"].includes(ext)) {
-        icon = "fa-file-word";
-        iconColor = "text-primary";
-      } else if (["xls", "xlsx"].includes(ext)) {
-        icon = "fa-file-excel";
-        iconColor = "text-success";
-      }
-
-      preview.querySelector(
-        "i.fa-file"
-      ).className = `fas ${icon} ${iconColor} me-2`;
       fileName.textContent = file.name;
-      fileSize.textContent = `(${size} MB)`;
-      preview.style.display = "block";
+      fileSize.textContent = size + " MB";
+      preview.style.display = "inline-flex";
     }
   }
 
   function clearCommentFile() {
     const input = document.getElementById("comment-file");
     const preview = document.getElementById("commentFilePreview");
-
     input.value = "";
     preview.style.display = "none";
   }
 
   function previewReplyFile(input, commentId) {
-    const preview = document.getElementById("replyFilePreview" + commentId);
-    const fileName = document.getElementById("replyFileName" + commentId);
-    const fileSize = document.getElementById("replyFileSize" + commentId);
-    const file = input.files[0];
-
-    if (file) {
-      const size = (file.size / (1024 * 1024)).toFixed(2);
-      const ext = file.name.split(".").pop().toLowerCase();
-
-      let icon = "fa-file";
-      let iconColor = "text-secondary";
-
-      if (["png", "jpg", "jpeg", "gif"].includes(ext)) {
-        icon = "fa-file-image";
-        iconColor = "text-success";
-      } else if (["pdf"].includes(ext)) {
-        icon = "fa-file-pdf";
-        iconColor = "text-danger";
-      } else if (["doc", "docx"].includes(ext)) {
-        icon = "fa-file-word";
-        iconColor = "text-primary";
-      } else if (["xls", "xlsx"].includes(ext)) {
-        icon = "fa-file-excel";
-        iconColor = "text-success";
+      const field = document.getElementById("replyFileName" + commentId);
+      if(input.files[0]) {
+          field.textContent = input.files[0].name;
       }
-
-      preview.querySelector(
-        "i.fa-file"
-      ).className = `fas ${icon} ${iconColor} me-2`;
-      fileName.textContent = file.name;
-      fileSize.textContent = `(${size} MB)`;
-      preview.style.display = "block";
-    }
-  }
-
-  function clearReplyFile(commentId) {
-    const input = document.getElementById("reply-file-" + commentId);
-    const preview = document.getElementById("replyFilePreview" + commentId);
-
-    input.value = "";
-    preview.style.display = "none";
   }
 </script>
 {% endblock %}

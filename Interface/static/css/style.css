@@ -4,27 +4,128 @@
 
 /* ===== FONTS & BASE ===== */
 :root {
-    --primary-color: #0d6efd;
-    --primary-dark: #0b5ed7;
-    --secondary-color: #6c757d;
-    --success-color: #198754;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --info-color: #0dcaf0;
-    --light-bg: #f8f9fa;
-    --dark-text: #212529;
-    --border-color: #dee2e6;
-    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-    --transition: all 0.3s ease;
+    --primary-color: #be1128;
+    /* Government Red */
+    --primary-dark: #8b0c1d;
+    --secondary-color: #f1c40f;
+    /* Gold/Yellow */
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #c0392b;
+    --info-color: #2980b9;
+    --light-bg: #f5f7fa;
+    /* Softer gray */
+    --dark-text: #2c3e50;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --header-font: 'Times New Roman', serif;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #f5f7fb;
+    background-color: #f0f2f5;
     color: var(--dark-text);
     min-height: 100vh;
+}
+
+/* ===== GOVERNMENT HEADER ===== */
+.gov-header {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/23/Emblem_of_Vietnam.svg');
+    /* Fallback or texture */
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 50px;
+    /* Subtle watermark effect if desired, or remove */
+    background: linear-gradient(to bottom, #ffffff 0%, #f7f7f7 100%);
+    border-bottom: 3px solid var(--primary-color);
+    padding: 15px 0;
+    text-align: center;
+    position: relative;
+}
+
+.gov-header::before {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 60px;
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/a1/Emblem_of_Vietnam.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.gov-header h1 {
+    font-family: var(--header-font);
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.gov-header h2 {
+    font-family: var(--header-font);
+    text-transform: uppercase;
+    color: #444;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 5px 0 0;
+    letter-spacing: 0.5px;
+}
+
+.gov-navbar {
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 0 1rem;
+}
+
+.gov-navbar .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    padding: 1rem !important;
+    border-radius: 0;
+}
+
+.gov-navbar .nav-link:hover,
+.gov-navbar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff !important;
+}
+
+.gov-navbar .dropdown-menu {
+    border-radius: 0;
+    border-top: 3px solid var(--secondary-color);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.gov-footer {
+    background-color: #333;
+    color: #fff;
+    padding: 2rem 0;
+    border-top: 5px solid var(--secondary-color);
+    margin-top: auto;
+}
+
+.gov-footer h6 {
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.gov-footer .text-muted {
+    color: #aaa !important;
 }
 
 /* ===== NAVBAR ===== */
@@ -69,97 +170,143 @@ body {
 
 /* ===== CARDS ===== */
 .card {
-    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--border-radius);
     transition: var(--transition);
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(31, 38, 135, 0.15);
 }
 
 .stat-card {
-    border-left: 4px solid transparent;
+    border-left: 5px solid transparent;
 }
 
-.stat-card:nth-child(1) .card {
+.stat-card:nth-child(1) .card,
+.col-xl-3:nth-child(1) .card {
     border-left-color: var(--primary-color);
 }
 
-.col-xl-3:nth-child(1) .stat-card {
-    border-left-color: var(--primary-color);
-}
-
-.col-xl-3:nth-child(2) .stat-card {
+.col-xl-3:nth-child(2) .card {
     border-left-color: var(--success-color);
 }
 
-.col-xl-3:nth-child(3) .stat-card {
+.col-xl-3:nth-child(3) .card {
     border-left-color: var(--info-color);
 }
 
-.col-xl-3:nth-child(4) .stat-card {
+.col-xl-3:nth-child(4) .card {
     border-left-color: var(--warning-color);
 }
 
 .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    /* Squircle */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.5), 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ===== TABLES ===== */
-.table {
-    margin-bottom: 0;
+.table-glass {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
 }
 
-.table thead th {
-    font-weight: 600;
+.table-glass thead th {
+    background-color: rgba(245, 247, 250, 0.8);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    color: var(--secondary-color);
+    /* Gold/Yellow or Dark Blue depending on preference, sticking to secondary var which is Gold might be too bright for text. Let's use a dark gray or primary dark */
+    color: #555;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    color: var(--secondary-color);
-    border-bottom: 2px solid var(--border-color);
-    padding: 1rem 0.75rem;
+    letter-spacing: 0.8px;
+    padding: 1rem;
+    white-space: nowrap;
 }
 
-.table tbody tr {
-    transition: var(--transition);
+.table-glass tbody tr {
+    transition: all 0.2s ease;
+    background-color: transparent;
 }
 
-.table tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.04);
+.table-glass tbody tr:hover {
+    background-color: rgba(190, 17, 40, 0.03);
+    transform: scale(1.002);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 2;
+    position: relative;
 }
 
-.table tbody td {
-    padding: 1rem 0.75rem;
+.table-glass tbody td {
+    padding: 1rem;
     vertical-align: middle;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+    color: var(--dark-text);
+    font-size: 0.95rem;
+}
+
+.table-glass tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-xl {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== BUTTONS ===== */
 .btn {
     border-radius: 8px;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     font-weight: 500;
     transition: var(--transition);
+    letter-spacing: 0.3px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+
 }
 
 .btn-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    border: none;
+    color: white;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
 .btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.875rem;
 }
 
 /* ===== BADGES ===== */
@@ -237,6 +384,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -247,6 +395,41 @@ body {
     animation: fadeIn 0.3s ease-out;
 }
 
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn-white {
+    background-color: #fff;
+    border-color: #e9ecef;
+}
+
+.btn-white:hover {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .stat-icon {
@@ -254,11 +437,11 @@ body {
         height: 48px;
         font-size: 1.25rem;
     }
-    
+
     .table-responsive {
         font-size: 0.875rem;
     }
-    
+
     .navbar-brand span {
         font-size: 1rem;
     }
@@ -283,17 +466,35 @@ body {
 
 /* ===== LOGIN PAGE ONLY ===== */
 .login-page-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+    /* Light red/pinkish or just nice background */
+    background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Hanoi_Opera_House_at_night.jpg/1200px-Hanoi_Opera_House_at_night.jpg') no-repeat center center fixed;
+    background-size: cover;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+}
+
+.login-page-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(139, 12, 29, 0.8);
+    /* Overlay with primary-dark */
+    z-index: 1;
 }
 
 .login-container {
     width: 100%;
     max-width: 420px;
     padding: 15px;
+    position: relative;
+    z-index: 2;
 }
 
 .login-card {
@@ -304,7 +505,7 @@ body {
 }
 
 .login-header {
-    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
     padding: 40px 30px;
     text-align: center;
@@ -355,8 +556,9 @@ body {
 }
 
 .form-floating .form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(190, 17, 40, 0.15);
+    /* Red shadow */
 }
 
 .form-floating label {
@@ -372,14 +574,14 @@ body {
     font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     border: none;
     transition: all 0.3s ease;
 }
 
 .btn-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+    box-shadow: 0 8px 25px rgba(190, 17, 40, 0.4);
 }
 
 .login-footer {
@@ -389,7 +591,7 @@ body {
 }
 
 .login-footer a {
-    color: #0d6efd;
+    color: var(--primary-color);
     text-decoration: none;
     font-weight: 500;
 }
@@ -415,7 +617,7 @@ body {
 }
 
 .password-toggle:hover {
-    color: #0d6efd !important;
+    color: var(--primary-color) !important;
 }
 
 /* Alert styling for login */
@@ -423,4 +625,58 @@ body {
     border-radius: 10px;
     border: none;
     margin-bottom: 20px;
+}
+
+/* ===== NEW UTILITY CLASSES ===== */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--border-radius);
+}
+
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.btn-white {
+    background-color: #fff;
+    color: var(--dark-text);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.btn-white:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animation-delay-100 {
+    animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+    animation-delay: 0.2s;
+}
+
+.animation-delay-300 {
+    animation-delay: 0.3s;
 }

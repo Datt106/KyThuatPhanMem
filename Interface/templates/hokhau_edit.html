@@ -1,116 +1,152 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-house-fill me-2"></i>Chỉnh sửa hộ khẩu HK{{ hokhau[0] }}</h2>
-        <a href="{{ url_for('hokhau_list') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Quay lại
-        </a>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa hộ khẩu
+                    </h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('hokhau_list') }}">Hộ khẩu</a></li>
+                            <li class="breadcrumb-item active">Sửa HK{{ hokhau[0] }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{{ url_for('hokhau_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Quay lại
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- Form -->
+    <div class="row fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-lg-10 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-house-door-fill me-2"></i>Thông tin hộ khẩu
+                        <span class="badge bg-primary ms-2 rounded-pill">HK{{ hokhau[0] }}</span>
+                    </h5>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('hokhau_edit', mahokhau=hokhau[0]) }}">
-                <!-- Thông tin địa chỉ -->
-                <div class="mb-4">
-                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Thông tin địa chỉ</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="xaphuong" class="form-label">Xã/Phường <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="xaphuong" name="xaphuong" 
-                                   value="{{ hokhau[2] or '' }}" required>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('hokhau_edit', mahokhau=hokhau[0]) }}">
+                        <!-- Thông tin địa chỉ -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-3 text-uppercase small ls-1">
+                                    <i class="bi bi-geo-alt-fill me-2"></i>Thông tin địa chỉ
+                                </h6>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="chitiet" class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="chitiet" name="chitiet" 
-                                   value="{{ hokhau[3] or '' }}" required>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Ghi chú -->
-                <div class="mb-4">
-                    <label for="ghichu" class="form-label">Ghi chú</label>
-                    <textarea class="form-control" id="ghichu" name="ghichu" rows="3">{{ hokhau[5] or '' }}</textarea>
-                </div>
-
-                <!-- Danh sách thành viên -->
-                <div class="mb-4">
-                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-people-fill me-2"></i>Thành viên trong hộ</h5>
-                    {% if thanhvien %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>CCCD</th>
-                                        <th>Họ tên</th>
-                                        <th>Ngày sinh</th>
-                                        <th>Quan hệ</th>
-                                        <th>Ngày bắt đầu</th>
-                                        <th>Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for tv in thanhvien %}
-                                    <tr>
-                                        <td>{{ tv[0] }}</td>
-                                        <td><strong>{{ tv[1] }}</strong></td>
-                                        <td>{{ tv[2].strftime('%d/%m/%Y') if tv[2] else '' }}</td>
-                                        <td>
-                                            {% if tv[3] %}
-                                                <span class="badge bg-primary">{{ tv[3] }}</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ tv[4].strftime('%d/%m/%Y') if tv[4] else '' }}</td>
-                                        <td>
-                                            {% if tv[5] %}
-                                                <span class="badge bg-warning">Đã kết thúc: {{ tv[5].strftime('%d/%m/%Y') }}</span>
-                                            {% else %}
-                                                <span class="badge bg-success">Đang sinh sống</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="xaphuong" name="xaphuong" value="{{ hokhau[2] or '' }}" required placeholder="Xã/Phường">
+                                    <label for="xaphuong">Xã/Phường <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="chitiet" name="chitiet" value="{{ hokhau[3] or '' }}" required placeholder="Địa chỉ chi tiết">
+                                    <label for="chitiet">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="ghichu" name="ghichu" style="height: 100px" placeholder="Ghi chú">{{ hokhau[5] or '' }}</textarea>
+                                    <label for="ghichu">Ghi chú</label>
+                                </div>
+                            </div>
                         </div>
-                    {% else %}
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>Chưa có thành viên nào trong hộ.
-                        </div>
-                    {% endif %}
-                    <div class="mt-3">
-                        <p class="text-muted small">
-                            <i class="bi bi-lightbulb-fill me-1"></i>
-                            <strong>Lưu ý:</strong> Để thêm/xóa thành viên, vui lòng sử dụng chức năng quản lý thành viên hộ khẩu.
-                        </p>
-                    </div>
-                </div>
 
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ url_for('hokhau_list') }}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle me-2"></i>Hủy
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>Lưu thay đổi
-                    </button>
+                        <hr class="my-4" style="opacity: 0.1;">
+
+                        <!-- Danh sách thành viên -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6 class="text-secondary fw-bold mb-3 text-uppercase small ls-1">
+                                    <i class="bi bi-people-fill me-2"></i>Thành viên trong hộ
+                                </h6>
+                            </div>
+                        </div>
+
+                        {% if thanhvien %}
+                            <div class="table-responsive rounded-3 border">
+                                <table class="table-glass align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-4">CCCD</th>
+                                            <th>Họ tên</th>
+                                            <th>Ngày sinh</th>
+                                            <th>Quan hệ</th>
+                                            <th>Ngày bắt đầu</th>
+                                            <th class="text-center">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for tv in thanhvien %}
+                                        <tr>
+                                            <td class="ps-4 font-monospace">{{ tv[0] }}</td>
+                                            <td class="fw-bold text-dark">{{ tv[1] }}</td>
+                                            <td>{{ tv[2].strftime('%d/%m/%Y') if tv[2] else '' }}</td>
+                                            <td>
+                                                {% if tv[3] %}
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ tv[3] }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ tv[4].strftime('%d/%m/%Y') if tv[4] else '' }}</td>
+                                            <td class="text-center">
+                                                {% if tv[5] %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Đã kết thúc: {{ tv[5].strftime('%d/%m/%Y') }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Đang sinh sống</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light border-0 shadow-sm d-flex align-items-center" role="alert">
+                                <i class="bi bi-info-circle-fill text-info me-2"></i>
+                                <div>Chưa có thành viên nào trong hộ.</div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <p class="text-muted small fst-italic">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                <strong>Lưu ý:</strong> Để thêm/xóa thành viên, vui lòng sử dụng chức năng quản lý thành viên hộ khẩu.
+                            </p>
+                        </div>
+
+                        <hr class="my-4" style="opacity: 0.1;">
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{{ url_for('hokhau_list') }}" class="btn btn-white border shadow-sm px-4">
+                                <i class="bi bi-x-lg me-2"></i>Hủy bỏ
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="bi bi-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

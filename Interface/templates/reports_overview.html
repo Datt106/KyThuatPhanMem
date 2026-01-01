@@ -1,197 +1,238 @@
 {% extends "base.html" %} {% block title %}Báo cáo tổng quan{% endblock %} {%
 block content %}
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-12">
-      <h2><i class="fas fa-chart-line"></i> Báo cáo tổng quan</h2>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-graph-up-arrow me-2"></i>Báo cáo tổng quan
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Báo cáo & Thống kê</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
 
-      <!-- Filter -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <form method="GET" action="{{ url_for('reports_overview') }}">
-            <div class="row">
-              <div class="col-md-4">
-                <label>Từ ngày</label>
-                <input
-                  type="date"
-                  name="from_date"
-                  class="form-control"
-                  value="{{ from_date }}"
-                />
-              </div>
-              <div class="col-md-4">
-                <label>Đến ngày</label>
-                <input
-                  type="date"
-                  name="to_date"
-                  class="form-control"
-                  value="{{ to_date }}"
-                />
-              </div>
-              <div class="col-md-4">
-                <label>&nbsp;</label>
-                <button type="submit" class="btn btn-primary w-100">
-                  <i class="fas fa-filter"></i> Lọc
-                </button>
-              </div>
-            </div>
-          </form>
+    <!-- Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-uppercase text-secondary small ls-1 mb-3">
+                <i class="bi bi-funnel-fill me-2"></i>Bộ lọc thời gian
+            </h6>
+            <form method="GET" action="{{ url_for('reports_overview') }}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Từ ngày</label>
+                        <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Đến ngày</label>
+                        <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm hover-lift">
+                            <i class="bi bi-filter me-2"></i>Lọc dữ liệu
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-      </div>
+    </div>
 
-      <!-- Stats Cards -->
-      <div class="row mb-4">
-        <div class="col-md-3">
-          <div class="card bg-primary text-white">
-            <div class="card-body">
-              <h3>{{ phananh_stats[0] }}</h3>
-              <p>Tổng phản ánh</p>
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4 fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-chat-square-text-fill fs-4"></i>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Tổng số</span>
+                    </div>
+                    <h2 class="display-6 fw-bold text-dark mb-0">{{ phananh_stats[0] }}</h2>
+                    <p class="text-muted mb-0 small text-uppercase fw-bold ls-1 mt-2">Tổng phản ánh</p>
+                </div>
             </div>
-          </div>
         </div>
-        <div class="col-md-3">
-          <div class="card bg-success text-white">
-            <div class="card-body">
-              <h3>{{ phananh_stats[3] }}</h3>
-              <p>Đã xử lý</p>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-hourglass-split fs-4"></i>
+                        </div>
+                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Đang xử lý</span>
+                    </div>
+                    <h2 class="display-6 fw-bold text-dark mb-0">{{ phananh_stats[2] }}</h2>
+                    <p class="text-muted mb-0 small text-uppercase fw-bold ls-1 mt-2">Phản ánh đang chờ</p>
+                </div>
             </div>
-          </div>
         </div>
-        <div class="col-md-3">
-          <div class="card bg-warning text-white">
-            <div class="card-body">
-              <h3>{{ phananh_stats[2] }}</h3>
-              <p>Đang xử lý</p>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-check-circle-fill fs-4"></i>
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Hoàn thành</span>
+                    </div>
+                    <h2 class="display-6 fw-bold text-dark mb-0">{{ phananh_stats[3] }}</h2>
+                    <p class="text-muted mb-0 small text-uppercase fw-bold ls-1 mt-2">Đã xử lý xong</p>
+                </div>
             </div>
-          </div>
         </div>
-        <div class="col-md-3">
-          <div class="card bg-info text-white">
-            <div class="card-body">
-              <h3>{{ vande_stats[0] }}</h3>
-              <p>Tổng vấn đề</p>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-list-task fs-4"></i>
+                        </div>
+                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill">Vấn đề</span>
+                    </div>
+                    <h2 class="display-6 fw-bold text-dark mb-0">{{ vande_stats[0] }}</h2>
+                    <p class="text-muted mb-0 small text-uppercase fw-bold ls-1 mt-2">Tổng số vấn đề</p>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
 
-      <!-- Charts row -->
-      <div class="row mb-4">
+    <!-- Charts row -->
+    <div class="row g-4 mb-4">
         <!-- Phân loại vấn đề -->
         <div class="col-md-6">
-          <div class="card">
-            <div class="card-header bg-dark text-white">
-              <h5>Thống kê theo phân loại</h5>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-pie-chart-fill me-2"></i>Thống kê theo phân loại
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 table-glass">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Phân loại</th>
+                                    <th class="text-end pe-4">Số lượng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in phanloai_stats %}
+                                <tr>
+                                    <td class="ps-4 fw-medium">{{ item[0] }}</td>
+                                    <td class="text-end pe-4">
+                                        <span class="badge bg-primary rounded-pill">{{ item[1] }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Phân loại</th>
-                    <th>Số lượng</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for item in phanloai_stats %}
-                  <tr>
-                    <td>{{ item[0] }}</td>
-                    <td>
-                      <span class="badge bg-primary">{{ item[1] }}</span>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
         <!-- Top cán bộ -->
         <div class="col-md-6">
-          <div class="card">
-            <div class="card-header bg-dark text-white">
-              <h5>Top 5 cán bộ xử lý</h5>
-            </div>
-            <div class="card-body">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Họ tên</th>
-                    <th>Số vấn đề</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for cb in top_canbo %}
-                  <tr>
-                    <td>{{ cb[0] }}</td>
-                    <td>
-                      <span class="badge bg-success">{{ cb[2] }}</span>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Xu hướng theo tháng -->
-      <div class="card">
-        <div class="card-header bg-dark text-white">
-          <h5>Xu hướng phản ánh 12 tháng gần nhất</h5>
-        </div>
-        <div class="card-body">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Tháng</th>
-                <th>Số phản ánh</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for trend in monthly_trend %}
-              <tr>
-                <td>{{ trend[0] }}</td>
-                <td>
-                  <div class="progress">
-                    <div
-                      class="progress-bar bg-info"
-                      style="width: {{ (trend[1] / monthly_trend[0][1] * 100) if monthly_trend[0][1] > 0 else 0 }}%"
-                    >
-                      {{ trend[1] }}
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                        <i class="bi bi-trophy-fill me-2"></i>Top 5 cán bộ xử lý tiêu biểu
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 table-glass">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Họ tên cán bộ</th>
+                                    <th class="text-end pe-4">Số vấn đề đã xử lý</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cb in top_canbo %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person-fill"></i>
+                                            </div>
+                                            <span class="fw-medium">{{ cb[0] }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="badge bg-success rounded-pill">{{ cb[2] }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- Export links -->
-      <div class="mt-4 text-center">
-        <a
-          href="{{ url_for('reports_phananh') }}"
-          class="btn btn-outline-primary"
-        >
-          <i class="fas fa-chart-bar"></i> Báo cáo chi tiết Phản ánh
-        </a>
-        <a
-          href="{{ url_for('reports_vande') }}"
-          class="btn btn-outline-success"
-        >
-          <i class="fas fa-tasks"></i> Báo cáo chi tiết Vấn đề
-        </a>
-        <a
-          href="{{ url_for('reports_engagement') }}"
-          class="btn btn-outline-info"
-        >
-          <i class="fas fa-heart"></i> Báo cáo Tương tác
-        </a>
-      </div>
     </div>
-  </div>
+
+    <!-- Xu hướng theo tháng -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="card-title mb-0 fw-bold text-uppercase small ls-1 text-secondary">
+                <i class="bi bi-bar-chart-line-fill me-2"></i>Xu hướng phản ánh 12 tháng gần nhất
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-glass">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4" style="width: 150px;">Tháng</th>
+                            <th class="pe-4">Mức độ phản ánh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trend in monthly_trend %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">{{ trend[0] }}</td>
+                            <td class="pe-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-3" style="height: 10px; border-radius: 10px;">
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                             style="width: {{ (trend[1] / monthly_trend[0][1] * 100) if monthly_trend[0][1] > 0 else 0 }}%; border-radius: 10px;">
+                                        </div>
+                                    </div>
+                                    <span class="fw-bold text-dark">{{ trend[1] }}</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export links -->
+    <div class="row g-3 justify-content-center py-4">
+        <div class="col-md-auto">
+            <a href="{{ url_for('reports_phananh') }}" class="btn btn-white border shadow-sm w-100 hover-lift">
+                <i class="bi bi-file-earmark-text text-primary me-2"></i>Báo cáo chi tiết Phản ánh
+            </a>
+        </div>
+        <div class="col-md-auto">
+            <a href="{{ url_for('reports_vande') }}" class="btn btn-white border shadow-sm w-100 hover-lift">
+                <i class="bi bi-list-task text-success me-2"></i>Báo cáo chi tiết Vấn đề
+            </a>
+        </div>
+        <div class="col-md-auto">
+            <a href="{{ url_for('reports_engagement') }}" class="btn btn-white border shadow-sm w-100 hover-lift">
+                <i class="bi bi-heart text-danger me-2"></i>Báo cáo Tương tác
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}
